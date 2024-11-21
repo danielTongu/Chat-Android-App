@@ -1,5 +1,6 @@
 package com.example.chatandroidapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -7,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatandroidapp.adapters.UsersAdapter;
 import com.example.chatandroidapp.databinding.ActivityUserBinding;
+import com.example.chatandroidapp.listeners.UserListener;
 import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -16,7 +18,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserActivity extends AppCompatActivity {
+public class UserActivity extends AppCompatActivity implements UserListener {
     private ActivityUserBinding binding;
     private PreferenceManager preferenceManager;
 
@@ -63,7 +65,7 @@ public class UserActivity extends AppCompatActivity {
                         if (users.isEmpty()) {
                             showErrorMessage();
                         } else {
-                            UsersAdapter usersAdapter = new UsersAdapter(users);
+                            UsersAdapter usersAdapter = new UsersAdapter(users, this);
                             binding.usersRecyclerView.setAdapter(usersAdapter);
                             binding.usersRecyclerView.setVisibility(View.VISIBLE);
                         }
@@ -80,5 +82,13 @@ public class UserActivity extends AppCompatActivity {
 
     private void loading(Boolean isLoading) {
         binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    @Override
+    public void OnUserClicked(User user) {
+        Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+        intent.putExtra(Constants.KEY_USER, user);
+        startActivity(intent);
+        finish();
     }
 }
