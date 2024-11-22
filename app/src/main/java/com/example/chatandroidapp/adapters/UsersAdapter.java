@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ItemContainerUserBinding;
 import com.example.chatandroidapp.listeners.UserListener;
 import com.example.chatandroidapp.module.User;
@@ -62,6 +63,9 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
      * @return A Bitmap representation of the decoded image.
      */
     private Bitmap getUserImage(String encodedImage) {
+        if (encodedImage == null || encodedImage.isEmpty()) {
+            return null; // Return null so the default image can be used
+        }
         byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
@@ -87,11 +91,16 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
          * @param user The User object containing the data to display.
          */
         void setUserData(User user) {
+            binding.textName.setText(String.format("%s %s", user.firstName, user.lastName));
+            binding.textEmail.setText(user.email);
 
-            binding.textName.setText(String.format("%s %s", user.firstName, user.lastName)); // Set the user's full name
-            binding.textEmail.setText(user.email); // Set the user's email
-            binding.imageProfile.setImageBitmap(getUserImage(user.image)); // Decode and set the user's profile image
-            binding.getRoot().setOnClickListener(v -> userListener.OnUserClicked(user)); // Set a click listener on the root view to handle user selection
+            if (user.image != null && !user.image.isEmpty()) {
+                binding.imageProfile.setImageBitmap(getUserImage(user.image));
+            } else {
+                binding.imageProfile.setImageResource(R.drawable.ic_person);
+            }
+
+            binding.getRoot().setOnClickListener(v -> userListener.OnUserClicked(user));
         }
     }
 }

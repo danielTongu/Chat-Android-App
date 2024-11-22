@@ -15,6 +15,7 @@ import com.example.chatandroidapp.module.ChatMessage;
 import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
+import com.example.chatandroidapp.utilities.Utilities;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -119,11 +120,19 @@ public class ChatActivity extends AppCompatActivity {
      * Sends a chat message to Firestore. Resets the input field after sending.
      */
     private void sendMessages() {
+        // Retrieve the message from the input field
+        String inputMessage = binding.inputMessage.getText().toString().trim();
+
+        // Check if the message is empty
+        if (inputMessage.isEmpty()) {
+            Utilities.showToast(this, "Cannot send an empty message", Utilities.ToastType.WARNING);
+            return;
+        }
         // Prepare message data to send
         HashMap<String, Object> message = new HashMap<>();
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USER_ID));
         message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
-        message.put(Constants.KEY_MESSAGE, binding.inputMessage.getText().toString().trim());
+        message.put(Constants.KEY_MESSAGE, inputMessage);
         message.put(Constants.KEY_TIMESTAMP, new Date());
 
         // Add the message to the Firestore chat collection
