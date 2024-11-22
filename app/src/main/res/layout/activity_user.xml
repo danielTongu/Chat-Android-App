@@ -23,7 +23,7 @@
         android:layout_height="30dp"
         android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
-        android:background="@drawable/toolbar_ic_background"
+        android:background="@drawable/background_ic_toolbar"
         android:padding="6dp"
         android:src="@drawable/ic_back"
         android:tint="@color/white"

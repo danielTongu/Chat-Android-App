@@ -65,7 +65,7 @@ public class Utilities {
      */
     private static void displayCustomToast(Context context, String message, ToastType type) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View layout = inflater.inflate(R.layout.toast_custom, null);
+        View layout = inflater.inflate(R.layout.container_custom_toast, null);
 
         // Initialize UI components within the custom Toast layout
         LinearLayout toastRoot = layout.findViewById(R.id.toast_layout_root);

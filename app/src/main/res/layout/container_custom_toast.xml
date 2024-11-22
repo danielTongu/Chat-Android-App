@@ -1,10 +1,10 @@
-<!-- res/layout/custom_toast_danger.xml -->
+<!-- res/layout/toast_custom.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/toast_layout_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/error"
+    android:background="@color/info"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="8dp">
@@ -14,7 +14,7 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_marginEnd="8dp"
-        android:src="@drawable/ic_error"
+        android:src="@drawable/ic_info"
         app:tint="@color/white" />
 
     <TextView
