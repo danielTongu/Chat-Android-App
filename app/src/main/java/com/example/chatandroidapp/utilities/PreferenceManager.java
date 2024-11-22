@@ -4,22 +4,34 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * PreferenceManager is a utility class that provides methods to interact with SharedPreferences.
- * It allows storing and retrieving key-value pairs, as well as clearing all stored preferences.
+ * This class manages the application's shared preferences, providing methods
+ * to store and retrieve various types of data.
  *
- * @author  Daniel Tongu
+ * @author Daniel Tongu
  */
 public class PreferenceManager {
 
-    // SharedPreferences instance to store and retrieve preferences
+    private static PreferenceManager instance;
     private final SharedPreferences sharedPreferences;
 
     /**
-     * Constructor for PreferenceManager.
+     * Private constructor to enforce Singleton pattern.
      * @param context The context used to access SharedPreferences.
      */
-    public PreferenceManager(Context context) {
+    private PreferenceManager(Context context) {
         sharedPreferences = context.getSharedPreferences(Constants.KEY_PREFERENCE_NAME, Context.MODE_PRIVATE);
+    }
+
+    /**
+     * Provides the Singleton instance of PreferenceManager.
+     * @param context The context used to access SharedPreferences.
+     * @return The Singleton instance of PreferenceManager.
+     */
+    public static synchronized PreferenceManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new PreferenceManager(context.getApplicationContext());
+        }
+        return instance;
     }
 
     /**
@@ -35,7 +47,6 @@ public class PreferenceManager {
 
     /**
      * Retrieves a boolean value from SharedPreferences.
-     *
      * @param key The key of the value to retrieve.
      * @return The boolean value associated with the key, or false if not found.
      */

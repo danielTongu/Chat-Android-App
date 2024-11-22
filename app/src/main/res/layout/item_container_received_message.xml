@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    Received Message Item Layout:
+    This layout represents an individual received message in the chat.
+    It includes the sender's profile image, the message content, and the timestamp.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:padding="4dp">
 
+    <!-- Profile Image: Displays the sender's profile picture -->
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/imageProfile"
         android:layout_width="50dp"
@@ -16,6 +23,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:riv_oval="true" />
 
+    <!-- Message TextView: Displays the message content -->
     <TextView
         android:id="@+id/textMessage"
         android:layout_width="0dp"
@@ -34,6 +42,7 @@
         app:layout_constraintWidth_max="wrap"
         app:layout_constraintWidth_percent="0.75" />
 
+    <!-- Timestamp TextView: Displays the date and time of the message -->
     <TextView
         android:id="@+id/textDateTime"
         android:layout_width="0dp"

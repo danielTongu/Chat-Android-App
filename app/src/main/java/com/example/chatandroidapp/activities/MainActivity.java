@@ -10,10 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityMainBinding;
-import com.example.chatandroidapp.utilities.Constants;
-import com.example.chatandroidapp.utilities.PreferenceManager;
-import com.example.chatandroidapp.utilities.ToastType;
-import com.example.chatandroidapp.utilities.Utilities;
+import com.example.chatandroidapp.utilities.*;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -22,12 +19,16 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import java.util.HashMap;
 
 /**
- * MainActivity serves as the primary screen of the Chat Android application.
- * It handles user interface initialization, user details loading, token management, and user sign-out functionality.
+ * This activity serves as the main hub of the application, displaying user details
+ * such as first name, last name, and profile picture, and providing options to
+ * sign out or start a new chat.
+ *
+ * @author  Daniel Tongu
  */
 public class MainActivity extends AppCompatActivity {
-    private ActivityMainBinding binding;// View binding for the activity's layout
-    private PreferenceManager preferenceManager;// PreferenceManager instance for managing shared preferences
+
+    private ActivityMainBinding binding; // View binding for the activity's layout
+    private PreferenceManager preferenceManager; // PreferenceManager instance for managing shared preferences
 
     /**
      * Called when the activity is first created. Initializes the UI, loads user details,
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
-        preferenceManager = new PreferenceManager(getApplicationContext());
+        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
 
         setContentView(binding.getRoot());
         setUpListeners();
@@ -53,10 +54,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Sets up event listeners for UI components.
      * Currently, it sets a click listener on the sign-out image to trigger the signOut process.
+     * Also sets a listener for the FloatingActionButton to start a new chat.
      */
     private void setUpListeners() {
-        binding.imageSignOut.setOnClickListener(v -> signOut()); 
-        binding.fabNewChat.setOnClickListener(v -> startActivity(new Intent( getApplicationContext(), UserActivity.class)));
+        binding.imageSignOut.setOnClickListener(v -> signOut());
+        binding.fabNewChat.setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), UserActivity.class)));
     }
 
     /**
@@ -65,16 +67,18 @@ public class MainActivity extends AppCompatActivity {
     private void getToken() {
         FirebaseMessaging.getInstance().getToken()
                 .addOnSuccessListener(this::updateToken)
-                .addOnFailureListener(e -> Utilities.showToast(this, "Failed to get FCM token", ToastType.ERROR));
+                .addOnFailureListener(e -> Utilities.showToast(this, "Failed to get FCM token", Utilities.ToastType.ERROR));
     }
 
     /**
-     * Loads the user's details such as username and profile image from shared preferences
+     * Loads the user's details such as first name, last name, and profile image from shared preferences
      * and displays them in the UI.
      */
     private void loadUserDetails() {
-        // Set the username from shared preferences
-        binding.inputName.setText(preferenceManager.getString(Constants.KEY_NAME));
+        // Set the full name in the TextView
+        binding.inputName.setText(String.format("%s %s",
+                preferenceManager.getString(Constants.KEY_FIRST_NAME),
+                preferenceManager.getString(Constants.KEY_LAST_NAME)));
 
         // Decode the Base64-encoded profile image and set it to the ImageView
         String encodedImage = preferenceManager.getString(Constants.KEY_IMAGE);
@@ -94,16 +98,16 @@ public class MainActivity extends AppCompatActivity {
     private void updateToken(String token) {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
 
-        // Reference to the current user's document in the users collection
+        // Reference to the current user's document in the Users collection
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS)
                 .document(preferenceManager.getString(Constants.KEY_USER_ID));
 
         // Update the FCM token field with the new token
         documentReference.update(Constants.KEY_FCM_TOKEN, token)
                 .addOnSuccessListener(unused ->
-                        Utilities.showToast(this, "Token updated successfully", ToastType.SUCCESS))
+                        Utilities.showToast(this, "Token updated successfully", Utilities.ToastType.SUCCESS))
                 .addOnFailureListener(e ->
-                        Utilities.showToast(this, "Unable to update Token", ToastType.ERROR));
+                        Utilities.showToast(this, "Unable to update Token", Utilities.ToastType.ERROR));
     }
 
     /**
@@ -116,12 +120,12 @@ public class MainActivity extends AppCompatActivity {
      * </ul>
      */
     private void signOut() {
-        Utilities.showToast(this, "Signing out ...", ToastType.INFO);
+        Utilities.showToast(this, "Signing out...", Utilities.ToastType.INFO);
 
         // Get an instance of Firestore
         FirebaseFirestore database = FirebaseFirestore.getInstance();
 
-        // Reference to the current user's document in the users collection
+        // Reference to the current user's document in the Users collection
         DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS)
                 .document(preferenceManager.getString(Constants.KEY_USER_ID));
 
@@ -139,6 +143,6 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(getApplicationContext(), SignInActivity.class));
                     finish();
                 })
-                .addOnFailureListener(e -> Utilities.showToast(this, "Unable to sign out", ToastType.ERROR));
+                .addOnFailureListener(e -> Utilities.showToast(this, "Unable to sign out", Utilities.ToastType.ERROR));
     }
 }

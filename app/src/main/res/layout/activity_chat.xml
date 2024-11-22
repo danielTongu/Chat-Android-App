@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    ChatActivity Layout:
+    This layout represents the UI for a chat screen in the application.
+    It includes a toolbar, chat list, progress bar, and input area for sending messages.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -9,6 +15,7 @@
     android:background="@color/primary"
     tools:context=".activities.ChatActivity">
 
+    <!-- Decorative background view -->
     <View
         android:id="@+id/viewBackground"
         android:layout_width="match_parent"
@@ -19,14 +26,16 @@
         app:layout_constraintBottom_toTopOf="@id/layoutSend"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Divider view for separating toolbar from content -->
     <View
         android:id="@+id/viewSupporter"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/primary"
         android:layout_marginTop="12dp"
+        android:background="@color/primary"
         app:layout_constraintTop_toBottomOf="@id/imageBack" />
 
+    <!-- Background for the header area -->
     <View
         android:id="@+id/headerBackground"
         android:layout_width="match_parent"
@@ -35,12 +44,12 @@
         app:layout_constraintBottom_toTopOf="@id/viewSupporter"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Back button for navigating to the previous screen -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/imageBack"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         android:padding="5dp"
         android:src="@drawable/ic_back"
@@ -48,12 +57,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Information icon for additional chat options or details -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/imageInfo"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_marginTop="12dp"
-        android:layout_marginRight="16dp"
         android:layout_marginEnd="16dp"
         android:padding="4dp"
         android:src="@drawable/ic_info"
@@ -61,6 +70,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- TextView to display the chat participant's name -->
     <TextView
         android:id="@+id/textName"
         android:layout_width="0dp"
@@ -73,11 +83,12 @@
         android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/imageBack"
-        app:layout_constraintEnd_toStartOf="@+id/imageInfo"
-        app:layout_constraintStart_toEndOf="@+id/imageBack"
+        app:layout_constraintBottom_toBottomOf="@id/imageBack"
+        app:layout_constraintEnd_toStartOf="@id/imageInfo"
+        app:layout_constraintStart_toEndOf="@id/imageBack"
         app:layout_constraintTop_toTopOf="@id/imageBack" />
 
+    <!-- RecyclerView to display the list of chat messages -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatRecyclerView"
         android:layout_width="match_parent"
@@ -90,17 +101,19 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="@id/viewBackground"
         app:layout_constraintTop_toBottomOf="@id/viewSupporter"
-        app:stackFromEnd="true"/>
+        app:stackFromEnd="true" />
 
+    <!-- ProgressBar displayed while loading chat messages -->
     <ProgressBar
-        android:id="@id/progressBar"
+        android:id="@+id/progressBar"
         android:layout_width="80dp"
         android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="@id/viewBackground"
-        app:layout_constraintStart_toStartOf="@id/viewBackground"
         app:layout_constraintEnd_toEndOf="@id/viewSupporter"
-        app:layout_constraintTop_toTopOf="@id/viewBackground"/>
+        app:layout_constraintStart_toStartOf="@id/viewBackground"
+        app:layout_constraintTop_toTopOf="@id/viewBackground" />
 
+    <!-- Layout for the send button -->
     <FrameLayout
         android:id="@+id/layoutSend"
         android:layout_width="40dp"
@@ -111,6 +124,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Send button icon -->
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -120,6 +134,7 @@
             android:tint="@color/white" />
     </FrameLayout>
 
+    <!-- EditText for entering chat messages -->
     <EditText
         android:id="@+id/inputMessage"
         android:layout_width="0dp"
@@ -134,9 +149,9 @@
         android:inputType="text"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:textSize="20sp"
         android:textColor="@color/white"
         android:textColorHint="@color/secondary_text"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/layoutSend"
         app:layout_constraintStart_toStartOf="parent" />

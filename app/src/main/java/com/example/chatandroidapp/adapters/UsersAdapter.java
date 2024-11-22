@@ -15,54 +15,83 @@ import com.example.chatandroidapp.module.User;
 
 import java.util.List;
 
-public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHolder>{
-    private List<User> userList;
-    private final UserListener userListener;
+/**
+ * The UsersAdapter class is a RecyclerView adapter that binds user data to a user item layout.
+ * It handles displaying a list of users and allows interaction with each user through a click listener.
+ *
+ * @author Daniel Tongu
+ */
+public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHolder> {
+    private final List<User> users; // List of users to display
+    private final UserListener userListener; // Listener to handle user clicks
 
-    public UsersAdapter(List<User> userList, UserListener userListener) {
-        this.userList = userList;
-        this.userListener =  userListener;
+    /**
+     * Constructor for the UsersAdapter.
+     * @param users        List of User objects to display.
+     * @param userListener Listener for handling user click events.
+     */
+    public UsersAdapter(List<User> users, UserListener userListener) {
+        this.users = users;
+        this.userListener = userListener;
     }
-
 
     @NonNull
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflate the user item layout
         ItemContainerUserBinding itemContainerUserBinding = ItemContainerUserBinding
-                .inflate(LayoutInflater.from(parent.getContext()),parent,false);
+                .inflate(LayoutInflater.from(parent.getContext()), parent, false);
 
+        // Return a new UserViewHolder
         return new UserViewHolder(itemContainerUserBinding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
-        holder.setUserData(userList.get(position));
+        holder.setUserData(users.get(position));// Bind user data to the view holder
     }
 
     @Override
     public int getItemCount() {
-        return userList.size();
+        return users.size();// Return the total number of users
     }
 
-    class UserViewHolder extends RecyclerView.ViewHolder {
-        ItemContainerUserBinding binding;
+    /**
+     * Decodes a Base64-encoded string into a Bitmap image.
+     * @param encodedImage The Base64-encoded image string.
+     * @return A Bitmap representation of the decoded image.
+     */
+    private Bitmap getUserImage(String encodedImage) {
+        byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+    }
 
+    /**
+     * ViewHolder class for individual user items.
+     * It binds user data to the UI components in the user item layout.
+     */
+    class UserViewHolder extends RecyclerView.ViewHolder {
+        private final ItemContainerUserBinding binding; // Binding for the user item layout
+
+        /**
+         * Constructor for UserViewHolder.
+         * @param itemContainerUserBinding Binding object for the user item layout.
+         */
         public UserViewHolder(ItemContainerUserBinding itemContainerUserBinding) {
             super(itemContainerUserBinding.getRoot());
             binding = itemContainerUserBinding;
         }
 
-        void setUserData(User user){
-            binding.textName.setText(user.name);
-            binding.textEmail.setText(user.email);
-            binding.imageProfile.setImageBitmap(getUserImage(user.image));
+        /**
+         * Binds a User object to the UI components in the user item layout.
+         * @param user The User object containing the data to display.
+         */
+        void setUserData(User user) {
 
-            binding.getRoot().setOnClickListener(v -> userListener.OnUserClicked(user));
+            binding.textName.setText(String.format("%s %s", user.firstName, user.lastName)); // Set the user's full name
+            binding.textEmail.setText(user.email); // Set the user's email
+            binding.imageProfile.setImageBitmap(getUserImage(user.image)); // Decode and set the user's profile image
+            binding.getRoot().setOnClickListener(v -> userListener.OnUserClicked(user)); // Set a click listener on the root view to handle user selection
         }
-    }
-
-    private Bitmap getUserImage (String encodedImage) {
-    byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
 }

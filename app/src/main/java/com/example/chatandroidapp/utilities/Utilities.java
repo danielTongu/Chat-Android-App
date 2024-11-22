@@ -1,6 +1,7 @@
 package com.example.chatandroidapp.utilities;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,15 +16,26 @@ import androidx.core.content.ContextCompat;
 import com.example.chatandroidapp.R;
 
 /**
- * Utilities class for common utility functions used across the application.
- * @author Daniel Tongu
+ * This class provides utility methods for the application, such as displaying
+ * custom Toast messages, validating email formats, and encoding images.
  *
+ * @author Daniel Tongu
  */
 public class Utilities {
 
     /**
+     * Enum representing different types of Toast messages.
+     */
+    public enum ToastType {
+        INFO,
+        WARNING,
+        ERROR,
+        SUCCESS,
+        DEFAULT
+    }
+
+    /**
      * Displays a Toast message with the default type.
-     *
      * @param context The context to use for displaying the Toast.
      * @param message The message to display in the Toast.
      */
@@ -33,7 +45,6 @@ public class Utilities {
 
     /**
      * Displays a Toast message with the specified type.
-     *
      * @param context The context to use for displaying the Toast.
      * @param message The message to display in the Toast.
      * @param type    The type of the message: INFO, WARNING, ERROR, SUCCESS, or DEFAULT.
@@ -48,7 +59,6 @@ public class Utilities {
 
     /**
      * Displays a custom Toast with styling based on the provided ToastType.
-     *
      * @param context The context to use for displaying the Toast.
      * @param message The message to display in the Toast.
      * @param type    The type of the message: INFO, WARNING, ERROR, or SUCCESS.
@@ -112,7 +122,6 @@ public class Utilities {
 
     /**
      * Validates whether the provided string is a valid email address.
-     *
      * @param email The email string to validate.
      * @return {@code true} if the email is valid, {@code false} otherwise.
      */
@@ -122,22 +131,21 @@ public class Utilities {
 
     /**
      * Encodes a Bitmap image to a Base64 string after resizing and compressing it.
-     *
      * @param bitmap The Bitmap image to encode.
      * @return A Base64 encoded string representation of the image.
      */
-    public static String encodeImage(android.graphics.Bitmap bitmap) {
+    public static String encodeImage(Bitmap bitmap) {
         // Define the desired width for the preview image
         int previewWidth = 150;
         // Calculate the height to maintain the aspect ratio
         int previewHeight = bitmap.getHeight() * previewWidth / bitmap.getWidth();
 
         // Create a scaled bitmap for the preview
-        android.graphics.Bitmap previewBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, previewWidth, previewHeight, false);
+        Bitmap previewBitmap = Bitmap.createScaledBitmap(bitmap, previewWidth, previewHeight, false);
         java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
 
         // Compress the bitmap into JPEG format with 50% quality
-        previewBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
+        previewBitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
         byte[] bytes = byteArrayOutputStream.toByteArray();
 
         // Encode the byte array into a Base64 string

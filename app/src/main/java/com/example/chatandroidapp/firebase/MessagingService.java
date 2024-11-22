@@ -16,7 +16,6 @@ public class MessagingService extends FirebaseMessagingService {
     /**
      * Called when a new token for the default Firebase project is generated.
      * This occurs after initial startup of the app, and whenever the token is refreshed.
-     *
      * @param token The new token.
      */
     @Override
@@ -30,7 +29,6 @@ public class MessagingService extends FirebaseMessagingService {
 
     /**
      * Called when a message is received.
-     *
      * @param message The message that was received.
      */
     @Override

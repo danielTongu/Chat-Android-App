@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    MainActivity Layout:
+    This layout represents the main screen of the application.
+    It includes a toolbar with a profile image, username, and sign-out button.
+    Additionally, it has a frame layout for displaying dynamic content and a floating action button for starting a new chat.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,7 +15,7 @@
     android:background="@color/primary"
     tools:context=".activities.MainActivity">
 
-    <!-- Profile Image -->
+    <!-- Profile Image: Displays the user's profile picture -->
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/imageProfile"
         android:layout_width="40dp"
@@ -20,9 +26,9 @@
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:riv_corner_radius="8dp"/>
+        app:riv_corner_radius="8dp" />
 
-    <!-- Username TextView -->
+    <!-- Username TextView: Displays the user's name -->
     <TextView
         android:id="@+id/input_name"
         android:layout_width="0dp"
@@ -41,7 +47,7 @@
         app:layout_constraintStart_toEndOf="@+id/imageProfile"
         app:layout_constraintTop_toTopOf="@id/imageProfile" />
 
-    <!-- Sign Out ImageView -->
+    <!-- Sign Out Button: Allows the user to sign out -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/imageSignOut"
         android:layout_width="40dp"
@@ -56,6 +62,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:riv_corner_radius="8dp" />
 
+    <!-- Frame Layout: Placeholder for dynamic content (e.g., chat list or loading indicator) -->
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="match_parent"
@@ -65,6 +72,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageProfile">
 
+        <!-- Progress Bar: Displays a loading indicator while data is being loaded -->
         <ProgressBar
             android:id="@id/progressBar"
             android:layout_width="80dp"
@@ -72,6 +80,7 @@
             android:layout_gravity="center" />
     </FrameLayout>
 
+    <!-- Floating Action Button: Allows the user to start a new chat -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabNewChat"
         android:layout_width="wrap_content"
@@ -82,6 +91,6 @@
         android:src="@drawable/ic_add"
         android:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

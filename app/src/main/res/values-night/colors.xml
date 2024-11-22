@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="black">#FFFFFFFF</color>
+    <color name="white">#FF000000</color>
+    <color name="primary">#FFB03A48</color>
+    <color name="input_background">#1A1A1A</color>
+    <color name="icon_background">#50FFFFFF</color>
+
+    <!-- Text Colors -->
+    <color name="primary_text">#FFFFFF</color>
+    <color name="secondary_text">#BDBDBD</color>
+
+    <!-- Message Backgrounds -->
+    <color name="received_message_background">#121212</color>
+
+    <!-- Custom Toast Colors -->
+    <color name="error">#EF9A9A</color>
+    <color name="warning">#FFEB3B</color>
+    <color name="success">#66BB6A</color>
+    <color name="info">#42A5F5</color>
+</resources>

@@ -1,7 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    activity_signup.xml
+
     This XML layout defines the user interface for the SignUpActivity.
-    It includes input fields for name, email, password, and confirm password,
-    as well as buttons for signing up and navigating back to sign-in.
+    It includes input fields for first name, last name, email, password,
+    and confirm password, as well as buttons for signing up and navigating
+    back to sign-in. The profile picture is optional and displayed within
+    a rounded view.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -41,8 +46,8 @@
             <!-- RoundedImageView for the user's profile picture -->
             <com.makeramen.roundedimageview.RoundedImageView
                 android:id="@+id/imageProfile"
-                android:layout_width="143dp"
-                android:layout_height="143dp"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
                 android:background="@drawable/background_image"
                 android:scaleType="centerCrop"
                 app:riv_oval="true" />
@@ -55,22 +60,39 @@
                 android:layout_gravity="center"
                 android:text="Add Image"
                 android:textColor="@color/secondary_text"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
         </FrameLayout>
 
-        <!-- Input field for the user's name -->
+        <!-- Input field for the user's first name -->
         <EditText
-            android:id="@+id/inputName"
+            android:id="@+id/inputFirstName"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="33dp"
             android:background="@drawable/background_input"
-            android:hint="Name"
+            android:hint="First Name"
             android:imeOptions="actionNext"
             android:importantForAutofill="no"
-            android:inputType="text"
+            android:inputType="textPersonName"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
+            android:textColor="@color/primary_text"
+            android:textSize="20sp" />
+
+        <!-- Input field for the user's last name -->
+        <EditText
+            android:id="@+id/inputLastName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/background_input"
+            android:hint="Last Name"
+            android:imeOptions="actionNext"
+            android:importantForAutofill="no"
+            android:inputType="textPersonName"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textAlignment="gravity"
             android:textColor="@color/primary_text"
             android:textSize="20sp" />
 
@@ -116,7 +138,7 @@
             android:layout_marginTop="20dp"
             android:background="@drawable/background_input"
             android:hint="Confirm Password"
-            android:imeOptions="actionNext"
+            android:imeOptions="actionDone"
             android:importantForAutofill="no"
             android:inputType="textPassword"
             android:paddingStart="16dp"
@@ -141,7 +163,9 @@
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                app:cornerRadius="8dp" />
+                app:cornerRadius="8dp"
+                android:backgroundTint="@color/primary"
+                android:contentDescription="Sign Up Button" />
 
             <!-- ProgressBar displayed during sign-up process -->
             <ProgressBar
@@ -159,10 +183,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="20dp"
-            android:text="Sign In"
+            android:text="Already have an account? Sign In"
             android:textColor="@color/secondary_text"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Sign In Text" />
     </LinearLayout>
 
 </ScrollView>
