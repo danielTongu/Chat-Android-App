@@ -22,7 +22,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/background_content_top"
+        android:background="@drawable/bg_rectangel_round_bottom"
         app:layout_constraintBottom_toTopOf="@id/layoutSend"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -120,7 +120,7 @@
         android:layout_height="40dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/background_chat_input"
+        android:background="@drawable/bg_rectangle_round_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -142,7 +142,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/background_chat_input"
+        android:background="@drawable/bg_rectangle_round_dark"
         android:hint="type a message"
         android:imeOptions="actionDone"
         android:importantForAutofill="no"

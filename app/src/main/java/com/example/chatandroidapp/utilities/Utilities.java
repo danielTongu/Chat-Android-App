@@ -1,17 +1,19 @@
 package com.example.chatandroidapp.utilities;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
-import android.graphics.PorterDuff;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 
 import com.example.chatandroidapp.R;
 
@@ -65,57 +67,44 @@ public class Utilities {
      */
     private static void displayCustomToast(Context context, String message, ToastType type) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View layout = inflater.inflate(R.layout.container_custom_toast, null);
-
-        // Initialize UI components within the custom Toast layout
-        LinearLayout toastRoot = layout.findViewById(R.id.toast_layout_root);
-        ImageView imageView = layout.findViewById(R.id.image);
-        TextView textView = layout.findViewById(R.id.text);
+        View layout = inflater.inflate(R.layout.container_toast_custom, null);
+        ImageView imageView = layout.findViewById(R.id.imageToast);
+        TextView textView = layout.findViewById(R.id.textToast);
         textView.setText(message);
 
-        // Variables to hold resource IDs for background and icon based on ToastType
-        int backgroundDrawableId;
         int iconResId;
-        int textColor = ContextCompat.getColor(context, R.color.white);
+        int bgColor;
+        int textColor = ContextCompat.getColor(context, R.color.black);
 
-        // Determine the styling based on the ToastType
         switch (type) {
             case INFO:
-                backgroundDrawableId = R.drawable.background_toast_info;
                 iconResId = R.drawable.ic_info;
+                bgColor = R.color.info;
                 break;
             case WARNING:
-                textColor = ContextCompat.getColor(context, R.color.black);
-                backgroundDrawableId = R.drawable.background_toast_warning;
                 iconResId = R.drawable.ic_warning;
+                bgColor = R.color.warning;
                 break;
             case ERROR:
-                backgroundDrawableId = R.drawable.background_toast_error;
                 iconResId = R.drawable.ic_error;
+                bgColor = R.color.error;
                 break;
             case SUCCESS:
-                backgroundDrawableId = R.drawable.background_toast_success;
                 iconResId = R.drawable.ic_success;
+                bgColor = R.color.success;
                 break;
             default:
-                // If ToastType is DEFAULT or unrecognized, display a standard Toast
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
                 return;
         }
 
-        // Apply the background drawable to the Toast layout
-        toastRoot.setBackgroundResource(backgroundDrawableId);
-        // Set the appropriate icon for the Toast
         imageView.setImageResource(iconResId);
-        // Apply color filter to the icon
-        imageView.setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-        // Set the text color for the message
+        ViewCompat.setBackgroundTintList(layout, ColorStateList.valueOf(ContextCompat.getColor(context, bgColor)));
         textView.setTextColor(textColor);
 
-        // Configure and display the custom Toast
         Toast toast = new Toast(context);
-        toast.setGravity(Gravity.BOTTOM, 0, 100); // Position the Toast at the bottom with an offset
-        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.BOTTOM, 0, 100);
+        toast.setDuration(Toast.LENGTH_LONG);
         toast.setView(layout);
         toast.show();
     }
@@ -150,6 +139,16 @@ public class Utilities {
 
         // Encode the byte array into a Base64 string
         return android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT);
+    }
+
+    /**
+     * Decodes a Base64-encoded string into a Bitmap image.
+     * @param encodedImage The Base64-encoded image string.
+     * @return A Bitmap representation of the decoded image.
+     */
+    public static Bitmap getBitmapFromEncodedString(String encodedImage) {
+        byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
 
 }

@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
-import com.example.chatandroidapp.databinding.ItemContainerUserBinding;
+import com.example.chatandroidapp.databinding.ActivityUserRecyclerItemBinding;
 import com.example.chatandroidapp.listeners.UserListener;
 import com.example.chatandroidapp.module.User;
 
@@ -40,11 +40,11 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflate the user item layout
-        ItemContainerUserBinding itemContainerUserBinding = ItemContainerUserBinding
+        ActivityUserRecyclerItemBinding activityUserRecyclerItemBinding = ActivityUserRecyclerItemBinding
                 .inflate(LayoutInflater.from(parent.getContext()), parent, false);
 
         // Return a new UserViewHolder
-        return new UserViewHolder(itemContainerUserBinding);
+        return new UserViewHolder(activityUserRecyclerItemBinding);
     }
 
     @Override
@@ -75,13 +75,13 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
      * It binds user data to the UI components in the user item layout.
      */
     class UserViewHolder extends RecyclerView.ViewHolder {
-        private final ItemContainerUserBinding binding; // Binding for the user item layout
+        private final ActivityUserRecyclerItemBinding binding; // Binding for the user item layout
 
         /**
          * Constructor for UserViewHolder.
          * @param itemContainerUserBinding Binding object for the user item layout.
          */
-        public UserViewHolder(ItemContainerUserBinding itemContainerUserBinding) {
+        public UserViewHolder(ActivityUserRecyclerItemBinding itemContainerUserBinding) {
             super(itemContainerUserBinding.getRoot());
             binding = itemContainerUserBinding;
         }

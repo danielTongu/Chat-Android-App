@@ -7,8 +7,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.chatandroidapp.databinding.ItemContainerReceivedMessageBinding;
-import com.example.chatandroidapp.databinding.ItemContainerSentMessageBinding;
+import com.example.chatandroidapp.databinding.ActivityChatRecievedRecyclerItemBinding;
+import com.example.chatandroidapp.databinding.ActivityChatSentRecyclerItemBinding;
 import com.example.chatandroidapp.module.ChatMessage;
 
 import java.util.List;
@@ -44,10 +44,10 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflate the appropriate layout based on the view type
         if (viewType == VIEW_TYPE_SENT) { // Inflate the layout for sent messages
-            return new SentMessageViewHolder(ItemContainerSentMessageBinding
+            return new SentMessageViewHolder(ActivityChatSentRecyclerItemBinding
                     .inflate(LayoutInflater.from(parent.getContext()), parent, false));
         } else { // Inflate the layout for received messages
-            return new ReceiverMessageViewHolder(ItemContainerReceivedMessageBinding
+            return new ReceiverMessageViewHolder(ActivityChatRecievedRecyclerItemBinding
                     .inflate(LayoutInflater.from(parent.getContext()), parent, false));
         }
     }
@@ -82,13 +82,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * ViewHolder class for sent messages.
      */
     static class SentMessageViewHolder extends RecyclerView.ViewHolder {
-        private final ItemContainerSentMessageBinding binding; // Binding for the sent message layout
+        private final ActivityChatSentRecyclerItemBinding binding; // Binding for the sent message layout
 
         /**
          * Constructor for SentMessageViewHolder.
          * @param binding Binding object for the sent message layout.
          */
-        public SentMessageViewHolder(ItemContainerSentMessageBinding binding) {
+        public SentMessageViewHolder(ActivityChatSentRecyclerItemBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
@@ -107,13 +107,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * ViewHolder class for received messages.
      */
     static class ReceiverMessageViewHolder extends RecyclerView.ViewHolder {
-        private final ItemContainerReceivedMessageBinding binding; // Binding for the received message layout
+        private final ActivityChatRecievedRecyclerItemBinding binding; // Binding for the received message layout
 
         /**
          * Constructor for ReceiverMessageViewHolder.
          * @param binding Binding object for the received message layout.
          */
-        public ReceiverMessageViewHolder(ItemContainerReceivedMessageBinding binding) {
+        public ReceiverMessageViewHolder(ActivityChatRecievedRecyclerItemBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

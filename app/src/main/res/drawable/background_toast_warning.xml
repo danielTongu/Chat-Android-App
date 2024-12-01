@@ -1,6 +1,0 @@
-<!-- res/drawable/background_toast_warning.xml -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@color/warning" />
-    <corners android:radius="12dp" />
-</shape>

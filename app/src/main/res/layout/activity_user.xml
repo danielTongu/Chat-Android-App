@@ -23,7 +23,7 @@
         android:layout_height="30dp"
         android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
-        android:background="@drawable/background_ic_toolbar"
+        android:background="@drawable/bg_rectangle_round_dark"
         android:padding="6dp"
         android:src="@drawable/ic_back"
         android:tint="@color/white"
@@ -49,7 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="26dp"
-        android:background="@drawable/background_content_bottom"
+        android:background="@drawable/bg_rectangle_round_top"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageBack">
 
