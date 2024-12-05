@@ -15,6 +15,9 @@
         android:theme="@style/Theme.ChatAndroidApp"
         tools:targetApi="31">
         <activity
+            android:name=".SignupWithPhoneActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.ChatActivity"
             android:exported="false" />
         <activity
