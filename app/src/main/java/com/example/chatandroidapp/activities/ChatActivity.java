@@ -61,12 +61,13 @@ public class ChatActivity extends AppCompatActivity {
                 if (documentChange.getType() == DocumentChange.Type.ADDED) {
                     // Parse new messages added to the chat collection
                     ChatMessage chatMessage = new ChatMessage();
-                    chatMessage.senderId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
-                    chatMessage.receiverId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
-                    chatMessage.message = documentChange.getDocument().getString(Constants.KEY_MESSAGE);
                     chatMessage.dateTime = getReadableDateTime(documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP));
                     chatMessage.dateObject = documentChange.getDocument().getDate(Constants.KEY_TIMESTAMP);
-
+                    chatMessage.receiverId = documentChange.getDocument().getString(Constants.KEY_RECEIVER_ID);
+                    chatMessage.senderId = documentChange.getDocument().getString(Constants.KEY_SENDER_ID);
+                    chatMessage.senderFirstName = documentChange.getDocument().getString(Constants.KEY_SENDER_FIRST_NAME);
+                    chatMessage.senderLastName = documentChange.getDocument().getString(Constants.KEY_SENDER_LAST_NAME);
+                    chatMessage.message = documentChange.getDocument().getString(Constants.KEY_MESSAGE);
                     chatMessages.add(chatMessage);
                 }
             }
@@ -130,6 +131,8 @@ public class ChatActivity extends AppCompatActivity {
         }
         // Prepare message data to send
         HashMap<String, Object> message = new HashMap<>();
+        message.put(Constants.KEY_SENDER_FIRST_NAME, preferenceManager.getString(Constants.KEY_FIRST_NAME));
+        message.put(Constants.KEY_SENDER_LAST_NAME, preferenceManager.getString(Constants.KEY_LAST_NAME));
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USER_ID));
         message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
         message.put(Constants.KEY_MESSAGE, inputMessage);

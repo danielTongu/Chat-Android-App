@@ -78,6 +78,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+
+
+
+
+
+
+
     /**
      * ViewHolder class for sent messages.
      */
@@ -103,6 +110,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+
+
+
+
+
+
     /**
      * ViewHolder class for received messages.
      */
@@ -126,6 +139,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private void setData(ChatMessage chatMessage, Bitmap receiverProfileImage) {
             binding.textMessage.setText(chatMessage.message); // Set the message text
             binding.textDateTime.setText(chatMessage.dateTime); // Set the timestamp
+            binding.textSenderFirstName.setText(chatMessage.senderFirstName);
             if (receiverProfileImage != null) {
                 binding.imageProfile.setImageBitmap(receiverProfileImage); // Set the sender's profile image
             }

@@ -59,4 +59,6 @@ public class Constants {
 
     /** Key for the minimum length recommended for a password.*/
     public static final int KEY_PASSWORD_MIN_LENGTH = 5;
+    public static final String KEY_SENDER_FIRST_NAME = "senderFirstName";
+    public static final String KEY_SENDER_LAST_NAME = "senderLastName";
 }
