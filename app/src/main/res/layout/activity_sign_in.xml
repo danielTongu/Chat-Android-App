@@ -1,7 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-    This XML layout defines the user interface for the SignInActivity.
-    It includes input fields for email and password, a sign-in button, and an option to create a new account.
--->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,7 +16,7 @@
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
-        <!-- TextView for "Welcome Back" greeting -->
+        <!-- Title for "Welcome Back" -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,7 +26,7 @@
             android:textSize="33sp"
             android:textStyle="bold" />
 
-        <!-- TextView prompting the user to log in -->
+        <!-- Subtitle prompting the user to log in -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -40,23 +36,49 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <!-- Input field for the user's email -->
+        <!-- Toggle for Sign-In Method -->
+        <RadioGroup
+            android:id="@+id/radioGroupSignInMethod"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioSignInWithEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Email"
+                android:textColor="@color/primary_text"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/radioSignInWithPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Phone"
+                android:textColor="@color/primary_text"
+                android:textSize="18sp" />
+        </RadioGroup>
+
+        <!-- Input field for email or phone -->
         <EditText
-            android:id="@+id/inputEmail"
+            android:id="@+id/inputEmailOrPhone"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="68dp"
+            android:layout_marginTop="20dp"
             android:background="@drawable/bg_rectangle_round_light"
-            android:hint="Email"
+            android:hint="Enter Email or Phone"
             android:imeOptions="actionNext"
-            android:importantForAutofill="no"
             android:inputType="textEmailAddress"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textColor="@color/primary_text"
             android:textSize="20sp" />
 
-        <!-- Input field for the user's password -->
+        <!-- Input field for password -->
         <EditText
             android:id="@+id/inputPassword"
             android:layout_width="match_parent"
@@ -65,22 +87,20 @@
             android:background="@drawable/bg_rectangle_round_light"
             android:hint="Password"
             android:imeOptions="actionNext"
-            android:importantForAutofill="no"
             android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textAlignment="gravity"
             android:textColor="@color/primary_text"
             android:textSize="20sp" />
 
-        <!-- FrameLayout containing the Sign In button and ProgressBar -->
+        <!-- FrameLayout for Sign-In button and ProgressBar -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:animateLayoutChanges="true">
 
-            <!-- MaterialButton for signing in -->
+            <!-- Sign-In Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSignIn"
                 android:layout_width="match_parent"
@@ -89,9 +109,10 @@
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                app:cornerRadius="8dp" />
+                app:cornerRadius="8dp"
+                android:backgroundTint="@color/primary" />
 
-            <!-- ProgressBar displayed during sign-in process -->
+            <!-- ProgressBar for Sign-In process -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="25dp"
@@ -100,7 +121,7 @@
                 android:visibility="invisible" />
         </FrameLayout>
 
-        <!-- TextView for navigating to the sign-up screen -->
+        <!-- Create New Account Link -->
         <TextView
             android:id="@+id/textCreateNewAccount"
             android:layout_width="wrap_content"
@@ -109,7 +130,7 @@
             android:text="Create New Account"
             android:textColor="@color/primary"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:clickable="true" />
     </LinearLayout>
-
 </ScrollView>

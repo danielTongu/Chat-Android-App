@@ -6,40 +6,29 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.chatandroidapp.databinding.ActivitySigninBinding;
+import com.example.chatandroidapp.R;
+import com.example.chatandroidapp.databinding.ActivitySignInBinding;
+import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 /**
- * SignInActivity handles user authentication by verifying email and password against Firestore.
- * Passwords are compared using SHA-256 with the stored unique salt to ensure security.
- *
- * @author  Daniel Tongu
+ * SignInActivity handles user authentication by verifying email/password or phone/OTP.
  */
 public class SignInActivity extends AppCompatActivity {
-    private ActivitySigninBinding binding; // View binding for activity_signin.xml
-    private PreferenceManager preferenceManager; // PreferenceManager instance for managing shared preferences
+    private ActivitySignInBinding binding;
+    private PreferenceManager preferenceManager;
 
-    /**
-     * Called when the activity is starting. Initializes the activity components.
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
-     *                           this Bundle contains the data it most recently supplied.
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Initialize view binding
-        binding = ActivitySigninBinding.inflate(getLayoutInflater());
-        // Initialize PreferenceManager
-        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
+        binding = ActivitySignInBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        // Set up UI listeners
+        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
         setListeners();
     }
 
@@ -47,49 +36,49 @@ public class SignInActivity extends AppCompatActivity {
      * Sets up the listeners for the UI elements.
      */
     private void setListeners() {
-        // Navigate to SignUpActivity when "Create New Account" text is clicked
-        binding.textCreateNewAccount.setOnClickListener(v -> startActivity(
-                new Intent(getApplicationContext(), SignUpActivity.class)
-        ));
-
-        // Handle sign-in button click
-        binding.buttonSignIn.setOnClickListener(v -> {
-            if (isValidSignInDetails()) {
-                signIn();
+        // Toggle hint and input type based on the selected sign-in method
+        binding.radioGroupSignInMethod.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radioSignInWithEmail) {
+                binding.inputEmailOrPhone.setHint("Enter Email");
+                binding.inputEmailOrPhone.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+            } else {
+                binding.inputEmailOrPhone.setHint("Enter Phone Number");
+                binding.inputEmailOrPhone.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
             }
         });
+
+        // Handle Sign-In Button Click
+        binding.buttonSignIn.setOnClickListener(v -> {
+            if (isValidSignInDetails()) {
+                if (binding.radioSignInWithPhone.isChecked()) {
+                    signInWithPhone();
+                } else {
+                    signInWithEmail();
+                }
+            }
+        });
+
+        // Handle Create New Account Link
+        binding.textCreateNewAccount.setOnClickListener(v -> showAccountCreationOptions());
     }
 
     /**
-     * Initiates the sign-in process by verifying the user's email and password.
+     * Signs in using email and password.
      */
-    private void signIn() {
+    private void signInWithEmail() {
         showLoadingIndicator(true);
         FirebaseFirestore database = FirebaseFirestore.getInstance();
 
-        // Query Firestore for a user with the provided email
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .whereEqualTo(Constants.KEY_EMAIL, binding.inputEmail.getText().toString().trim())
-                .whereEqualTo(Constants.KEY_PASSWORD, hashPassword(binding.inputPassword.getText().toString().trim()))
+                .whereEqualTo(Constants.KEY_EMAIL, binding.inputEmailOrPhone.getText().toString().trim())
+                .whereEqualTo(Constants.KEY_PASSWORD, User.hashPassword(binding.inputPassword.getText().toString().trim()))
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().getDocuments().isEmpty()) {
-                        // User exists
-                        DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
-                        // Save user info in preferences
-                        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
-                        preferenceManager.putString(Constants.KEY_USER_ID, documentSnapshot.getId());
-                        preferenceManager.putString(Constants.KEY_FIRST_NAME, documentSnapshot.getString(Constants.KEY_FIRST_NAME));
-                        preferenceManager.putString(Constants.KEY_LAST_NAME, documentSnapshot.getString(Constants.KEY_LAST_NAME));
-                        preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
-                        preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
-
-                        // Navigate to MainActivity
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                    } else { // User with the provided email does not exist
-                        Utilities.showToast(this, "Unable to sign in", Utilities.ToastType.WARNING);
+                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                        saveUserToPreferences(Objects.requireNonNull(task.getResult().getDocuments().get(0)));
+                        navigateToMainActivity();
+                    } else {
+                        Utilities.showToast(this, "Unable to sign in with email", Utilities.ToastType.WARNING);
                         showLoadingIndicator(false);
                     }
                 })
@@ -100,65 +89,91 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Hashes the provided password using SHA-256.
-     * @param password The plaintext password to hash.
-     * @return The hashed password as a hexadecimal string, or null if hashing fails.
+     * Initiates phone-based sign-in by redirecting to OTPVerificationActivity.
      */
-    private String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashedBytes = digest.digest(password.getBytes());
+    private void signInWithPhone() {
+        String phoneNumber = binding.inputEmailOrPhone.getText().toString().trim();
 
-            StringBuilder stringBuilder = new StringBuilder();
-            for (byte b : hashedBytes) {
-                stringBuilder.append(String.format("%02x", b));
-            }
-
-            return stringBuilder.toString();
-        } catch (NoSuchAlgorithmException e) {
-            Utilities.showToast(this, "Error hashing password", Utilities.ToastType.ERROR);
-            e.printStackTrace();
-            return null;
+        if (phoneNumber.isEmpty()) {
+            Utilities.showToast(this, "Please enter a valid phone number", Utilities.ToastType.WARNING);
+            return;
         }
+
+        Intent intent = new Intent(SignInActivity.this, OtpVerificationActivity.class);
+        intent.putExtra(Constants.KEY_PHONE, phoneNumber);
+        startActivity(intent);
     }
 
     /**
      * Validates the sign-in details entered by the user.
-     * @return {@code true} if the details are valid, {@code false} otherwise.
      */
     private Boolean isValidSignInDetails() {
-        String email = binding.inputEmail.getText().toString().trim();
+        String emailOrPhone = binding.inputEmailOrPhone.getText().toString().trim();
         String password = binding.inputPassword.getText().toString().trim();
 
-        boolean isValid = false;
-
-        if (email.isEmpty()) {
-            Utilities.showToast(this, "Please enter your email", Utilities.ToastType.WARNING);
-        } else if (!Utilities.isValidEmail(email)) {
+        if (emailOrPhone.isEmpty()) {
+            Utilities.showToast(this, "Please enter your email or phone number", Utilities.ToastType.WARNING);
+            return false;
+        } else if (binding.radioSignInWithEmail.isChecked() && !User.isValidEmail(emailOrPhone)) {
             Utilities.showToast(this, "Please enter a valid email", Utilities.ToastType.WARNING);
+            return false;
+        } else if (binding.radioSignInWithPhone.isChecked() && !android.util.Patterns.PHONE.matcher(emailOrPhone).matches()) {
+            Utilities.showToast(this, "Please enter a valid phone number", Utilities.ToastType.WARNING);
+            return false;
         } else if (password.isEmpty()) {
             Utilities.showToast(this, "Please enter your password", Utilities.ToastType.WARNING);
+            return false;
         } else if (password.length() < Constants.KEY_PASSWORD_MIN_LENGTH) {
             Utilities.showToast(this, String.format("Password must be at least %d characters", Constants.KEY_PASSWORD_MIN_LENGTH), Utilities.ToastType.WARNING);
-        } else {
-            isValid = true;
+            return false;
         }
-        return isValid;
+        return true;
+    }
+
+    /**
+     * Saves the user's data to shared preferences.
+     */
+    private void saveUserToPreferences(com.google.firebase.firestore.DocumentSnapshot documentSnapshot) {
+        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+        preferenceManager.putString(Constants.KEY_USER_ID, documentSnapshot.getId());
+        preferenceManager.putString(Constants.KEY_FIRST_NAME, documentSnapshot.getString(Constants.KEY_FIRST_NAME));
+        preferenceManager.putString(Constants.KEY_LAST_NAME, documentSnapshot.getString(Constants.KEY_LAST_NAME));
+        preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
+        preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
+    }
+
+    /**
+     * Navigates to the MainActivity.
+     */
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    /**
+     * Displays a dialog to choose the account creation method.
+     */
+    private void showAccountCreationOptions() {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Choose Sign-Up Method")
+                .setItems(new String[]{"Sign Up with Email", "Sign Up with Phone"}, (dialog, which) -> {
+                    if (which == 0) {
+                        startActivity(new Intent(getApplicationContext(), SignUpWithEmailActivity.class));
+                    } else {
+                        startActivity(new Intent(getApplicationContext(), SignUpWithPhoneActivity.class));
+                    }
+                })
+                .setCancelable(true)
+                .show();
     }
 
     /**
      * Toggles the loading state of the sign-in process.
-     * @param isLoading {@code true} to show loading, {@code false} to hide loading.
      */
     private void showLoadingIndicator(boolean isLoading) {
-        if (isLoading) {
-            binding.buttonSignIn.setEnabled(false);
-            binding.textCreateNewAccount.setEnabled(false);
-            binding.progressBar.setVisibility(View.VISIBLE);
-        } else {
-            binding.buttonSignIn.setEnabled(true);
-            binding.textCreateNewAccount.setEnabled(true);
-            binding.progressBar.setVisibility(View.INVISIBLE);
-        }
+        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+        binding.buttonSignIn.setEnabled(!isLoading);
+        binding.textCreateNewAccount.setEnabled(!isLoading);
     }
 }

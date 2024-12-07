@@ -61,4 +61,5 @@ public class Constants {
     public static final int KEY_PASSWORD_MIN_LENGTH = 5;
     public static final String KEY_SENDER_FIRST_NAME = "senderFirstName";
     public static final String KEY_SENDER_LAST_NAME = "senderLastName";
+    public static final String KEY_PHONE = "phone";
 }

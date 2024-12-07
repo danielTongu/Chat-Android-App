@@ -69,7 +69,8 @@ dependencies {
     //------ Firebase setup ---------//
     implementation(libs.firebase.bom) // Firebase BoM to manage Firebase dependencies' versions
     implementation(libs.firebase.messaging) // Firebase Cloud Messaging for push notifications
-    implementation(libs.firebase.firestore)// Import the Firebase BoM
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)// Import the Firebase BoM
     //-------------------------------//
 
     // Testing libraries

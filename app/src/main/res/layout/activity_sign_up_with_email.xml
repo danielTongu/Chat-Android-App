@@ -2,7 +2,7 @@
 <!--
     activity_signup.xml
 
-    This XML layout defines the user interface for the SignUpActivity.
+    This XML layout defines the user interface for the SignUpWithEmailActivity.
     It includes input fields for first name, last name, email, password,
     and confirm password, as well as buttons for signing up and navigating
     back to sign-in. The profile picture is optional and displayed within
@@ -18,7 +18,7 @@
     android:overScrollMode="never"
     android:padding="24dp"
     android:scrollbars="none"
-    tools:context=".activities.SignUpActivity">
+    tools:context=".activities.SignUpWithEmailActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
