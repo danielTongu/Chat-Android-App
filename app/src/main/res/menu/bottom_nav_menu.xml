@@ -9,10 +9,6 @@
         android:icon="@drawable/ic_chats"
         android:title="Chats" />
     <item
-        android:id="@+id/navigation_contacts"
-        android:icon="@drawable/ic_contacts"
-        android:title="Contacts" />
-    <item
         android:id="@+id/navigation_tasks"
         android:icon="@drawable/ic_calendar"
         android:title="Tasks" />
