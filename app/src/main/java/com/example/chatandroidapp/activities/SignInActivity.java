@@ -2,6 +2,7 @@ package com.example.chatandroidapp.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,9 +18,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Objects;
 
 /**
- * SignInActivity handles user authentication by verifying email/password or phone/OTP.
+ * SignInActivity handles user authentication via email/password or phone/OTP.
  */
 public class SignInActivity extends AppCompatActivity {
+
     private ActivitySignInBinding binding;
     private PreferenceManager preferenceManager;
 
@@ -29,25 +31,39 @@ public class SignInActivity extends AppCompatActivity {
         binding = ActivitySignInBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
+
+        setDefaultCountry();
         setListeners();
     }
 
     /**
-     * Sets up the listeners for the UI elements.
+     * Sets the default country for the CountryCodePicker.
+     */
+    private void setDefaultCountry() {
+        binding.countryCodePicker.setDefaultCountryUsingNameCode("US");
+        binding.countryCodePicker.resetToDefaultCountry();
+    }
+
+    /**
+     * Sets up listeners for the UI elements.
      */
     private void setListeners() {
-        // Toggle hint and input type based on the selected sign-in method
+        // Toggle input fields and enable CountryCodePicker for phone sign-in
         binding.radioGroupSignInMethod.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.radioSignInWithEmail) {
+                binding.inputPassword.setVisibility(View.VISIBLE);
+                binding.countryCodePicker.setVisibility(View.GONE);
                 binding.inputEmailOrPhone.setHint("Enter Email");
                 binding.inputEmailOrPhone.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
             } else {
+                binding.inputPassword.setVisibility(View.GONE);
+                binding.countryCodePicker.setVisibility(View.VISIBLE);
                 binding.inputEmailOrPhone.setHint("Enter Phone Number");
                 binding.inputEmailOrPhone.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
+                binding.countryCodePicker.registerCarrierNumberEditText(binding.inputEmailOrPhone);
             }
         });
 
-        // Handle Sign-In Button Click
         binding.buttonSignIn.setOnClickListener(v -> {
             if (isValidSignInDetails()) {
                 if (binding.radioSignInWithPhone.isChecked()) {
@@ -58,7 +74,6 @@ public class SignInActivity extends AppCompatActivity {
             }
         });
 
-        // Handle Create New Account Link
         binding.textCreateNewAccount.setOnClickListener(v -> showAccountCreationOptions());
     }
 
@@ -89,10 +104,10 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Initiates phone-based sign-in by redirecting to OTPVerificationActivity.
+     * Signs in using a phone number, redirecting to OTPVerificationActivity.
      */
     private void signInWithPhone() {
-        String phoneNumber = binding.inputEmailOrPhone.getText().toString().trim();
+        String phoneNumber = binding.countryCodePicker.getFullNumberWithPlus();
 
         if (phoneNumber.isEmpty()) {
             Utilities.showToast(this, "Please enter a valid phone number", Utilities.ToastType.WARNING);
@@ -107,17 +122,17 @@ public class SignInActivity extends AppCompatActivity {
     /**
      * Validates the sign-in details entered by the user.
      */
-    private Boolean isValidSignInDetails() {
+    private boolean isValidSignInDetails() {
         String emailOrPhone = binding.inputEmailOrPhone.getText().toString().trim();
         String password = binding.inputPassword.getText().toString().trim();
 
         if (emailOrPhone.isEmpty()) {
             Utilities.showToast(this, "Please enter your email or phone number", Utilities.ToastType.WARNING);
             return false;
-        } else if (binding.radioSignInWithEmail.isChecked() && !User.isValidEmail(emailOrPhone)) {
+        } else if (binding.radioSignInWithEmail.isChecked() && !Patterns.EMAIL_ADDRESS.matcher(emailOrPhone).matches()) {
             Utilities.showToast(this, "Please enter a valid email", Utilities.ToastType.WARNING);
             return false;
-        } else if (binding.radioSignInWithPhone.isChecked() && !android.util.Patterns.PHONE.matcher(emailOrPhone).matches()) {
+        } else if (binding.radioSignInWithPhone.isChecked() && !binding.countryCodePicker.isValidFullNumber()) {
             Utilities.showToast(this, "Please enter a valid phone number", Utilities.ToastType.WARNING);
             return false;
         } else if (password.isEmpty()) {

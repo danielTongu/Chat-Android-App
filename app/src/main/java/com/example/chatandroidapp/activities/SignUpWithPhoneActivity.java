@@ -2,10 +2,12 @@ package com.example.chatandroidapp.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivitySignUpWithPhoneBinding;
 import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
@@ -17,6 +19,7 @@ import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.hbb20.CountryCodePicker;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,21 +32,40 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private PreferenceManager preferenceManager;
     private String verificationId; // To store verification ID for OTP validation
+    private static final long OTP_TIMEOUT_SECONDS = 60L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize binding
         binding = ActivitySignUpWithPhoneBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-
+        initializeFirebase();
+        setDefaultCountry();
         setListeners();
     }
 
     /**
-     * Sets up listeners for the UI elements.
+     * Initializes Firebase Authentication and Preference Manager.
+     */
+    private void initializeFirebase() {
+        firebaseAuth = FirebaseAuth.getInstance();
+        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
+    }
+
+    /**
+     * Sets the default country for the CountryCodePicker to the USA.
+     */
+    private void setDefaultCountry() {
+        binding.countryCodePicker.setDefaultCountryUsingNameCode("US");
+        binding.countryCodePicker.resetToDefaultCountry();
+        binding.countryCodePicker.registerCarrierNumberEditText(binding.inputPhoneNumber);
+    }
+
+    /**
+     * Sets up listeners for the buttons and TextView.
      */
     private void setListeners() {
         binding.buttonSendOtp.setOnClickListener(v -> {
@@ -53,10 +75,11 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
         });
 
         binding.buttonVerifyOtp.setOnClickListener(v -> {
-            if (binding.inputOtp.getText().toString().trim().isEmpty()) {
+            String otp = binding.inputOtp.getText().toString().trim();
+            if (otp.isEmpty()) {
                 Utilities.showToast(this, "Please enter the OTP", Utilities.ToastType.WARNING);
             } else {
-                verifyOtp(binding.inputOtp.getText().toString().trim());
+                verifyOtp(otp);
             }
         });
 
@@ -69,7 +92,7 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
         binding.textSignIn.setOnClickListener(v -> {
             Intent intent = new Intent(SignUpWithPhoneActivity.this, SignInActivity.class);
             startActivity(intent);
-            finish(); // Optional: Close the current activity
+            finish();
         });
     }
 
@@ -78,12 +101,11 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
      */
     private void sendOtp() {
         showLoadingIndicator(true);
-
-        String phoneNumber = binding.inputPhoneNumber.getText().toString().trim();
+        String phoneNumber = binding.countryCodePicker.getFullNumberWithPlus().trim();
 
         PhoneAuthOptions options = PhoneAuthOptions.newBuilder(firebaseAuth)
                 .setPhoneNumber(phoneNumber)
-                .setTimeout(60L, TimeUnit.SECONDS)
+                .setTimeout(OTP_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .setActivity(this)
                 .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                     @Override
@@ -93,14 +115,14 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
 
                     @Override
                     public void onVerificationFailed(FirebaseException e) {
+                        Log.e("SignUpWithPhone", "Verification failed", e);
                         Utilities.showToast(SignUpWithPhoneActivity.this, e.getMessage(), Utilities.ToastType.ERROR);
                         showLoadingIndicator(false);
                     }
 
                     @Override
                     public void onCodeSent(String s, PhoneAuthProvider.ForceResendingToken forceResendingToken) {
-                        super.onCodeSent(s, forceResendingToken);
-                        verificationId = s; // Store verification ID
+                        verificationId = s;
                         Utilities.showToast(SignUpWithPhoneActivity.this, "OTP sent successfully", Utilities.ToastType.INFO);
                         showOtpFields();
                         showLoadingIndicator(false);
@@ -139,31 +161,19 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
         showLoadingIndicator(true);
 
         FirebaseFirestore database = FirebaseFirestore.getInstance();
-
-        // Create a User object
         User user = new User(
                 binding.inputFirstName.getText().toString().trim(),
                 binding.inputLastName.getText().toString().trim(),
-                binding.inputPhoneNumber.getText().toString().trim(),
-                null // No image provided yet
+                binding.countryCodePicker.getFullNumberWithPlus().trim(),
+                null // Placeholder for no image
         );
 
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .add(user)
                 .addOnSuccessListener(documentReference -> {
                     Utilities.showToast(this, "Sign-up successful", Utilities.ToastType.SUCCESS);
-
-                    // Save user info in preferences
-                    preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
-                    preferenceManager.putString(Constants.KEY_USER_ID, documentReference.getId());
-                    preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
-                    preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);
-                    preferenceManager.putString(Constants.KEY_PHONE, user.phone);
-
-                    // Navigate to MainActivity
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
+                    saveUserDetails(user, documentReference.getId());
+                    navigateToMainActivity();
                 })
                 .addOnFailureListener(exception -> {
                     Utilities.showToast(this, exception.getMessage(), Utilities.ToastType.ERROR);
@@ -172,11 +182,35 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
     }
 
     /**
+     * Saves the user details in shared preferences.
+     */
+    private void saveUserDetails(User user, String userId) {
+        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+        preferenceManager.putString(Constants.KEY_USER_ID, userId);
+        preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
+        preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);
+        preferenceManager.putString(Constants.KEY_PHONE, user.phone);
+    }
+
+    /**
+     * Navigates to the MainActivity.
+     */
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    /**
      * Validates the phone number format.
      */
     private boolean isValidPhoneNumber() {
-        if (binding.inputPhoneNumber.getText().toString().trim().isEmpty()) {
+        String phoneNumber = binding.inputPhoneNumber.getText().toString().trim();
+        if (phoneNumber.isEmpty()) {
             Utilities.showToast(this, "Please enter your phone number", Utilities.ToastType.WARNING);
+            return false;
+        } else if (!binding.countryCodePicker.isValidFullNumber()) {
+            binding.inputPhoneNumber.setError("Invalid phone number");
             return false;
         }
         return true;
@@ -200,21 +234,10 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
      * Toggles the visibility of the global progress bar and disables buttons.
      */
     private void showLoadingIndicator(boolean isLoading) {
-        if (isLoading) {
-            binding.progressBarGlobal.setVisibility(View.VISIBLE);
-
-            // Disable all buttons during loading
-            binding.buttonSendOtp.setEnabled(false);
-            binding.buttonVerifyOtp.setEnabled(false);
-            binding.buttonCompleteSignup.setEnabled(false);
-        } else {
-            binding.progressBarGlobal.setVisibility(View.GONE);
-
-            // Enable all buttons after loading
-            binding.buttonSendOtp.setEnabled(true);
-            binding.buttonVerifyOtp.setEnabled(true);
-            binding.buttonCompleteSignup.setEnabled(true);
-        }
+        binding.progressBarGlobal.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        binding.buttonSendOtp.setEnabled(!isLoading);
+        binding.buttonVerifyOtp.setEnabled(!isLoading);
+        binding.buttonCompleteSignup.setEnabled(!isLoading);
     }
 
     /**

@@ -22,9 +22,6 @@ import java.util.Map;
  */
 public class User implements Serializable {
 
-    /** The unique ID of the user, typically assigned by Firestore. */
-    public String id;
-
     /** The date when the user was created, stored as a formatted string. */
     public final String createdDate;
 

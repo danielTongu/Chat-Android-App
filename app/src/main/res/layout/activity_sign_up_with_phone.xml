@@ -25,20 +25,35 @@
             android:textSize="33sp"
             android:textStyle="bold" />
 
-        <!-- Input field for the user's phone number -->
-        <EditText
-            android:id="@+id/inputPhoneNumber"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:gravity="center"
             android:layout_marginTop="33dp"
-            android:background="@drawable/bg_rectangle_round_light"
-            android:hint="Phone Number"
-            android:imeOptions="actionNext"
-            android:inputType="phone"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
-            android:textSize="20sp" />
+            android:orientation="horizontal">
+
+            <com.hbb20.CountryCodePicker
+                android:id="@+id/countryCodePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:ccp_showFlag="true"
+                app:ccp_showNameCode="false" />
+
+            <!-- Input field for the user's phone number -->
+            <EditText
+                android:id="@+id/inputPhoneNumber"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_rectangle_round_light"
+                android:hint="Phone Number"
+                android:imeOptions="actionNext"
+                android:inputType="phone"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="@color/primary_text"
+                android:textSize="20sp" />
+        </LinearLayout>
 
         <!-- Button to send OTP -->
         <com.google.android.material.button.MaterialButton
