@@ -159,9 +159,6 @@ public class MainActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.navigation_chats) {
                 Log.d(TAG, "setUpBottomNavigation: Chats fragment selected");
                 //selectedFragment = new ChatsFragment();
-            } else if (item.getItemId() == R.id.navigation_contacts) {
-                Log.d(TAG, "setUpBottomNavigation: Contacts fragment selected");
-                //selectedFragment = new ContactsFragment();
             } else if (item.getItemId() == R.id.navigation_tasks) {
                 Log.d(TAG, "setUpBottomNavigation: Tasks fragment selected");
                 //selectedFragment = new TasksFragment();

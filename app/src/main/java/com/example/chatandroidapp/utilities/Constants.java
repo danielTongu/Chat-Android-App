@@ -66,4 +66,7 @@ public class Constants {
     public static final String ACTION_SIGN_IN = "sign_in";
     public static final String ACTION_UPDATE_PHONE = "update_phone";
     public static final String KEY_ACTION_TYPE = "actionType";
+    public static final String KEY_CHAT = "chat";
+    public static final String KEY_MESSAGES = "messages";
+    public static final String KEY_LAST_MESSAGE = "lastMessage";
 }
