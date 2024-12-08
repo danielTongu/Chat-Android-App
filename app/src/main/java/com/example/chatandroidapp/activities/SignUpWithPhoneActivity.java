@@ -65,9 +65,11 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets up listeners for the buttons and TextView.
+     * Sets up listeners for the buttons and back button.
      */
     private void setListeners() {
+        binding.buttonBack.setOnClickListener(v -> onBackPressed());
+
         binding.buttonSendOtp.setOnClickListener(v -> {
             if (isValidPhoneNumber()) {
                 sendOtp();
@@ -90,6 +92,7 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
         });
 
         binding.textSignIn.setOnClickListener(v -> {
+            // Redirect to Sign In
             Intent intent = new Intent(SignUpWithPhoneActivity.this, SignInActivity.class);
             startActivity(intent);
             finish();
@@ -124,6 +127,7 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
                     public void onCodeSent(String s, PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                         verificationId = s;
                         Utilities.showToast(SignUpWithPhoneActivity.this, "OTP sent successfully", Utilities.ToastType.INFO);
+                        disablePhoneField();
                         showOtpFields();
                         showLoadingIndicator(false);
                     }
@@ -145,6 +149,7 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Utilities.showToast(this, "Phone number verified", Utilities.ToastType.SUCCESS);
+                disableOtpField();
                 showProfileFields();
                 showLoadingIndicator(false);
             } else {
@@ -246,6 +251,23 @@ public class SignUpWithPhoneActivity extends AppCompatActivity {
     private void showOtpFields() {
         binding.inputOtp.setVisibility(View.VISIBLE);
         binding.buttonVerifyOtp.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Disables the phone number field and hides the Send OTP button.
+     */
+    private void disablePhoneField() {
+        binding.inputPhoneNumber.setEnabled(false);
+        binding.countryCodePicker.setCcpClickable(false);
+        binding.buttonSendOtp.setVisibility(View.GONE);
+    }
+
+    /**
+     * Disables the OTP field and hides the Verify OTP button.
+     */
+    private void disableOtpField() {
+        binding.inputOtp.setEnabled(false);
+        binding.buttonVerifyOtp.setVisibility(View.GONE);
     }
 
     /**

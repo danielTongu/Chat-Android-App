@@ -1,96 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    MainActivity Layout:
-    This layout represents the main screen of the application.
-    It includes a toolbar with a profile image, username, and sign-out button.
-    Additionally, it has a frame layout for displaying dynamic content and a floating action button for starting a new chat.
--->
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/primary"
-    tools:context=".activities.MainActivity">
+    android:layout_height="match_parent">
 
-    <!-- Profile Image: Displays the user's profile picture -->
-    <com.makeramen.roundedimageview.RoundedImageView
-        android:id="@+id/imageProfile"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/bg_rectangle_round_dark"
-        android:scaleType="centerCrop"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:riv_corner_radius="8dp" />
-
-    <!-- Username TextView: Displays the user's name -->
-    <TextView
-        android:id="@+id/input_name"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/imageProfile"
-        app:layout_constraintEnd_toStartOf="@+id/imageSignOut"
-        app:layout_constraintStart_toEndOf="@+id/imageProfile"
-        app:layout_constraintTop_toTopOf="@id/imageProfile" />
-
-    <!-- Sign Out Button: Allows the user to sign out -->
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/imageSignOut"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="20dp"
-        android:background="@color/icon_background"
-        android:padding="6dp"
-        android:src="@drawable/ic_signout"
-        android:tint="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:riv_corner_radius="8dp" />
-
-    <!-- Frame Layout: Placeholder for dynamic content (e.g., chat list or loading indicator) -->
-    <FrameLayout
-        android:id="@+id/frameLayout"
+    <!-- Search Bar -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/bg_rectangle_round_top"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageProfile">
-
-        <!-- Progress Bar: Displays a loading indicator while data is being loaded -->
-        <ProgressBar
-            android:id="@id/progressBar"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_gravity="center" />
-    </FrameLayout>
-
-    <!-- Floating Action Button: Allows the user to start a new chat -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabNewChat"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
-        android:background="@color/primary"
-        android:src="@drawable/ic_add"
-        app:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:queryHint="Search..."
+        android:iconifiedByDefault="false"
+        android:padding="8dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Fragment Container -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="56dp" />
+
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:itemIconTint="@color/primary_text"
+        app:itemTextColor="@color/primary_text"
+        app:menu="@menu/bottom_nav_menu" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

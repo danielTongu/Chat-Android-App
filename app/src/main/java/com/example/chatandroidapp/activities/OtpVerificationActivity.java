@@ -42,7 +42,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back);
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_back_arrow);
         }
     }
 

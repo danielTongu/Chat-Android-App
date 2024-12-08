@@ -23,7 +23,7 @@
             android:paddingVertical="8dp"
             app:title="Verify OTP"
             app:titleTextColor="@color/white"
-            app:navigationIcon="@drawable/ic_back" />
+            app:navigationIcon="@drawable/ic_back_arrow" />
 
         <!-- Title and Subtitle -->
         <TextView

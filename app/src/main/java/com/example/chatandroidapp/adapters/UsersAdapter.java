@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityUserRecyclerItemBinding;
-import com.example.chatandroidapp.listeners.UserListener;
+import com.example.chatandroidapp.interfaces.UserListener;
 import com.example.chatandroidapp.module.User;
 
 import java.util.List;

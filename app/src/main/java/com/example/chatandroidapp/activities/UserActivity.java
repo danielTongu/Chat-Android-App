@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatandroidapp.adapters.UsersAdapter;
 import com.example.chatandroidapp.databinding.ActivityUserBinding;
-import com.example.chatandroidapp.listeners.UserListener;
+import com.example.chatandroidapp.interfaces.UserListener;
 import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -86,7 +86,6 @@ public class UserActivity extends AppCompatActivity implements UserListener {
                             user.email = queryDocumentSnapshot.getString(Constants.KEY_EMAIL);
                             user.image = queryDocumentSnapshot.getString(Constants.KEY_IMAGE);
                             user.token = queryDocumentSnapshot.getString(Constants.KEY_FCM_TOKEN);
-                            user.id = queryDocumentSnapshot.getId();
 
                             // Add the user to the list
                             users.add(user);

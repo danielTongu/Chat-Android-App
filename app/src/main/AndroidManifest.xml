@@ -25,10 +25,14 @@
             android:exported="false" />
         <activity
             android:name=".activities.UserActivity"
-            android:exported="false" /> <!-- Declaration of SignUpWithEmailActivity -->
+            android:exported="false" />
         <activity
             android:name=".activities.SignUpWithEmailActivity"
-            android:exported="false" /> <!-- Declaration of SignInActivity as the main launcher activity -->
+            android:exported="false" />
+        <activity
+            android:name=".activities.MainActivity"
+            android:exported="false" />
+        <!-- Declaration of SignInActivity as the main launcher activity -->
         <activity
             android:name=".activities.SignInActivity"
             android:exported="true">
@@ -37,10 +41,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Declaration of MainActivity -->
-        <activity
-            android:name=".activities.MainActivity"
-            android:exported="false" /> <!-- Declaration of Firebase Cloud Messaging Service -->
+        </activity>
+        <!-- Declaration of Firebase Cloud Messaging Service -->
         <service
             android:name=".firebase.MessagingService"
             android:exported="false">

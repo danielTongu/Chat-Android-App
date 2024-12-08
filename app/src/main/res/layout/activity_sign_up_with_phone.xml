@@ -1,4 +1,5 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,39 +13,56 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-        <!-- Title TextView for "Phone Sign-Up" -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="Sign Up with Phone"
-            android:textColor="@color/primary"
-            android:textSize="33sp"
-            android:textStyle="bold" />
-
+        <!-- Back Button and Title -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="5"
-            android:gravity="center"
-            android:layout_marginTop="33dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="16dp">
+
+            <ImageView
+                android:id="@+id/buttonBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_back_arrow"
+                android:contentDescription="Go Back"
+                app:tint="@color/primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Sign Up with Phone"
+                android:textColor="@color/primary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Phone Input with Country Code -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <com.hbb20.CountryCodePicker
                 android:id="@+id/countryCodePicker"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 app:ccp_showFlag="true"
                 app:ccp_showNameCode="false" />
 
-            <!-- Input field for the user's phone number -->
             <EditText
                 android:id="@+id/inputPhoneNumber"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
                 android:background="@drawable/bg_rectangle_round_light"
                 android:hint="Phone Number"
                 android:imeOptions="actionNext"
@@ -52,28 +70,28 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:textColor="@color/primary_text"
-                android:textSize="20sp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
-        <!-- Button to send OTP -->
+        <!-- Send OTP Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSendOtp"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/primary"
             android:text="Send OTP"
             android:textColor="@color/white"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            app:cornerRadius="8dp"
-            android:backgroundTint="@color/primary" />
+            app:cornerRadius="8dp" />
 
-        <!-- Input field for OTP -->
+        <!-- OTP Input Field -->
         <EditText
             android:id="@+id/inputOtp"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_rectangle_round_light"
             android:hint="Enter OTP"
             android:imeOptions="actionNext"
@@ -81,7 +99,7 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textColor="@color/primary_text"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:visibility="gone" />
 
         <!-- Verify OTP Button -->
@@ -89,28 +107,28 @@
             android:id="@+id/buttonVerifyOtp"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/primary"
             android:text="Verify OTP"
             android:textColor="@color/white"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            app:cornerRadius="8dp"
-            android:backgroundTint="@color/primary"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:cornerRadius="8dp" />
 
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="24dp"
             android:background="@color/primary" />
 
-        <!-- Input fields for the user's first and last name -->
+        <!-- Name Input Fields -->
         <EditText
             android:id="@+id/inputFirstName"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_rectangle_round_light"
             android:hint="First Name"
             android:imeOptions="actionNext"
@@ -118,14 +136,14 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textColor="@color/primary_text"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:visibility="gone" />
 
         <EditText
             android:id="@+id/inputLastName"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/bg_rectangle_round_light"
             android:hint="Last Name"
             android:imeOptions="actionNext"
@@ -133,7 +151,7 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textColor="@color/primary_text"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:visibility="gone" />
 
         <!-- Complete Sign-Up Button -->
@@ -141,36 +159,36 @@
             android:id="@+id/buttonCompleteSignup"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/primary"
             android:text="Complete Sign-Up"
             android:textColor="@color/white"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            app:cornerRadius="8dp"
-            android:backgroundTint="@color/primary"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:cornerRadius="8dp" />
 
         <!-- Global ProgressBar -->
         <ProgressBar
             android:id="@+id/progressBarGlobal"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="30dp"
-            android:visibility="gone" />
+            android:layout_marginTop="24dp"
+            android:visibility="gone"
+            android:layout_gravity="center" />
 
-        <!-- Already have an account? SIGN IN -->
+        <!-- Sign-In Redirect -->
         <TextView
             android:id="@+id/textSignIn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:clickable="true"
+            android:focusable="true"
             android:text="Already have an account?\nSIGN IN"
             android:textAlignment="center"
             android:textColor="@color/secondary_text"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:clickable="true"
-            android:focusable="true" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>

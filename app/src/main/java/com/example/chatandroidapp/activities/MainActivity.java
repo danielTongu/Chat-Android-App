@@ -1,148 +1,94 @@
 package com.example.chatandroidapp.activities;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Base64;
+import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityMainBinding;
-import com.example.chatandroidapp.utilities.*;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.messaging.FirebaseMessaging;
+import com.example.chatandroidapp.interfaces.SearchableFragment;
 
-import java.util.HashMap;
-
-/**
- * This activity serves as the main hub of the application, displaying user details
- * such as first name, last name, and profile picture, and providing options to
- * sign out or start a new chat.
- *
- * @author  Daniel Tongu
- */
 public class MainActivity extends AppCompatActivity {
 
-    private ActivityMainBinding binding; // View binding for the activity's layout
-    private PreferenceManager preferenceManager; // PreferenceManager instance for managing shared preferences
+    private ActivityMainBinding binding;
+    private final FragmentManager fragmentManager = getSupportFragmentManager();
+    private Fragment activeFragment;
 
-    /**
-     * Called when the activity is first created. Initializes the UI, loads user details,
-     * retrieves the Firebase token, and sets up event listeners.
-     *
-     * @param savedInstanceState If the activity is being re-initialized after previously being
-     *                           shut down then this Bundle contains the data it most recently
-     *                           supplied in onSaveInstanceState(Bundle). Otherwise, it is null.
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
-        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-
         setContentView(binding.getRoot());
-        setUpListeners();
-        loadUserDetails();
-        getToken();
+
+        setUpBottomNavigation();
+        setUpSearchView();
     }
 
-    /**
-     * Sets up event listeners for UI components.
-     * Currently, it sets a click listener on the sign-out image to trigger the signOut process.
-     * Also sets a listener for the FloatingActionButton to start a new chat.
-     */
-    private void setUpListeners() {
-        binding.imageSignOut.setOnClickListener(v -> signOut());
-        binding.fabNewChat.setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), UserActivity.class)));
+    private void setUpBottomNavigation() {
+        binding.bottomNavigation.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+
+            if (item.getItemId() == R.id.navigation_profile) {
+                //selectedFragment = new ProfileFragment();
+            } else if (item.getItemId() == R.id.navigation_chats) {
+                //selectedFragment = new ChatsFragment();
+            } else if (item.getItemId() == R.id.navigation_contacts) {
+                //selectedFragment = new ContactsFragment();
+            } else if (item.getItemId() == R.id.navigation_tasks) {
+                //selectedFragment = new TasksFragment();
+            }
+
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+                return true;
+            }
+
+            return false;
+        });
+
+        // Set default fragment
+        binding.bottomNavigation.setSelectedItemId(R.id.navigation_chats);
     }
 
-    /**
-     * Retrieves the current Firebase Cloud Messaging (FCM) token and updates it in Firestore.
-     */
-    private void getToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnSuccessListener(this::updateToken)
-                .addOnFailureListener(e -> Utilities.showToast(this, "Failed to get FCM token", Utilities.ToastType.ERROR));
+    private void loadFragment(Fragment fragment) {
+        // Show ProgressBar
+        binding.progressBar.setVisibility(View.VISIBLE);
+
+        fragmentManager.beginTransaction()
+                .replace(R.id.nav_host_fragment, fragment)
+                .commit();
+
+        activeFragment = fragment;
+
+        // Simulate fragment load time
+        binding.navHostFragment.postDelayed(() -> {
+            // Hide ProgressBar after fragment is loaded
+            binding.progressBar.setVisibility(View.GONE);
+        }, 300); // Simulate 300ms delay
     }
 
-    /**
-     * Loads the user's details such as first name, last name, and profile image from shared preferences
-     * and displays them in the UI.
-     */
-    private void loadUserDetails() {
-        // Set the full name in the TextView
-        binding.inputName.setText(String.format("%s %s",
-                preferenceManager.getString(Constants.KEY_FIRST_NAME),
-                preferenceManager.getString(Constants.KEY_LAST_NAME)));
+    private void setUpSearchView() {
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if (activeFragment instanceof SearchableFragment) {
+                    ((SearchableFragment) activeFragment).filterData(query);
+                }
+                return false;
+            }
 
-        // Decode the Base64-encoded profile image and set it to the ImageView
-        String encodedImage = preferenceManager.getString(Constants.KEY_IMAGE);
-        if (encodedImage != null && !encodedImage.isEmpty()) {
-            byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-            binding.imageProfile.setImageBitmap(bitmap);
-        } else { // Set a default image or handle the absence of a profile image
-            binding.imageProfile.setImageResource(R.drawable.ic_default_profile);
-        }
-    }
-
-    /**
-     * Updates the user's FCM token in Firestore.
-     * @param token The new FCM token to be updated.
-     */
-    private void updateToken(String token) {
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
-
-        // Reference to the current user's document in the Users collection
-        DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(preferenceManager.getString(Constants.KEY_USER_ID));
-
-        // Update the FCM token field with the new token
-        documentReference.update(Constants.KEY_FCM_TOKEN, token)
-                .addOnSuccessListener(unused ->
-                        Utilities.showToast(this, "Token updated successfully", Utilities.ToastType.SUCCESS))
-                .addOnFailureListener(e ->
-                        Utilities.showToast(this, "Unable to update Token", Utilities.ToastType.ERROR));
-    }
-
-    /**
-     * Signs out the current user by performing the following actions:
-     * <ul>
-     *     <li>Displays a signing out toast message.</li>
-     *     <li>Removes the FCM token from Firestore.</li>
-     *     <li>Clears all user preferences.</li>
-     *     <li>Redirects the user to the SignInActivity.</li>
-     * </ul>
-     */
-    private void signOut() {
-        Utilities.showToast(this, "Signing out...", Utilities.ToastType.INFO);
-
-        // Get an instance of Firestore
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
-
-        // Reference to the current user's document in the Users collection
-        DocumentReference documentReference = database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(preferenceManager.getString(Constants.KEY_USER_ID));
-
-        // Create a map to hold the fields to update
-        HashMap<String, Object> updates = new HashMap<>();
-        updates.put(Constants.KEY_FCM_TOKEN, FieldValue.delete());
-
-        // Update the user's document to remove the FCM token
-        documentReference.update(updates)
-                .addOnSuccessListener(unused -> {
-                    // Clear all preferences upon successful token removal
-                    preferenceManager.clear();
-
-                    // Start the SignInActivity and finish the current activity
-                    startActivity(new Intent(getApplicationContext(), SignInActivity.class));
-                    finish();
-                })
-                .addOnFailureListener(e -> Utilities.showToast(this, "Unable to sign out", Utilities.ToastType.ERROR));
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (activeFragment instanceof SearchableFragment) {
+                    ((SearchableFragment) activeFragment).filterData(newText);
+                }
+                return false;
+            }
+        });
     }
 }

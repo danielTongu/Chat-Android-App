@@ -134,7 +134,7 @@ public class ChatActivity extends AppCompatActivity {
         message.put(Constants.KEY_SENDER_FIRST_NAME, preferenceManager.getString(Constants.KEY_FIRST_NAME));
         message.put(Constants.KEY_SENDER_LAST_NAME, preferenceManager.getString(Constants.KEY_LAST_NAME));
         message.put(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USER_ID));
-        message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
+        //message.put(Constants.KEY_RECEIVER_ID, receiverUser.id);
         message.put(Constants.KEY_MESSAGE, inputMessage);
         message.put(Constants.KEY_TIMESTAMP, new Date());
 
@@ -150,11 +150,11 @@ public class ChatActivity extends AppCompatActivity {
     private void ListenMessage() {
         database.collection(Constants.KEY_COLLECTION_CHAT)
                 .whereEqualTo(Constants.KEY_SENDER_ID, preferenceManager.getString(Constants.KEY_USER_ID))
-                .whereEqualTo(Constants.KEY_RECEIVER_ID, receiverUser.id)
+                //.whereEqualTo(Constants.KEY_RECEIVER_ID, receiverUser.id)
                 .addSnapshotListener(eventListener);
 
         database.collection(Constants.KEY_COLLECTION_CHAT)
-                .whereEqualTo(Constants.KEY_SENDER_ID, receiverUser.id)
+                //.whereEqualTo(Constants.KEY_SENDER_ID, receiverUser.id)
                 .whereEqualTo(Constants.KEY_RECEIVER_ID, preferenceManager.getString(Constants.KEY_USER_ID))
                 .addSnapshotListener(eventListener);
     }

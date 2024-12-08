@@ -1,4 +1,4 @@
-package com.example.chatandroidapp.listeners;
+package com.example.chatandroidapp.interfaces;
 
 import com.example.chatandroidapp.module.User;
 
