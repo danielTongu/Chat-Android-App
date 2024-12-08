@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The User class represents a user in the chat application.
@@ -90,7 +91,7 @@ public class User implements Serializable {
      */
     public void addTask(String date, String task) {
         tasksByDate.putIfAbsent(date, new ArrayList<>());
-        tasksByDate.get(date).add(task);
+        Objects.requireNonNull(tasksByDate.get(date)).add(task);
     }
 
     /**
@@ -105,8 +106,8 @@ public class User implements Serializable {
      */
     public void removeTask(String date, String task) {
         if (tasksByDate.containsKey(date)) {
-            tasksByDate.get(date).remove(task);
-            if (tasksByDate.get(date).isEmpty()) {
+            Objects.requireNonNull(tasksByDate.get(date)).remove(task);
+            if (Objects.requireNonNull(tasksByDate.get(date)).isEmpty()) {
                 tasksByDate.remove(date);
             }
         }

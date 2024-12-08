@@ -71,7 +71,7 @@ dependencies {
     implementation(libs.firebase.messaging) // Firebase Cloud Messaging for push notifications
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
-    implementation(libs.ccp)// Country code picker
+    implementation(libs.ccp)
     //-------------------------------//
 
     // Testing libraries

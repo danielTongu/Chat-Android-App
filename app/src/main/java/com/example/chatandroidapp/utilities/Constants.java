@@ -62,4 +62,8 @@ public class Constants {
     public static final String KEY_SENDER_FIRST_NAME = "senderFirstName";
     public static final String KEY_SENDER_LAST_NAME = "senderLastName";
     public static final String KEY_PHONE = "phone";
+    public static final String ACTION_SIGN_UP = "sign_up";
+    public static final String ACTION_SIGN_IN = "sign_in";
+    public static final String ACTION_UPDATE_PHONE = "update_phone";
+    public static final String KEY_ACTION_TYPE = "actionType";
 }

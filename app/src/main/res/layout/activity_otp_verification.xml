@@ -12,36 +12,41 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Toolbar with Back Button -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- Toolbar-like Layout for Back Button and Title -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/input_background"
-            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-            android:elevation="4dp"
-            android:paddingVertical="8dp"
-            app:title="Verify OTP"
-            app:titleTextColor="@color/white"
-            app:navigationIcon="@drawable/ic_back_arrow" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="16dp">
 
-        <!-- Title and Subtitle -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Verify Your Phone"
-            android:textColor="@color/primary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/buttonBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_back_arrow"
+                app:tint="@color/primary" />
+
+            <!-- Title and Subtitle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Verify Your Phone"
+                android:textColor="@color/primary"
+                android:textSize="33sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
 
         <TextView
+            android:id="@+id/textPhoneNumber"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Enter the OTP sent to your phone"
+            android:text="Phone Number: +1-234-567-8901"
             android:textColor="@color/secondary_text"
-            android:textSize="16sp" />
+            android:textSize="16sp"/>
 
         <!-- OTP Input Field -->
         <EditText
@@ -50,8 +55,9 @@
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
             android:background="@drawable/bg_rectangle_round_light"
-            android:hint="Enter OTP"
+            android:hint="Enter the OTP sent to your phone"
             android:inputType="number"
+            android:digits="0123456789"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:textColor="@color/primary_text"
