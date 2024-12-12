@@ -1,5 +1,7 @@
+// MainActivity.java
 package com.example.chatandroidapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,11 +13,14 @@ import androidx.fragment.app.FragmentManager;
 
 import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityMainBinding;
+import com.example.chatandroidapp.fragments.ChatsFragment;
 import com.example.chatandroidapp.fragments.ProfileFragment;
 import com.example.chatandroidapp.interfaces.SearchableFragment;
+import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -24,10 +29,9 @@ import java.util.Map;
 
 /**
  * MainActivity serves as the entry point for authenticated users.
- * It manages navigation between fragments and loads user data.
+ * It manages navigation between fragments and ensures user data is initialized.
  */
 public class MainActivity extends AppCompatActivity {
-
     private static final String TAG = "MAIN_ACTIVITY";
     private ActivityMainBinding binding;
     private final FragmentManager fragmentManager = getSupportFragmentManager();
@@ -45,7 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
 
-        String userId = preferenceManager.getString(Constants.KEY_USER_ID);
+        // Fetch user ID from preferences
+        String userId = preferenceManager.getString(Constants.KEY_ID);
         if (userId == null || userId.isEmpty()) {
             Log.w(TAG, "onCreate: User ID not found in preferences");
             Utilities.showToast(this, "User not authenticated. Please sign in.", Utilities.ToastType.ERROR);
@@ -53,62 +58,13 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        loadUserDetails(preferenceManager.getString(Constants.KEY_USER_ID));
+        // Assign Firebase token and initialize UI
+        assignFirebaseTokenToUser(userId);
+        initializeUI();
     }
 
     /**
-     * Fetches the user's details from Firestore and saves them to shared preferences.
-     *
-     * @param userId The Firestore document ID for the user.
-     */
-    private void loadUserDetails(String userId) {
-        Log.d(TAG, "loadUserDetails: Fetching user details from Firestore");
-
-        if (userId == null) {
-            Log.w(TAG, "loadUserDetails: User ID not found in preferences");
-            Utilities.showToast(this, "User not authenticated. Please sign in.", Utilities.ToastType.ERROR);
-            finish();
-            return;
-        }
-
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
-        database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(userId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Log.d(TAG, "loadUserDetails: User details fetched successfully");
-
-                        // Save details to preferences
-                        preferenceManager.putString(Constants.KEY_FIRST_NAME, documentSnapshot.getString(Constants.KEY_FIRST_NAME));
-                        preferenceManager.putString(Constants.KEY_LAST_NAME, documentSnapshot.getString(Constants.KEY_LAST_NAME));
-                        preferenceManager.putString(Constants.KEY_PHONE, documentSnapshot.getString(Constants.KEY_PHONE));
-                        preferenceManager.putString(Constants.KEY_EMAIL, documentSnapshot.getString(Constants.KEY_EMAIL));
-                        preferenceManager.putString(Constants.KEY_IMAGE, documentSnapshot.getString(Constants.KEY_IMAGE));
-
-                        // Assign token
-                        assignFirebaseTokenToUser(userId);
-
-                        // Initialize UI after loading data
-                        initializeUI();
-                    } else {
-                        Log.e(TAG, "loadUserDetails: User document does not exist");
-                        Utilities.showToast(this, "User account does not exist in the system. Please sign up again.", Utilities.ToastType.ERROR);
-                        preferenceManager.clear();
-                        finish();
-                    }
-                })
-                .addOnFailureListener(exception -> {
-                    Log.e(TAG, "loadUserDetails: Failed to fetch user details", exception);
-                    Utilities.showToast(this, exception.getMessage(), Utilities.ToastType.ERROR);
-                    finish();
-                });
-    }
-
-
-
-    /**
-     * Retrieves the Firebase token and updates it in Firestore.
+     * Retrieves the Firebase token and updates it in Firestore if necessary.
      *
      * @param userId The user's Firestore document ID.
      */
@@ -117,32 +73,35 @@ public class MainActivity extends AppCompatActivity {
                 .addOnSuccessListener(token -> {
                     Log.d(TAG, "assignFirebaseTokenToUser: Token retrieved successfully: " + token);
 
-                    FirebaseFirestore database = FirebaseFirestore.getInstance();
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put(Constants.KEY_FCM_TOKEN, token);
+                    String storedToken = preferenceManager.getString(Constants.KEY_FCM_TOKEN);
+                    if (storedToken == null || !token.equals(storedToken)) {
+                        // Update Firestore with the new token if it has changed
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put(Constants.KEY_FCM_TOKEN, token);
 
-                    database.collection(Constants.KEY_COLLECTION_USERS)
-                            .document(userId)
-                            .update(updates)
-                            .addOnSuccessListener(unused -> {
-                                Log.d(TAG, "assignFirebaseTokenToUser: Token assigned successfully");
-                                preferenceManager.putString(Constants.KEY_FCM_TOKEN, token);
-                            })
-                            .addOnFailureListener(e -> Log.e(TAG, "assignFirebaseTokenToUser: Failed to assign token", e));
+                        FirebaseFirestore.getInstance()
+                                .collection(Constants.KEY_COLLECTION_USERS)
+                                .document(userId)
+                                .update(updates)
+                                .addOnSuccessListener(unused -> {
+                                    Log.d(TAG, "assignFirebaseTokenToUser: Token updated successfully");
+                                    preferenceManager.putString(Constants.KEY_FCM_TOKEN, token);
+                                })
+                                .addOnFailureListener(e -> Log.e(TAG, "assignFirebaseTokenToUser: Failed to update token", e));
+                    }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "assignFirebaseTokenToUser: Failed to retrieve token", e));
     }
 
-
-
     /**
-     * Initializes the UI components, such as fragments and navigation, after user data is loaded.
+     * Initializes the UI components, such as fragments and navigation.
      */
     private void initializeUI() {
         Log.d(TAG, "initializeUI: Setting up UI components");
         setUpBottomNavigation();
         setUpSearchView();
-        Utilities.showToast(this, "Welcome!", Utilities.ToastType.SUCCESS);
+        String firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME);
+        Utilities.showToast(this, "Welcome, " + (firstName != null ? firstName : "User") + "!", Utilities.ToastType.SUCCESS);
     }
 
     /**
@@ -158,10 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ProfileFragment();
             } else if (item.getItemId() == R.id.navigation_chats) {
                 Log.d(TAG, "setUpBottomNavigation: Chats fragment selected");
-                //selectedFragment = new ChatsFragment();
-            } else if (item.getItemId() == R.id.navigation_tasks) {
-                Log.d(TAG, "setUpBottomNavigation: Tasks fragment selected");
-                //selectedFragment = new TasksFragment();
+                selectedFragment = new ChatsFragment();
             }
 
             if (selectedFragment != null) {
@@ -172,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Set default fragment to ProfileFragment
-        binding.bottomNavigation.setSelectedItemId(R.id.navigation_profile);
+        // Set default fragment to ChatsFragment
+        binding.bottomNavigation.setSelectedItemId(R.id.navigation_chats);
     }
 
     /**

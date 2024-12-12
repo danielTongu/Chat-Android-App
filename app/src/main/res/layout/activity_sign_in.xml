@@ -65,32 +65,49 @@
 
         <!-- Input field for email or phone -->
         <LinearLayout
+            android:id="@+id/ccpAndPhoneLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="20dp"
+            android:visibility="gone">
 
             <com.hbb20.CountryCodePicker
                 android:id="@+id/countryCodePicker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 app:ccp_showFlag="true"
+                app:ccp_textSize="20sp"
                 app:ccp_showNameCode="false" />
 
             <EditText
-                android:id="@+id/inputEmailOrPhone"
+                android:id="@+id/input_phone_number"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:background="@drawable/bg_rectangle_round_light"
-                android:hint="Enter Email or Phone"
+                android:background="@drawable/bg_rectangle_round"
+                android:hint="Enter Phone"
                 android:imeOptions="actionNext"
-                android:inputType="textEmailAddress"
+                android:inputType="phone"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:textColor="@color/primary_text"
                 android:textSize="20sp" />
         </LinearLayout>
+
+        <!-- Input field for email-->
+        <EditText
+            android:id="@+id/inputEmail"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_rectangle_round"
+            android:hint="Enter Email"
+            android:imeOptions="actionNext"
+            android:inputType="textEmailAddress"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/primary_text"
+            android:textSize="20sp" />
 
         <!-- Input field for password -->
         <EditText
@@ -98,7 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="Password"
             android:imeOptions="actionNext"
             android:inputType="textPassword"

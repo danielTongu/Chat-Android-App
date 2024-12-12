@@ -25,7 +25,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginEnd="16dp"
-                android:src="@drawable/ic_back_arrow"
+                android:src="@drawable/ic_arrow_back"
                 app:tint="@color/primary" />
 
             <!-- Title and Subtitle -->
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="Enter the OTP sent to your phone"
             android:inputType="number"
             android:digits="0123456789"
@@ -84,5 +84,18 @@
             android:layout_gravity="center"
             android:visibility="invisible"
             android:layout_marginTop="16dp" />
+
+        <!--To display message while the otp is not sent or failure messages -->
+        <TextView
+            android:id="@+id/processMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="17dp"
+            android:gravity="center"
+            android:text="Sending OTP"
+            android:textColor="@color/secondary_text"
+            android:textSize="20sp"
+            android:visibility="gone"/>
     </LinearLayout>
+
 </ScrollView>

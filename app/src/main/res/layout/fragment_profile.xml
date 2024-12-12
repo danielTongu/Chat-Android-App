@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:padding="24dp"
+    tools:context=".fragments.ProfileFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
 
         <!-- Title -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
             android:text="Profile"
             android:textColor="@color/primary"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="20dp" />
+            android:textStyle="bold" />
 
         <!-- Profile Picture -->
         <FrameLayout
@@ -33,7 +34,7 @@
                 android:id="@+id/imageProfile"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:background="@drawable/bg_circle_light"
+                android:background="@drawable/bg_circle"
                 android:scaleType="centerCrop"
                 app:riv_oval="true" />
 
@@ -52,7 +53,7 @@
             android:id="@+id/inputFirstName"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="First Name"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -65,7 +66,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="Last Name"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -78,11 +79,11 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="Phone Number"
+            android:inputType="phone"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:inputType="phone"
             android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
@@ -92,11 +93,11 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="Email"
+            android:inputType="textEmailAddress"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:inputType="textEmailAddress"
             android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
@@ -106,11 +107,11 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="New Password"
+            android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:inputType="textPassword"
             android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
@@ -120,11 +121,11 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_rectangle_round_light"
+            android:background="@drawable/bg_rectangle_round"
             android:hint="Confirm Password"
+            android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:inputType="textPassword"
             android:textColor="@color/primary_text"
             android:textSize="18sp" />
 

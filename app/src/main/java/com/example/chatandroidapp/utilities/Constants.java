@@ -7,66 +7,44 @@ package com.example.chatandroidapp.utilities;
  *@author  Daniel Tongu
  */
 public class Constants {
-
-    /** Key for the Users collection in Firebase Firestore.*/
-    public static final String KEY_COLLECTION_USERS = "Users";
-
-    /** Key for the user's first name.*/
-    public static final String KEY_FIRST_NAME = "firstName";
-
-    /** Key for the user's last name.*/
-    public static final String KEY_LAST_NAME = "lastName";
-
-    /** Key for the user's email.
-     */
-    public static final String KEY_EMAIL = "email";
-
-    /**Key for the user's hashed password.*/
-    public static final String KEY_PASSWORD = "password";
-
-    /** Key for the user's unique ID.*/
-    public static final String KEY_USER_ID = "userid";
-
-    /** Key indicating if the user is signed in.*/
-    public static final String KEY_IS_SIGNED_IN = "isSignedIn";
-
-    /** Key for the name of the SharedPreferences file.*/
-    public static final String KEY_PREFERENCE_NAME = "chatAppPreference";
-
-    /** Key for the user's profile image.*/
-    public static final String KEY_IMAGE = "image";
-
-    /** Key for the Firebase Cloud Messaging (FCM) token.*/
-    public static final String KEY_FCM_TOKEN = "fcmToken";
-
-    /** Key for user-related data.*/
-    public static final String KEY_USER = "user";
-
-    /** Key for the Chat collection in Firebase Firestore.*/
-    public static final String KEY_COLLECTION_CHAT = "chat";
-
-    /** Key for the sender's ID in a chat message.*/
-    public static final String KEY_SENDER_ID = "senderId";
-
-    /** Key for the receiver's ID in a chat message.*/
-    public static final String KEY_RECEIVER_ID = "receiverId";
-
-    /** Key for the message content in a chat.*/
-    public static final String KEY_MESSAGE  = "message";
-
-    /** Key for the timestamp of a chat message.*/
-    public static final String KEY_TIMESTAMP = "timeStamp";
-
-    /** Key for the minimum length recommended for a password.*/
     public static final int KEY_PASSWORD_MIN_LENGTH = 5;
-    public static final String KEY_SENDER_FIRST_NAME = "senderFirstName";
-    public static final String KEY_SENDER_LAST_NAME = "senderLastName";
-    public static final String KEY_PHONE = "phone";
-    public static final String ACTION_SIGN_UP = "sign_up";
-    public static final String ACTION_SIGN_IN = "sign_in";
-    public static final String ACTION_UPDATE_PHONE = "update_phone";
     public static final String KEY_ACTION_TYPE = "actionType";
-    public static final String KEY_CHAT = "chat";
-    public static final String KEY_MESSAGES = "messages";
-    public static final String KEY_LAST_MESSAGE = "lastMessage";
+    public static final String ACTION_SIGN_UP = "signUp";
+    public static final String ACTION_SIGN_IN = "signIn";
+    public static final String ACTION_UPDATE_PHONE = "updatePhone";
+
+    // Collection Names
+    public static final String KEY_COLLECTION_USERS = "users";
+    public static final String KEY_COLLECTION_CHATS = "chats";
+    public static final String KEY_COLLECTION_MESSAGES = "messages";
+
+    // User Fields
+    public static final String KEY_USER_ID = "id";
+    public static final String KEY_FIRST_NAME = "firstName";
+    public static final String KEY_LAST_NAME = "lastName";
+    public static final String KEY_IMAGE = "image";
+    public static final String KEY_PHONE = "phone";
+    public static final String KEY_EMAIL = "email";
+    public static final String KEY_HASHED_PASSWORD = "hashedPassword";
+    public static final String KEY_FCM_TOKEN = "fcmToken";
+    public static final String KEY_CREATED_DATE = "createdDate";
+
+    // Chat Fields
+    public static final String KEY_CHAT_ID = "id";
+    public static final String KEY_CREATOR_ID = "creatorId";
+    public static final String KEY_USER_ID_LIST = "userIdList";
+    public static final String KEY_RECENT_MESSAGE_ID = "recentMessageId";
+
+    // Message Fields
+    public static final String KEY_MESSAGE_ID = "id";
+    public static final String KEY_CHAT_ID_FIELD = "chatId";
+    public static final String KEY_SENDER_ID = "senderId";
+    public static final String KEY_CONTENT = "content";
+    public static final String KEY_SENT_DATE = "sentDate";
+
+    // Other Keys
+    public static final String KEY_SELECTED_USERS_LIST = "SELECTED_USERS";
+    public static final String KEY_ID = "id"; // Used for retrieving current user ID from preferences
+
+    public static final String KEY_IS_SIGNED_IN = "isSignedIn";
 }

@@ -1,21 +1,22 @@
+// ProfileFragment.java
 package com.example.chatandroidapp.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.activities.OtpVerificationActivity;
 import com.example.chatandroidapp.activities.SignInActivity;
 import com.example.chatandroidapp.databinding.FragmentProfileBinding;
@@ -27,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +47,8 @@ public class ProfileFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentProfileBinding.inflate(inflater, container, false);
         preferenceManager = PreferenceManager.getInstance(requireContext());
         database = FirebaseFirestore.getInstance();
@@ -101,13 +104,16 @@ public class ProfileFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
             try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), data.getData());
+                Uri imageUri = data.getData();
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), imageUri);
                 binding.imageProfile.setImageBitmap(bitmap);
 
-                String encodedImage = Utilities.encodeImage(bitmap);
+                String encodedImage = User.encodeImage(bitmap);
                 updateFirestoreField(Constants.KEY_IMAGE, encodedImage);
+                preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
             } catch (Exception e) {
                 Utilities.showToast(requireContext(), "Failed to set image", Utilities.ToastType.ERROR);
+                Log.e("ProfileFragment", "onActivityResult: Failed to set image", e);
             }
         }
     }
@@ -122,9 +128,25 @@ public class ProfileFragment extends Fragment {
         String newPassword = binding.inputNewPassword.getText().toString().trim();
         String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(firstName) || TextUtils.isEmpty(lastName) || TextUtils.isEmpty(email)) {
-            Utilities.showToast(requireContext(), "First name, last name, and email are required", Utilities.ToastType.WARNING);
+        try {
+            firstName = User.validateFirstName(firstName);
+            lastName = User.validateLastName(lastName);
+            email = User.validateEmail(email);
+        } catch (IllegalArgumentException e) {
+            Utilities.showToast(requireContext(), e.getMessage(), Utilities.ToastType.WARNING);
             return;
+        }
+
+        if (!TextUtils.isEmpty(newPassword)) {
+            try {
+                newPassword = User.validatePassword(newPassword);
+                if (!newPassword.equals(confirmPassword)) {
+                    throw new IllegalArgumentException("Passwords do not match.");
+                }
+            } catch (IllegalArgumentException e) {
+                Utilities.showToast(requireContext(), e.getMessage(), Utilities.ToastType.WARNING);
+                return;
+            }
         }
 
         Map<String, Object> updates = new HashMap<>();
@@ -133,10 +155,6 @@ public class ProfileFragment extends Fragment {
         updates.put(Constants.KEY_EMAIL, email);
 
         if (!TextUtils.isEmpty(newPassword)) {
-            if (!newPassword.equals(confirmPassword)) {
-                Utilities.showToast(requireContext(), "Passwords do not match", Utilities.ToastType.WARNING);
-                return;
-            }
             FirebaseUser user = firebaseAuth.getCurrentUser();
             if (user != null) {
                 user.updatePassword(newPassword).addOnSuccessListener(unused ->
@@ -147,13 +165,16 @@ public class ProfileFragment extends Fragment {
         }
 
         updateFirestore(updates, "Profile updated successfully");
+        preferenceManager.putString(Constants.KEY_FIRST_NAME, firstName);
+        preferenceManager.putString(Constants.KEY_LAST_NAME, lastName);
+        preferenceManager.putString(Constants.KEY_EMAIL, email);
     }
 
     /**
      * Logs out the user, removes the Firebase token, and clears local data.
      */
     private void logOutUser() {
-        String userId = preferenceManager.getString(Constants.KEY_USER_ID);
+        String userId = preferenceManager.getString(Constants.KEY_ID);
 
         if (userId != null) {
             removeFirebaseTokenFromUser(userId);
@@ -179,8 +200,8 @@ public class ProfileFragment extends Fragment {
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .document(userId)
                 .update(updates)
-                .addOnSuccessListener(unused -> Log.d("PROFILE_FRAGMENT", "removeFirebaseTokenFromUser: Token removed successfully"))
-                .addOnFailureListener(e -> Log.e("PROFILE_FRAGMENT", "removeFirebaseTokenFromUser: Failed to remove token", e));
+                .addOnSuccessListener(unused -> Log.d("ProfileFragment", "removeFirebaseTokenFromUser: Token removed successfully"))
+                .addOnFailureListener(e -> Log.e("ProfileFragment", "removeFirebaseTokenFromUser: Failed to remove token", e));
     }
 
     /**
@@ -199,18 +220,23 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Updates a specific field in Firestore and preferences.
+     * Updates a specific field in Firestore.
+     *
+     * @param key   The field key to update.
+     * @param value The new value for the field.
      */
     private void updateFirestoreField(String key, String value) {
         Map<String, Object> updates = new HashMap<>();
         updates.put(key, value);
 
         updateFirestore(updates, "Profile updated successfully");
-        preferenceManager.putString(key, value);
     }
 
     /**
      * Updates multiple fields in Firestore with a success message.
+     *
+     * @param updates        Map of fields to update.
+     * @param successMessage The message to display upon successful update.
      */
     private void updateFirestore(Map<String, Object> updates, String successMessage) {
         String userId = firebaseAuth.getCurrentUser().getUid();

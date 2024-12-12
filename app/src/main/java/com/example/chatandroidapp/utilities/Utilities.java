@@ -14,14 +14,17 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+import androidx.core.widget.ImageViewCompat;
 
 import com.example.chatandroidapp.R;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * This class provides utility methods for the application, such as displaying
  * custom Toast messages, validating email formats, and encoding images.
- *
- * @author Daniel Tongu
  */
 public class Utilities {
 
@@ -73,25 +76,25 @@ public class Utilities {
         textView.setText(message);
 
         int iconResId;
-        int bgColor;
-        int textColor = ContextCompat.getColor(context, R.color.black);
+        int bgColor = ContextCompat.getColor(context, R.color.black); // Default background color
+        int textColor = ContextCompat.getColor(context, R.color.white); // Default text color
 
         switch (type) {
             case INFO:
                 iconResId = R.drawable.ic_info;
-                bgColor = R.color.info;
+                textColor = ContextCompat.getColor(context, R.color.info);
                 break;
             case WARNING:
                 iconResId = R.drawable.ic_warning;
-                bgColor = R.color.warning;
+                textColor = ContextCompat.getColor(context, R.color.warning);
                 break;
             case ERROR:
                 iconResId = R.drawable.ic_error;
-                bgColor = R.color.error;
+                textColor = ContextCompat.getColor(context, R.color.error);
                 break;
             case SUCCESS:
                 iconResId = R.drawable.ic_success;
-                bgColor = R.color.success;
+                textColor = ContextCompat.getColor(context, R.color.success);
                 break;
             default:
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -99,7 +102,8 @@ public class Utilities {
         }
 
         imageView.setImageResource(iconResId);
-        ViewCompat.setBackgroundTintList(layout, ColorStateList.valueOf(ContextCompat.getColor(context, bgColor)));
+        ImageViewCompat.setImageTintList(imageView, ColorStateList.valueOf(textColor));
+        ViewCompat.setBackgroundTintList(layout, ColorStateList.valueOf(bgColor));
         textView.setTextColor(textColor);
 
         Toast toast = new Toast(context);
@@ -149,6 +153,17 @@ public class Utilities {
     public static Bitmap getBitmapFromEncodedString(String encodedImage) {
         byte[] bytes = Base64.decode(encodedImage, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+    }
+
+    /**
+     * Formats the given Date object into a human-readable string.
+     *
+     * @param date The Date object to format.
+     * @return A formatted date-time string.
+     */
+    public static String formatDateTime(Date date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+        return formatter.format(date);
     }
 
 }
