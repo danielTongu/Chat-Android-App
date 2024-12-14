@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.io.Serializable;
@@ -29,14 +31,12 @@ public class User implements Serializable {
     public String fcmToken = "";
 
     @ServerTimestamp
-    public Date createdDate = null;             // Server-side timestamp
+    public Date createdDate = null; // Server-side timestamp
 
     /**
      * Default constructor required for Firestore serialization/deserialization.
      */
-    public User() {
-        // createdDate will be set by Firestore
-    }
+    public User() {}
 
     /**
      * Encodes a Bitmap image to a Base64 string after resizing and compressing it.
@@ -161,7 +161,6 @@ public class User implements Serializable {
         if (password.length() < 6) {
             throw new IllegalArgumentException("Password must be at least 6 characters long.");
         }
-        // Additional password strength checks can be added here
         return password;
     }
 
@@ -172,6 +171,10 @@ public class User implements Serializable {
      * @return The hashed password as a hexadecimal string.
      */
     public static String hashPassword(String password) {
+        if (password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty.");
+        }
+
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashedBytes = digest.digest(password.getBytes());
@@ -184,7 +187,7 @@ public class User implements Serializable {
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            // In a real-world scenario, consider better error handling
+            // In a real-world scenario, we should consider better error handling
             throw new RuntimeException("Error hashing password.", e);
         }
     }
@@ -200,30 +203,10 @@ public class User implements Serializable {
         if (image == null) {
             throw new IllegalArgumentException("Profile image cannot be null.");
         }
-        // Additional image validations (e.g., size, format) can be added here
         return image;
     }
 
-    /**
-     * Validates the entire User object.
-     *
-     * @param user The User object to validate.
-     * @throws IllegalArgumentException If any field in the User object is invalid.
-     */
-    public static void validateUser(User user) throws IllegalArgumentException {
-        if (user == null) {
-            throw new IllegalArgumentException("User object cannot be null.");
-        }
-        validateFirstName(user.firstName);
-        validateLastName(user.lastName);
-        validateEmail(user.email);
-        validatePhone(user.phone);
-        if (user.hashedPassword == null || user.hashedPassword.isEmpty()) {
-            throw new IllegalArgumentException("Hashed password cannot be empty.");
-        }
-        validateImage(getBitmapFromEncodedString(user.image));
-    }
-
+    @NonNull
     @Override
     public String toString() {
         return String.format("%s %s", firstName, lastName);

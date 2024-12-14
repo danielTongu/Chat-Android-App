@@ -76,7 +76,7 @@ public class Utilities {
         textView.setText(message);
 
         int iconResId;
-        int bgColor = ContextCompat.getColor(context, R.color.black); // Default background color
+        int bgColor = ContextCompat.getColor(context, R.color.dark_gray); // Default background color
         int textColor = ContextCompat.getColor(context, R.color.white); // Default text color
 
         switch (type) {
@@ -89,8 +89,9 @@ public class Utilities {
                 textColor = ContextCompat.getColor(context, R.color.warning);
                 break;
             case ERROR:
+                bgColor = ContextCompat.getColor(context, R.color.error);
                 iconResId = R.drawable.ic_error;
-                textColor = ContextCompat.getColor(context, R.color.error);
+                textColor = ContextCompat.getColor(context, R.color.white);
                 break;
             case SUCCESS:
                 iconResId = R.drawable.ic_success;

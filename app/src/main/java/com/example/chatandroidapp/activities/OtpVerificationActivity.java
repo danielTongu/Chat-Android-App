@@ -1,4 +1,3 @@
-// OtpVerificationActivity.java
 package com.example.chatandroidapp.activities;
 
 import android.content.Intent;
@@ -19,24 +18,23 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * OtpVerificationActivity handles OTP verification for various user actions
- * such as account creation, sign-in, or updating phone numbers.
+ * Handles OTP verification for account-related actions such as sign-up, sign-in, or phone number updates.
  */
 public class OtpVerificationActivity extends AppCompatActivity {
-    private static final String TAG = "OTP_VERIFICATION_ACTIVITY";
-    private ActivityOtpVerificationBinding binding; // View binding for layout elements
-    private FirebaseAuth firebaseAuth; // Firebase Authentication instance
+    private static final String TAG = "OTP_VERIFICATION";
+
+    private ActivityOtpVerificationBinding binding;
+    private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firestore;
-    private String verificationId; // Verification ID returned by Firebase
-    private String phoneNumber; // Phone number to verify
-    private String actionType; // Action type (Sign Up, Sign In, Update Phone)
-    private PreferenceManager preferenceManager; // SharedPreferences manager
+    private String verificationId;
+    private String phoneNumber;
+    private String actionType;
+    private PreferenceManager preferenceManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,77 +42,88 @@ public class OtpVerificationActivity extends AppCompatActivity {
         binding = ActivityOtpVerificationBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        initializeComponents();
+        setupUI();
+        handleIntentData();
+    }
+
+    /**
+     * Initializes Firebase components and shared preferences.
+     */
+    private void initializeComponents() {
         firebaseAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-
-        // Retrieve action type from intent
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(Constants.KEY_ACTION_TYPE)) {
-            actionType = intent.getStringExtra(Constants.KEY_ACTION_TYPE);
-            Log.d(TAG, "onCreate: Received actionType: " + actionType);
-        } else {
-            Log.e(TAG, "onCreate: No action found in intent.");
-            Utilities.showToast(this, "No action specified.", Utilities.ToastType.ERROR);
-            finish();
-            return;
-        }
-
-        // Determine the phone number based on the action type
-        if (Constants.ACTION_UPDATE_PHONE.equals(actionType)) {
-            phoneNumber = intent.getStringExtra(Constants.KEY_PHONE);
-            if (phoneNumber == null || phoneNumber.isEmpty()) {
-                Log.e(TAG, "onCreate: No phone number found in intent for update.");
-                Utilities.showToast(this, "No phone number provided.", Utilities.ToastType.ERROR);
-                finish();
-                return;
-            }
-        } else if (Constants.ACTION_SIGN_IN.equals(actionType)) {
-            phoneNumber = preferenceManager.getString(Constants.KEY_PHONE);
-            if (phoneNumber == null || phoneNumber.isEmpty()) {
-                Log.e(TAG, "onCreate: No phone number found in preferences for sign-in.");
-                Utilities.showToast(this, "No phone number available.", Utilities.ToastType.ERROR);
-                finish();
-                return;
-            }
-        } else if (Constants.ACTION_SIGN_UP.equals(actionType)) {
-            phoneNumber = preferenceManager.getString(Constants.KEY_PHONE);
-            if (phoneNumber == null || phoneNumber.isEmpty()) {
-                Log.e(TAG, "onCreate: No phone number found in preferences for sign-up.");
-                Utilities.showToast(this, "No phone number available.", Utilities.ToastType.ERROR);
-                finish();
-                return;
-            }
-        } else {
-            Log.e(TAG, "onCreate: Unknown action type.");
-            Utilities.showToast(this, "Unknown action type.", Utilities.ToastType.ERROR);
-            finish();
-            return;
-        }
-
-        Log.d(TAG, "onCreate: Phone number to verify: " + phoneNumber);
-        binding.textPhoneNumber.setText(String.format("Phone Number: %s", phoneNumber));
-        setupUI();
-        sendOtp(phoneNumber);
     }
 
     /**
-     * Configures the UI components and sets up event listeners.
+     * Configures UI elements and sets up listeners.
      */
     private void setupUI() {
         binding.buttonBack.setOnClickListener(v -> onBackPressed());
-        binding.buttonVerifyOtp.setOnClickListener(v -> verifyOtp(binding.inputOtp.getText().toString().trim()));
+        binding.buttonVerifyOtp.setOnClickListener(v -> {
+            String otp = binding.inputOtp.getText().toString().trim();
+            if (validateOtp(otp)) {
+                verifyOtp(otp);
+            }
+        });
     }
 
     /**
-     * Sends an OTP to the provided phone number using Firebase Authentication.
+     * Handles data passed via Intent and initiates OTP sending.
+     */
+    private void handleIntentData() {
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(Constants.KEY_ACTION_TYPE)) {
+            actionType = intent.getStringExtra(Constants.KEY_ACTION_TYPE);
+            phoneNumber = fetchPhoneNumber(intent);
+            if (phoneNumber != null) {
+                binding.textPhoneNumber.setText(String.format("Phone Number: %s", phoneNumber));
+                sendOtp(phoneNumber);
+            } else {
+                showErrorAndFinish("Phone number not available.");
+            }
+        } else {
+            showErrorAndFinish("No action specified.");
+        }
+    }
+
+    /**
+     * Fetches the phone number based on the action type.
+     *
+     * @param intent The Intent containing data.
+     * @return The phone number if available; otherwise, null.
+     */
+    private String fetchPhoneNumber(Intent intent) {
+        switch (actionType) {
+            case Constants.ACTION_UPDATE_PHONE:
+                return intent.getStringExtra(Constants.KEY_PHONE);
+            case Constants.ACTION_SIGN_IN:
+            case Constants.ACTION_SIGN_UP:
+                return preferenceManager.getString(Constants.KEY_PHONE, "");
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Displays an error message and exits the activity.
+     *
+     * @param message The error message to display.
+     */
+    private void showErrorAndFinish(String message) {
+        Utilities.showToast(this, message, Utilities.ToastType.ERROR);
+        Log.e(TAG, message);
+        finish();
+    }
+
+    /**
+     * Sends an OTP to the specified phone number.
      *
      * @param phoneNumber The phone number to send the OTP to.
      */
     private void sendOtp(String phoneNumber) {
-        Log.d(TAG, "sendOtp: Sending OTP to " + phoneNumber);
         showLoading(true, "Sending OTP...");
-
         PhoneAuthOptions options = PhoneAuthOptions.newBuilder(firebaseAuth)
                 .setPhoneNumber(phoneNumber)
                 .setTimeout(60L, TimeUnit.SECONDS)
@@ -127,7 +136,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
 
                     @Override
                     public void onVerificationFailed(@NonNull FirebaseException e) {
-                        Log.e(TAG, "onVerificationFailed: OTP sending failed", e);
+                        Log.e(TAG, "OTP sending failed", e);
                         showLoading(false, "Failed to send OTP. Please try again.");
                     }
 
@@ -135,7 +144,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
                     public void onCodeSent(@NonNull String id, @NonNull PhoneAuthProvider.ForceResendingToken token) {
                         verificationId = id;
                         showLoading(false, "OTP sent successfully. Please check your phone.");
-                        Utilities.showToast(getApplicationContext(), "", Utilities.ToastType.SUCCESS);
+                        Utilities.showToast(OtpVerificationActivity.this, "OTP sent", Utilities.ToastType.SUCCESS);
                     }
                 })
                 .build();
@@ -144,154 +153,129 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Verifies the OTP entered by the user.
+     * Validates the OTP entered by the user.
+     *
+     * @param otp The entered OTP.
+     * @return True if valid; otherwise, false.
+     */
+    private boolean validateOtp(String otp) {
+        if (otp.isEmpty()) {
+            binding.inputOtp.setError("Please enter the OTP.");
+            return false;
+        }
+        if (otp.length() < 6) {
+            binding.inputOtp.setError("OTP must be 6 digits.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Verifies the OTP against the verification ID.
      *
      * @param otp The OTP entered by the user.
      */
     private void verifyOtp(String otp) {
-        showLoading(true, "Verifying OTP...");
-        if (otp.isEmpty()) {
-            Log.w(TAG, "verifyOtp: OTP is empty");
-            Utilities.showToast(this, "Please enter the OTP", Utilities.ToastType.WARNING);
-        } else if (verificationId == null) {
-            Log.e(TAG, "verifyOtp: Verification ID is null");
-            Utilities.showToast(this, "Verification ID not available", Utilities.ToastType.ERROR);
-        } else {
-            Log.d(TAG, "verifyOtp: Verifying OTP");
-            PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
-            handleVerificationSuccess(credential);
+        if (verificationId == null) {
+            Utilities.showToast(this, "Verification ID not available.", Utilities.ToastType.ERROR);
+            return;
         }
-        showLoading(false, "");
+        showLoading(true, "Verifying OTP...");
+        PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
+        handleVerificationSuccess(credential);
     }
 
     /**
-     * Handles OTP verification success based on the action type.
+     * Handles successful OTP verification and proceeds with the action type.
      *
-     * @param credential The PhoneAuthCredential for the verified OTP.
+     * @param credential The verified PhoneAuthCredential.
      */
     private void handleVerificationSuccess(PhoneAuthCredential credential) {
-        Log.d(TAG, "handleVerificationSuccess: OTP verified successfully");
-        Utilities.showToast(this, "", Utilities.ToastType.SUCCESS);
-
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                showLoading(false, null);
-                switch (actionType) {
-                    case Constants.ACTION_SIGN_UP:
-                        setAndNavigateToMainActivity();
-                        break;
-                    case Constants.ACTION_SIGN_IN:
-                        getAndNavigateToMainActivity();
-                        break;
-                    case Constants.ACTION_UPDATE_PHONE:
-                        updatePhoneNumberInFirestore();
-                        break;
-                    default:
-                        navigateToMainActivity();
-                        break;
-                }
+                proceedWithAction();
             } else {
-                Log.e(TAG, "handleVerificationSuccess: OTP verification failed", task.getException());
-                Utilities.showToast(this, "OTP verification failed. Please try again.", Utilities.ToastType.ERROR);
+                showError("OTP verification failed.");
             }
         });
     }
 
     /**
-     * Saves a new user's details to Firestore, updates preferences, and navigates to MainActivity.
+     * Proceeds with the action based on the action type.
      */
-    private void setAndNavigateToMainActivity() {
-        Log.d(TAG, "setAndNavigateToMainActivity: Saving new user details and navigating to MainActivity");
-        showLoading(true, "Saving new user details...");
-        String phone = preferenceManager.getString(Constants.KEY_PHONE);
-
-        if (phone == null || phone.isEmpty()) {
-            Log.e(TAG, "setAndNavigateToMainActivity: phone object is null or empty!");
-            Utilities.showToast(this, "Failed to retrieve phone number. Please try again.", Utilities.ToastType.ERROR);
-        } else {
-            User user = new User();
-            user.id = firestore.collection(Constants.KEY_COLLECTION_USERS).document().getId();
-            user.phone = phone;
-            user.firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME);
-            user.lastName = preferenceManager.getString(Constants.KEY_LAST_NAME);
-            user.image = preferenceManager.getString(Constants.KEY_IMAGE);
-
-            firestore.collection(Constants.KEY_COLLECTION_USERS)
-                    .document(user.id)
-                    .set(user)
-                    .addOnSuccessListener(unused -> {
-                        Utilities.showToast(this, "", Utilities.ToastType.SUCCESS);
-                        saveUserPreferences(user);
-                        navigateToMainActivity();
-                    })
-                    .addOnFailureListener(exception -> {
-                        Utilities.showToast(this, "Failed to save user data.", Utilities.ToastType.ERROR);
-                    });
+    private void proceedWithAction() {
+        switch (actionType) {
+            case Constants.ACTION_SIGN_UP:
+                setAndNavigateToMainActivity();
+                break;
+            case Constants.ACTION_SIGN_IN:
+                getAndNavigateToMainActivity();
+                break;
+            case Constants.ACTION_UPDATE_PHONE:
+                updatePhoneNumberInFirestore();
+                break;
+            default:
+                navigateToMainActivity();
         }
-
-        showLoading(false, "");
     }
 
     /**
-     * Fetches and navigates to MainActivity during sign-in.
+     * Saves user details for sign-up and navigates to MainActivity.
+     */
+    private void setAndNavigateToMainActivity() {
+        User user = new User();
+        user.id = firestore.collection(Constants.KEY_COLLECTION_USERS).document().getId();
+        user.phone = phoneNumber;
+        user.firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME, "");
+        user.lastName = preferenceManager.getString(Constants.KEY_LAST_NAME, "");
+        user.image = preferenceManager.getString(Constants.KEY_IMAGE, "");
+
+        firestore.collection(Constants.KEY_COLLECTION_USERS).document(user.id)
+                .set(user)
+                .addOnSuccessListener(unused -> {
+                    saveUserPreferences(user);
+                    navigateToMainActivity();
+                })
+                .addOnFailureListener(e -> showError("Failed to save user details."));
+    }
+
+    /**
+     * Retrieves user data for sign-in and navigates to MainActivity.
      */
     private void getAndNavigateToMainActivity() {
-        Log.d(TAG, "getAndNavigateToMainActivity: Fetching user details from Firestore");
-        showLoading(true, "Fetching user details...");
-
-
         firestore.collection(Constants.KEY_COLLECTION_USERS)
-                .document(firebaseAuth.getCurrentUser().getUid())
+                .whereEqualTo(Constants.KEY_PHONE, phoneNumber)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        if (user != null) {
-                            user.id = documentSnapshot.getId(); // Ensure the ID is set
-                            saveUserPreferences(user); // Save user details in preferences
-                            Log.d(TAG, "User ID retrieved and saved: " + user.id);
-                            navigateToMainActivity();
-                        } else {
-                            Log.e(TAG, "getAndNavigateToMainActivity: User object is null");
-                            Utilities.showToast(this, "User data is corrupted.", Utilities.ToastType.ERROR);
-                        }
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        User user = queryDocumentSnapshots.getDocuments().get(0).toObject(User.class);
+                        saveUserPreferences(user);
+                        navigateToMainActivity();
                     } else {
-                        Log.e(TAG, "getAndNavigateToMainActivity: No user found with the given UID");
-                        Utilities.showToast(this, "User not found. Please sign up first.", Utilities.ToastType.ERROR);
+                        showError("User not found. Please sign up.");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "getAndNavigateToMainActivity: Failed to fetch user details", e);
-                    Utilities.showToast(this, "Failed to retrieve user information.", Utilities.ToastType.ERROR);
-                });
-        showLoading(false, "");
+                .addOnFailureListener(e -> showError("Failed to fetch user details."));
     }
 
     /**
      * Updates the user's phone number in Firestore.
      */
     private void updatePhoneNumberInFirestore() {
-        Log.d(TAG, "updatePhoneNumberInFirestore: Updating phone number");
-        showLoading(true, "Updating phone number...");
-
         firestore.collection(Constants.KEY_COLLECTION_USERS)
-                .document(preferenceManager.getString(Constants.KEY_ID))
+                .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(Constants.KEY_PHONE, phoneNumber)
                 .addOnSuccessListener(unused -> {
                     preferenceManager.putString(Constants.KEY_PHONE, phoneNumber);
                     navigateToMainActivity();
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "updatePhoneNumberInFirestore: Failed to update phone number", e);
-                    showLoading(false, "");
-                    Utilities.showToast(this, e.getMessage(), Utilities.ToastType.ERROR);
-                });
+                .addOnFailureListener(e -> showError("Failed to update phone number."));
     }
 
     /**
-     * Saves user details to SharedPreferences.
+     * Saves user preferences locally.
      *
-     * @param user The User object to save.
+     * @param user The User object.
      */
     private void saveUserPreferences(User user) {
         preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
@@ -299,34 +283,34 @@ public class OtpVerificationActivity extends AppCompatActivity {
         preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);
         preferenceManager.putString(Constants.KEY_PHONE, user.phone);
-        preferenceManager.putString(Constants.KEY_EMAIL, user.email);
         preferenceManager.putString(Constants.KEY_IMAGE, user.image);
-        preferenceManager.putString(Constants.KEY_FCM_TOKEN, user.fcmToken);
     }
 
     /**
-     * Navigates to MainActivity.
+     * Navigates to the MainActivity.
      */
     private void navigateToMainActivity() {
-        Log.d(TAG, "navigateToMainActivity: Navigating to MainActivity");
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 
     /**
-     * Toggles the visibility of the ProgressBar and processMessage TextView.
-     *
-     * @param isLoading Whether to show the loading indicator.
-     * @param message   The message to display in the processMessage TextView.
+     * Displays a loading message.
      */
     private void showLoading(boolean isLoading, String message) {
         binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
-        if (message != null) {
-            binding.processMessage.setText(message);
-            binding.processMessage.setVisibility(View.VISIBLE);
-        } else {
-            binding.processMessage.setVisibility(View.GONE);
-        }
+        binding.buttonVerifyOtp.setEnabled(!isLoading);
+        binding.inputOtp.setEnabled(!isLoading);
+        binding.processMessage.setText(message);
+        binding.processMessage.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Displays an error message and resets the UI.
+     */
+    private void showError(String message) {
+        Utilities.showToast(this, message, Utilities.ToastType.ERROR);
+        showLoading(false, null);
     }
 }

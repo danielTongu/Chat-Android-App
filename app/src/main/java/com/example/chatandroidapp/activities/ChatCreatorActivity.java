@@ -46,7 +46,7 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
         Log.d(TAG, "onCreate: Initializing ChatCreatorActivity");
 
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-        currentUserId = preferenceManager.getString(Constants.KEY_ID);
+        currentUserId = preferenceManager.getString(Constants.KEY_ID, "");
 
         if (currentUserId == null || currentUserId.isEmpty()) {
             Log.e(TAG, "onCreate: Current user ID not found in preferences.");

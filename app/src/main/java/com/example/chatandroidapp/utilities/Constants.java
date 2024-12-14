@@ -14,9 +14,9 @@ public class Constants {
     public static final String ACTION_UPDATE_PHONE = "updatePhone";
 
     // Collection Names
-    public static final String KEY_COLLECTION_USERS = "users";
-    public static final String KEY_COLLECTION_CHATS = "chats";
-    public static final String KEY_COLLECTION_MESSAGES = "messages";
+    public static final String KEY_COLLECTION_USERS = "Users";
+    public static final String KEY_COLLECTION_CHATS = "Chats";
+    public static final String KEY_COLLECTION_MESSAGES = "Messages";
 
     // User Fields
     public static final String KEY_USER_ID = "id";

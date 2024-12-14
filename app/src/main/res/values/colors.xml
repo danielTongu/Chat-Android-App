@@ -2,6 +2,8 @@
 <resources>
     <!-- Primary Colors -->
     <color name="black">#FF000000</color>
+    <color name="dark_gray">#2B2D30</color>
+    <color name="gray">#4F4F4F</color>
     <color name="white">#FFFFFFFF</color>
     <color name="primary">#FFD83D68</color>
     <color name="input_background">#ECECEC</color>
@@ -15,8 +17,8 @@
     <color name="received_message_background">#090D16</color>
 
     <!-- Custom Toast Colors -->
-    <color name="error">#B71C1C</color>
+    <color name="error">#CF5B56</color>
     <color name="warning">#FFD600</color>
-    <color name="success">#43A047</color>
-    <color name="info">#1E88E5</color>
+    <color name="success">#6AAB73</color>
+    <color name="info">#5285EC</color>
 </resources>

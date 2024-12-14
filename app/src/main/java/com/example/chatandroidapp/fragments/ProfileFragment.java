@@ -1,4 +1,3 @@
-// ProfileFragment.java
 package com.example.chatandroidapp.fragments;
 
 import android.app.Activity;
@@ -6,13 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.provider.MediaStore;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -25,10 +26,8 @@ import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,88 +37,82 @@ import java.util.Map;
  */
 public class ProfileFragment extends Fragment {
 
+    private static final String TAG = "PROFILE_FRAGMENT";
+
     private FragmentProfileBinding binding;
     private PreferenceManager preferenceManager;
     private FirebaseFirestore database;
     private FirebaseAuth firebaseAuth;
-
-    private static final int REQUEST_IMAGE_PICK = 100;
+    private ProfileImageHandler profileImageHandler;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = FragmentProfileBinding.inflate(inflater, container, false);
-        preferenceManager = PreferenceManager.getInstance(requireContext());
-        database = FirebaseFirestore.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
 
+        initializeComponents();
         loadUserDetails();
         setListeners();
+
         return binding.getRoot();
     }
 
     /**
-     * Loads user details into the UI from shared preferences.
+     * Initializes Firebase, shared preferences, and profile image handler.
+     */
+    private void initializeComponents() {
+        preferenceManager = PreferenceManager.getInstance(requireContext());
+        database = FirebaseFirestore.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        profileImageHandler = new ProfileImageHandler(this) {
+            @Override
+            protected void handleImageSelection(Uri imageUri) {
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), imageUri);
+                    binding.imageProfile.setImageBitmap(bitmap);
+
+                    String encodedImage = User.encodeImage(bitmap);
+                    updateFirestoreField(Constants.KEY_IMAGE, encodedImage);
+                    preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
+                } catch (Exception e) {
+                    Utilities.showToast(requireContext(), "Failed to set image", Utilities.ToastType.ERROR);
+                    Log.e(TAG, "handleImageSelection: Failed to set image", e);
+                }
+            }
+        };
+    }
+
+    /**
+     * Loads user details from SharedPreferences into the UI.
      */
     private void loadUserDetails() {
-        binding.inputFirstName.setText(preferenceManager.getString(Constants.KEY_FIRST_NAME));
-        binding.inputLastName.setText(preferenceManager.getString(Constants.KEY_LAST_NAME));
-        binding.inputEmail.setText(preferenceManager.getString(Constants.KEY_EMAIL));
-        binding.inputPhoneNumber.setText(preferenceManager.getString(Constants.KEY_PHONE));
+        binding.inputFirstName.setText(preferenceManager.getString(Constants.KEY_FIRST_NAME, ""));
+        binding.inputLastName.setText(preferenceManager.getString(Constants.KEY_LAST_NAME, ""));
+        binding.inputEmail.setText(preferenceManager.getString(Constants.KEY_EMAIL, ""));
+        binding.inputPhoneNumber.setText(preferenceManager.getString(Constants.KEY_PHONE, ""));
 
-        String encodedImage = preferenceManager.getString(Constants.KEY_IMAGE);
+        String encodedImage = preferenceManager.getString(Constants.KEY_IMAGE, null);
         if (!TextUtils.isEmpty(encodedImage)) {
             binding.imageProfile.setImageBitmap(User.getBitmapFromEncodedString(encodedImage));
         }
     }
 
     /**
-     * Sets up listeners for profile update actions.
+     * Sets listeners for profile actions like image updates, profile updates, and logout.
      */
     private void setListeners() {
-        binding.layoutImage.setOnClickListener(v -> openImagePicker());
-
+        binding.layoutImage.setOnClickListener(v -> profileImageHandler.openImagePicker());
         binding.buttonUpdateProfile.setOnClickListener(v -> updateProfileDetails());
-
         binding.buttonLogout.setOnClickListener(v -> logOutUser());
-
         binding.inputPhoneNumber.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                initiatePhoneVerification();
-            }
+            if (!hasFocus) initiatePhoneVerification();
         });
     }
 
     /**
-     * Opens the image picker for profile picture update.
-     */
-    private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, REQUEST_IMAGE_PICK);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
-            try {
-                Uri imageUri = data.getData();
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), imageUri);
-                binding.imageProfile.setImageBitmap(bitmap);
-
-                String encodedImage = User.encodeImage(bitmap);
-                updateFirestoreField(Constants.KEY_IMAGE, encodedImage);
-                preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
-            } catch (Exception e) {
-                Utilities.showToast(requireContext(), "Failed to set image", Utilities.ToastType.ERROR);
-                Log.e("ProfileFragment", "onActivityResult: Failed to set image", e);
-            }
-        }
-    }
-
-    /**
-     * Updates user profile details (name, email, password) in Firestore.
+     * Updates the user's profile details in Firestore and SharedPreferences.
      */
     private void updateProfileDetails() {
         String firstName = binding.inputFirstName.getText().toString().trim();
@@ -132,52 +125,78 @@ public class ProfileFragment extends Fragment {
             firstName = User.validateFirstName(firstName);
             lastName = User.validateLastName(lastName);
             email = User.validateEmail(email);
-        } catch (IllegalArgumentException e) {
-            Utilities.showToast(requireContext(), e.getMessage(), Utilities.ToastType.WARNING);
-            return;
-        }
 
-        if (!TextUtils.isEmpty(newPassword)) {
-            try {
+            if (!TextUtils.isEmpty(newPassword)) {
                 newPassword = User.validatePassword(newPassword);
                 if (!newPassword.equals(confirmPassword)) {
                     throw new IllegalArgumentException("Passwords do not match.");
                 }
-            } catch (IllegalArgumentException e) {
-                Utilities.showToast(requireContext(), e.getMessage(), Utilities.ToastType.WARNING);
-                return;
+                updatePassword(newPassword);
             }
-        }
 
+            updateFirestoreDetails(firstName, lastName, email);
+
+        } catch (IllegalArgumentException e) {
+            Utilities.showToast(requireContext(), e.getMessage(), Utilities.ToastType.WARNING);
+        }
+    }
+
+    /**
+     * Updates the user's password in FirebaseAuth.
+     *
+     * @param newPassword The new password to set.
+     */
+    private void updatePassword(String newPassword) {
+        firebaseAuth.getCurrentUser().updatePassword(newPassword)
+                .addOnSuccessListener(unused -> Utilities.showToast(requireContext(), "Password updated successfully", Utilities.ToastType.SUCCESS))
+                .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update password", Utilities.ToastType.ERROR));
+    }
+
+    /**
+     * Updates a specific field in Firestore and logs the update.
+     *
+     * @param key   The field key to update.
+     * @param value The new value for the field.
+     */
+    private void updateFirestoreField(String key, String value) {
+        String userId = firebaseAuth.getCurrentUser().getUid();
+        Map<String, Object> updates = new HashMap<>();
+        updates.put(key, value);
+
+        database.collection(Constants.KEY_COLLECTION_USERS)
+                .document(userId)
+                .update(updates)
+                .addOnSuccessListener(unused -> Log.d(TAG, "updateFirestoreField: Updated " + key + " successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "updateFirestoreField: Failed to update " + key, e));
+    }
+
+    /**
+     * Updates the user's Firestore details and SharedPreferences.
+     *
+     * @param firstName The new first name.
+     * @param lastName  The new last name.
+     * @param email     The new email.
+     */
+    private void updateFirestoreDetails(String firstName, String lastName, String email) {
         Map<String, Object> updates = new HashMap<>();
         updates.put(Constants.KEY_FIRST_NAME, firstName);
         updates.put(Constants.KEY_LAST_NAME, lastName);
         updates.put(Constants.KEY_EMAIL, email);
 
-        if (!TextUtils.isEmpty(newPassword)) {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user != null) {
-                user.updatePassword(newPassword).addOnSuccessListener(unused ->
-                                Utilities.showToast(requireContext(), "Password updated", Utilities.ToastType.SUCCESS))
-                        .addOnFailureListener(e ->
-                                Utilities.showToast(requireContext(), "Failed to update password", Utilities.ToastType.ERROR));
-            }
-        }
-
         updateFirestore(updates, "Profile updated successfully");
+
         preferenceManager.putString(Constants.KEY_FIRST_NAME, firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, lastName);
         preferenceManager.putString(Constants.KEY_EMAIL, email);
     }
 
     /**
-     * Logs out the user, removes the Firebase token, and clears local data.
+     * Logs out the user, clears local data, and navigates to the sign-in screen.
      */
     private void logOutUser() {
-        String userId = preferenceManager.getString(Constants.KEY_ID);
-
-        if (userId != null) {
-            removeFirebaseTokenFromUser(userId);
+        String userId = preferenceManager.getString(Constants.KEY_ID, "");
+        if (!TextUtils.isEmpty(userId)) {
+            removeFirebaseTokenFromFirestore(userId);
         }
 
         firebaseAuth.signOut();
@@ -193,23 +212,23 @@ public class ProfileFragment extends Fragment {
      *
      * @param userId The user's Firestore document ID.
      */
-    private void removeFirebaseTokenFromUser(String userId) {
+    private void removeFirebaseTokenFromFirestore(String userId) {
         Map<String, Object> updates = new HashMap<>();
         updates.put(Constants.KEY_FCM_TOKEN, null);
 
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .document(userId)
                 .update(updates)
-                .addOnSuccessListener(unused -> Log.d("ProfileFragment", "removeFirebaseTokenFromUser: Token removed successfully"))
-                .addOnFailureListener(e -> Log.e("ProfileFragment", "removeFirebaseTokenFromUser: Failed to remove token", e));
+                .addOnSuccessListener(unused -> Log.d(TAG, "Firebase token removed successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to remove Firebase token", e));
     }
 
     /**
-     * Initiates phone number verification if changed.
+     * Initiates phone verification if the phone number has changed.
      */
     private void initiatePhoneVerification() {
         String newPhoneNumber = binding.inputPhoneNumber.getText().toString().trim();
-        String currentPhoneNumber = preferenceManager.getString(Constants.KEY_PHONE);
+        String currentPhoneNumber = preferenceManager.getString(Constants.KEY_PHONE, "");
 
         if (!TextUtils.isEmpty(newPhoneNumber) && !newPhoneNumber.equals(currentPhoneNumber)) {
             Intent intent = new Intent(requireContext(), OtpVerificationActivity.class);
@@ -220,30 +239,52 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Updates a specific field in Firestore.
+     * Updates multiple fields in Firestore and shows a success message.
      *
-     * @param key   The field key to update.
-     * @param value The new value for the field.
-     */
-    private void updateFirestoreField(String key, String value) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put(key, value);
-
-        updateFirestore(updates, "Profile updated successfully");
-    }
-
-    /**
-     * Updates multiple fields in Firestore with a success message.
-     *
-     * @param updates        Map of fields to update.
+     * @param updates        The fields to update.
      * @param successMessage The message to display upon successful update.
      */
     private void updateFirestore(Map<String, Object> updates, String successMessage) {
         String userId = firebaseAuth.getCurrentUser().getUid();
+
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .document(userId)
                 .update(updates)
                 .addOnSuccessListener(unused -> Utilities.showToast(requireContext(), successMessage, Utilities.ToastType.SUCCESS))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update profile", Utilities.ToastType.ERROR));
+    }
+
+    /**
+     * Abstract class for handling profile image selection.
+     */
+    private static abstract class ProfileImageHandler {
+
+        private final ActivityResultLauncher<Intent> pickImageLauncher;
+
+        ProfileImageHandler(Fragment fragment) {
+            pickImageLauncher = fragment.registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                            handleImageSelection(result.getData().getData());
+                        }
+                    }
+            );
+        }
+
+        /**
+         * Opens the image picker.
+         */
+        void openImagePicker() {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            pickImageLauncher.launch(intent);
+        }
+
+        /**
+         * Abstract method to handle image selection.
+         *
+         * @param imageUri The URI of the selected image.
+         */
+        protected abstract void handleImageSelection(Uri imageUri);
     }
 }

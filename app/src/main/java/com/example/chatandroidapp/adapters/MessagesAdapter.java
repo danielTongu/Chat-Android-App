@@ -53,7 +53,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
     public MessagesAdapter(List<Message> messages, android.content.Context context) {
         this.messages = messages;
         PreferenceManager preferenceManager = PreferenceManager.getInstance(context);
-        this.currentUserId = preferenceManager.getString(Constants.KEY_ID);
+        this.currentUserId = preferenceManager.getString(Constants.KEY_ID, "");
         this.firestore = FirebaseFirestore.getInstance();
         this.userCache = new ConcurrentHashMap<>();
     }

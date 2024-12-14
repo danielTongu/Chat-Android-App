@@ -1,4 +1,3 @@
-// SignUpActivity.java
 package com.example.chatandroidapp.activities;
 
 import android.content.Intent;
@@ -8,6 +7,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -23,38 +24,20 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.InputStream;
 
-/**
- * SignUpActivity handles user registration for both email and phone sign-up methods.
- * It dynamically toggles between the two methods and utilizes the User model's utilities
- * for validation, password hashing, and image encoding.
- */
 public class SignUpActivity extends AppCompatActivity {
     private static final String TAG = "SIGN_UP_ACTIVITY";
-    private ActivitySignUpBinding binding;
-    private String encodedImage; // Encoded string for the user's profile picture
-    private PreferenceManager preferenceManager;
-    private boolean isEmailSignUp = true; // Flag to toggle between email and phone sign-up
-
-    // Launcher for image picker
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri imageUri = result.getData().getData();
-                    if (imageUri != null) {
-                        try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
-                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                            encodedImage = User.encodeImage(bitmap);
-                            binding.imageProfile.setImageBitmap(bitmap);
-                            binding.textAddImage.setVisibility(View.GONE);
-                        } catch (Exception e) {
-                            Utilities.showToast(this, "Failed to load image", Utilities.ToastType.ERROR);
-                            Log.e(TAG, "Error loading image", e);
-                        }
-                    }
+                    handleImageSelection(result.getData().getData());
                 }
             }
     );
+    private ActivitySignUpBinding binding;
+    private String encodedImage;
+    private PreferenceManager preferenceManager;
+    private boolean isEmailSignUp = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,93 +45,104 @@ public class SignUpActivity extends AppCompatActivity {
         binding = ActivitySignUpBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-        initializeUI();
+        initializeComponents();
+        setupUI();
         setListeners();
     }
 
     /**
-     * Initializes the default settings for UI components.
+     * Initializes PreferenceManager.
      */
-    private void initializeUI() {
+    private void initializeComponents() {
+        preferenceManager = PreferenceManager.getInstance(getApplicationContext());
+    }
+
+    /**
+     * Configures the default UI state.
+     */
+    private void setupUI() {
         binding.radioGroupSignInMethod.setOnCheckedChangeListener((group, checkedId) -> {
             isEmailSignUp = (checkedId == binding.radioSignInWithEmail.getId());
             toggleSignUpMethodUI(isEmailSignUp);
         });
 
-        // Default to email sign-up
-        toggleSignUpMethodUI(true);
-
-        // Set up country picker for phone sign-up
         binding.countryCodePicker.setDefaultCountryUsingNameCode("US");
         binding.countryCodePicker.resetToDefaultCountry();
         binding.countryCodePicker.registerCarrierNumberEditText(binding.inputPhoneNumber);
+
+        toggleSignUpMethodUI(true); // Default to email sign-up
     }
 
     /**
-     * Sets up listeners for various UI interactions.
+     * Sets up listeners for interactive elements.
      */
     private void setListeners() {
-        // Back button
         binding.buttonBack.setOnClickListener(v -> onBackPressed());
-
-        // Profile image picker
-        binding.layoutImage.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            pickImage.launch(intent);
-        });
-
-        // Sign-up button
-        binding.buttonSignUp.setOnClickListener(v -> {
-            if (isEmailSignUp) {
-                if (validateEmailSignUpDetails()) {
-                    checkEmailAndSignUp();
-                }
-            } else {
-                if (validatePhoneSignUpDetails()) {
-                    navigateToOtpVerificationActivity();
-                }
-            }
-        });
-
-        // Navigate to sign-in
+        binding.layoutImage.setOnClickListener(v -> openImagePicker());
+        binding.buttonSignUp.setOnClickListener(v -> handleSignUp());
         binding.textSignIn.setOnClickListener(v -> onBackPressed());
     }
 
     /**
-     * Toggles the visibility of loading indicators.
+     * Toggles between email and phone sign-up layouts.
      *
-     * @param isLoading True to show loading indicators, false to hide.
+     * @param isEmail True for email sign-up, false for phone sign-up.
      */
-    private void showLoadingIndicator(boolean isLoading) {
-        binding.buttonSignUp.setVisibility(isLoading ? View.INVISIBLE : View.VISIBLE);
-        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+    private void toggleSignUpMethodUI(boolean isEmail) {
+        binding.signUpEmailLayout.setVisibility(isEmail ? View.VISIBLE : View.GONE);
+        binding.signUpPhoneLayout.setVisibility(isEmail ? View.GONE : View.VISIBLE);
+        binding.buttonSignUp.setText(isEmail ? "Sign Up" : "Get Code");
+
+        clearFocusAndHideKeyboard(); // Dismiss keyboard when toggling
     }
 
     /**
-     * Toggles the UI based on the selected sign-up method (email or phone).
-     *
-     * @param isEmailSignUp True for email sign-up, false for phone sign-up.
+     * Opens the image picker for selecting a profile image.
      */
-    private void toggleSignUpMethodUI(boolean isEmailSignUp) {
-        binding.signUpEmailLayout.setVisibility(isEmailSignUp ? View.VISIBLE : View.GONE);
-        binding.signUpPhoneLayout.setVisibility(isEmailSignUp ? View.GONE : View.VISIBLE);
-        binding.buttonSignUp.setText(isEmailSignUp ? "Sign Up" : "Get Code");
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        pickImage.launch(intent);
     }
 
     /**
-     * Validates the input details for phone-based sign-up.
-     *
-     * @return True if inputs are valid, false otherwise.
+     * Handles sign-up process based on selected method.
+     */
+    private void handleSignUp() {
+        if (isEmailSignUp && validateEmailSignUpDetails()) {
+            checkEmailAndSignUp();
+        } else if (!isEmailSignUp && validatePhoneSignUpDetails()) {
+            navigateToOtpVerification();
+        }
+    }
+
+    /**
+     * Validates details for email sign-up.
+     */
+    private boolean validateEmailSignUpDetails() {
+        try {
+            validateCommonFields();
+            String password = binding.inputPassword.getText().toString().trim();
+            String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
+
+            User.validatePassword(password);
+            if (!password.equals(confirmPassword)) {
+                binding.inputConfirmPassword.setError("Passwords do not match.");
+                return false;
+            }
+
+            return true;
+        } catch (IllegalArgumentException e) {
+            Utilities.showToast(this, e.getMessage(), Utilities.ToastType.WARNING);
+            return false;
+        }
+    }
+
+    /**
+     * Validates details for phone sign-up.
      */
     private boolean validatePhoneSignUpDetails() {
-        String firstName = binding.inputFirstName.getText().toString().trim();
-        String lastName = binding.inputLastName.getText().toString().trim();
-        String phoneNumber = binding.inputPhoneNumber.getText().toString().trim();
-
         try {
-            User.validateFirstName(firstName);
-            User.validateLastName(lastName);
+            validateCommonFields();
             User.validatePhone(binding.countryCodePicker.getFullNumberWithPlus());
             return true;
         } catch (IllegalArgumentException e) {
@@ -158,73 +152,30 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     /**
-     * Navigates to OTP Verification Activity for phone-based sign-up.
+     * Validates common input fields (first and last names).
      */
-    private void navigateToOtpVerificationActivity() {
-        // Save sign-up details to SharedPreferences
-        preferenceManager.putString(Constants.KEY_FIRST_NAME, binding.inputFirstName.getText().toString().trim());
-        preferenceManager.putString(Constants.KEY_LAST_NAME, binding.inputLastName.getText().toString().trim());
-        preferenceManager.putString(Constants.KEY_PHONE, binding.countryCodePicker.getFullNumberWithPlus());
-        preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
-
-        Intent intent = new Intent(SignUpActivity.this, OtpVerificationActivity.class);
-        intent.putExtra(Constants.KEY_ACTION_TYPE, Constants.ACTION_SIGN_UP); // Added action type
-        Log.d(TAG, "navigateToOtpVerificationActivity: Sending intent with actionType: " + Constants.ACTION_SIGN_UP);
-        startActivity(intent);
-        finish();
+    private void validateCommonFields() {
+        User.validateFirstName(binding.inputFirstName.getText().toString().trim());
+        User.validateLastName(binding.inputLastName.getText().toString().trim());
     }
 
     /**
-     * Validates the input details for email-based sign-up.
-     *
-     * @return True if inputs are valid, false otherwise.
-     */
-    private boolean validateEmailSignUpDetails() {
-        String firstName = binding.inputFirstName.getText().toString().trim();
-        String lastName = binding.inputLastName.getText().toString().trim();
-        String email = binding.inputEmail.getText().toString().trim();
-        String password = binding.inputPassword.getText().toString().trim();
-        String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
-
-        try {
-            User.validateFirstName(firstName);
-            User.validateLastName(lastName);
-            User.validateEmail(email);
-            User.validatePassword(password);
-
-            if (!password.equals(confirmPassword)) {
-                throw new IllegalArgumentException("Passwords do not match.");
-            }
-
-            return true;
-        } catch (IllegalArgumentException e) {
-            Utilities.showToast(this, e.getMessage(), Utilities.ToastType.WARNING);
-            return false;
-        }
-    }
-
-    /**
-     * Checks if the email is already registered and proceeds with sign-up.
+     * Checks email availability and proceeds with sign-up if valid.
      */
     private void checkEmailAndSignUp() {
         showLoadingIndicator(true);
-        FirebaseFirestore database = FirebaseFirestore.getInstance();
         String email = binding.inputEmail.getText().toString().trim();
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
 
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .whereEqualTo(Constants.KEY_EMAIL, email)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        if (!task.getResult().isEmpty()) {
-                            Utilities.showToast(this, "Email already in use. Please use a different email.", Utilities.ToastType.WARNING);
-                            showLoadingIndicator(false);
-                        } else {
-                            signUpWithEmail(database);
-                        }
-                    } else {
-                        Utilities.showToast(this, "Error checking email: " + task.getException().getMessage(), Utilities.ToastType.ERROR);
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        binding.inputEmail.setError("Email already in use.");
                         showLoadingIndicator(false);
+                    } else {
+                        registerUserWithEmail(database);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -234,39 +185,15 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles email-based user registration.
-     *
-     * @param database Instance of FirebaseFirestore.
+     * Registers the user with email-based sign-up.
      */
-    private void signUpWithEmail(FirebaseFirestore database) {
-        String hashedPassword = User.hashPassword(binding.inputPassword.getText().toString().trim());
-
-        if (hashedPassword == null) {
-            Utilities.showToast(this, "Password hashing failed. Please try again.", Utilities.ToastType.ERROR);
-            showLoadingIndicator(false);
-            return;
-        }
-
-        // Create a new User object
-        User user = new User();
-
-        // Set profile image if available
-        if (encodedImage != null) {
-            user.image = encodedImage;
-        }
-
-        // Set user details
-        user.firstName = binding.inputFirstName.getText().toString().trim();
-        user.lastName = binding.inputLastName.getText().toString().trim();
-        user.email = binding.inputEmail.getText().toString().trim();
-        user.hashedPassword = hashedPassword;
-
-        // Retrieve FCM token
+    private void registerUserWithEmail(FirebaseFirestore database) {
+        User user = createUserFromInput();
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
+                    if (task.isSuccessful()) {
                         user.fcmToken = task.getResult();
-                        registerUserWithEmail(database, user);
+                        saveUserToDatabase(database, user);
                     } else {
                         Utilities.showToast(this, "Failed to retrieve FCM token.", Utilities.ToastType.ERROR);
                         showLoadingIndicator(false);
@@ -275,47 +202,40 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     /**
-     * Registers the user with email in Firestore.
-     *
-     * @param database Instance of FirebaseFirestore.
-     * @param user     User object to be registered.
+     * Creates a User object from input fields.
      */
-    private void registerUserWithEmail(FirebaseFirestore database, User user) {
-        // Generate a new document ID
-        String userId = database.collection(Constants.KEY_COLLECTION_USERS).document().getId();
-        user.id = userId;
+    private User createUserFromInput() {
+        User user = new User();
+        user.firstName = binding.inputFirstName.getText().toString().trim();
+        user.lastName = binding.inputLastName.getText().toString().trim();
+        user.email = binding.inputEmail.getText().toString().trim();
+        user.hashedPassword = User.hashPassword(binding.inputPassword.getText().toString().trim());
+        user.image = encodedImage;
+        user.id = FirebaseFirestore.getInstance().collection(Constants.KEY_COLLECTION_USERS).document().getId();
+        return user;
+    }
 
-        // Validate the User object
-        try {
-            User.validateUser(user);
-        } catch (IllegalArgumentException e) {
-            Utilities.showToast(this, e.getMessage(), Utilities.ToastType.ERROR);
-            showLoadingIndicator(false);
-            return;
-        }
-
-        // Set the user in Firestore with the generated ID
+    /**
+     * Saves a user to the Firestore database.
+     */
+    private void saveUserToDatabase(FirebaseFirestore database, User user) {
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .document(user.id)
                 .set(user)
                 .addOnSuccessListener(unused -> {
-                    // Save user details locally
-                    saveUserPreferences(user);
-                    // Navigate to MainActivity
+                    savePreferences(user);
                     navigateToMainActivity();
                 })
-                .addOnFailureListener(exception -> {
-                    Utilities.showToast(this, exception.getMessage(), Utilities.ToastType.ERROR);
+                .addOnFailureListener(e -> {
+                    Utilities.showToast(this, e.getMessage(), Utilities.ToastType.ERROR);
                     showLoadingIndicator(false);
                 });
     }
 
     /**
-     * Saves user details locally in SharedPreferences.
-     *
-     * @param user User object whose details are to be saved.
+     * Saves user preferences locally.
      */
-    private void saveUserPreferences(User user) {
+    private void savePreferences(User user) {
         preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
         preferenceManager.putString(Constants.KEY_ID, user.id);
         preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
@@ -326,12 +246,75 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     /**
-     * Navigates to MainActivity after successful registration.
+     * Navigates to OTP verification screen for phone sign-up.
+     */
+    private void navigateToOtpVerification() {
+        saveBasicDetails();
+        Intent intent = new Intent(this, OtpVerificationActivity.class);
+        intent.putExtra(Constants.KEY_ACTION_TYPE, Constants.ACTION_SIGN_UP);
+        startActivity(intent);
+        finish();
+    }
+
+    /**
+     * Saves basic details for phone sign-up.
+     */
+    private void saveBasicDetails() {
+        preferenceManager.putString(Constants.KEY_FIRST_NAME, binding.inputFirstName.getText().toString().trim());
+        preferenceManager.putString(Constants.KEY_LAST_NAME, binding.inputLastName.getText().toString().trim());
+        preferenceManager.putString(Constants.KEY_PHONE, binding.countryCodePicker.getFullNumberWithPlus());
+        preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
+    }
+
+    /**
+     * Displays or hides loading indicators.
+     */
+    private void showLoadingIndicator(boolean isLoading) {
+        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+        binding.buttonSignUp.setEnabled(!isLoading);
+    }
+
+    /**
+     * Navigates to the main activity.
      */
     private void navigateToMainActivity() {
-        Log.d(TAG, "navigateToMainActivity: Navigating to MainActivity");
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+    }
+
+    /**
+     * Handles image selection and encoding.
+     *
+     * @param imageUri URI of the selected image.
+     */
+    private void handleImageSelection(Uri imageUri) {
+        if (imageUri != null) {
+            try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                encodedImage = User.encodeImage(bitmap);
+                binding.imageProfile.setImageBitmap(bitmap);
+                binding.textAddImage.setVisibility(View.GONE);
+            } catch (Exception e) {
+                Utilities.showToast(this, "Failed to load image", Utilities.ToastType.ERROR);
+                Log.e(TAG, "Error loading image", e);
+            }
+        } else {
+            Utilities.showToast(this, "No image selected", Utilities.ToastType.WARNING);
+        }
+    }
+
+    /**
+     * Dismisses the keyboard when switching between layouts.
+     */
+    private void clearFocusAndHideKeyboard() {
+        View view = getCurrentFocus();
+        if (view instanceof EditText) {
+            view.clearFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        }
     }
 }

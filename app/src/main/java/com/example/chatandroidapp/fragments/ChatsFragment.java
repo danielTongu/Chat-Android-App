@@ -91,7 +91,7 @@ public class ChatsFragment extends Fragment {
      * Loads chats from Firestore where the user is a participant.
      */
     private void loadChats() {
-        String userId = preferenceManager.getString(Constants.KEY_ID);
+        String userId = preferenceManager.getString(Constants.KEY_ID, "");
         Log.d(TAG, "Loading chats for user ID: " + userId);
 
         database.collection(Constants.KEY_COLLECTION_CHATS)

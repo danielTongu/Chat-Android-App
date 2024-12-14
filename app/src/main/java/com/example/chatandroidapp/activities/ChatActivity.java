@@ -141,7 +141,7 @@ public class ChatActivity extends AppCompatActivity {
             for (User user : selectedUsers) {
                 userIds.add(user.id);
             }
-            String currentUserId = preferenceManager.getString(Constants.KEY_ID);
+            String currentUserId = preferenceManager.getString(Constants.KEY_ID, "");
             userIds.add(currentUserId);
 
             // Generate a new document ID for the chat
@@ -208,7 +208,7 @@ public class ChatActivity extends AppCompatActivity {
             Message message = new Message(
                     newMessageId, // id
                     chatId,       // chatId
-                    preferenceManager.getString(Constants.KEY_ID), // senderId
+                    preferenceManager.getString(Constants.KEY_ID, ""), // senderId
                     messageContent // content
             );
 
