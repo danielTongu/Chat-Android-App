@@ -52,8 +52,7 @@ public class ChatsFragment extends Fragment {
      */
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentChatsBinding.inflate(inflater, container, false);
 
         init();
@@ -86,10 +85,9 @@ public class ChatsFragment extends Fragment {
      */
     private void loadChats() {
         String userId = preferenceManager.getString(Constants.KEY_ID, "");
-        Log.d(TAG, "Loading chats for user ID: " + userId);
 
         ListenerRegistration chatListener = database.collection(Constants.KEY_COLLECTION_CHATS)
-                .whereArrayContains(ChatActivity.KEY_USER_ID_LIST, userId)
+                .whereArrayContains("userIdList", userId)
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error loading chats", error);
@@ -179,8 +177,6 @@ public class ChatsFragment extends Fragment {
      * @param chat Chat object containing the chat details.
      */
     private void openChat(Chat chat) {
-        Log.d(TAG, "Opening chat with ID: " + chat.id);
-
         Intent intent = new Intent(getContext(), ChatActivity.class);
         intent.putExtra(Constants.KEY_ID, chat.id);
         startActivity(intent);
@@ -191,7 +187,6 @@ public class ChatsFragment extends Fragment {
      */
     private void setListeners() {
         binding.fabNewChat.setOnClickListener(v -> {
-            Log.d(TAG, "FAB clicked. Navigating to ChatCreatorActivity.");
             Intent intent = new Intent(getContext(), ChatCreatorActivity.class);
             startActivity(intent);
         });

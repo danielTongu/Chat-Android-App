@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         setUpSearchView();
 
         String firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME, "");
-        Utilities.showToast(this, "Welcome, " + firstName + "!", Utilities.ToastType.SUCCESS);
+        Utilities.showToast(this, "Welcome, " + firstName + "!", Utilities.ToastType.INFO);
     }
 
     /**
@@ -104,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
                 .update(updates)
                 .addOnSuccessListener(unused -> {
                     preferenceManager.putString(Constants.KEY_FCM_TOKEN, token);
-                    Log.d(TAG, "Firebase token updated successfully");
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to update Firebase token in Firestore", e));
     }
