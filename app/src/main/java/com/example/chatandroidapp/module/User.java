@@ -16,7 +16,9 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -33,6 +35,8 @@ public class User implements Serializable {
     public String email = "";
     public String hashedPassword = "";
     public String fcmToken = "";
+
+    public List<String> chatIds = new ArrayList<>(); // stores all the chat IDs this user participates in
 
     @ServerTimestamp
     public Date createdDate = null; // Server-side timestamp

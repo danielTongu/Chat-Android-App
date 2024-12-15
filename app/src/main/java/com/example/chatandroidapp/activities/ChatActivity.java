@@ -16,6 +16,7 @@ import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -25,23 +26,23 @@ import java.util.List;
 /**
  * ChatActivity manages real-time messaging between users.
  * Handles both new and existing chats, including chat creation, message sending,
- * and displaying real-time chat messages.
+ * updating user chat memberships, and displaying real-time chat messages.
  */
 public class ChatActivity extends AppCompatActivity {
-    private static final String TAG = "CHAT_ACTIVITY";
+    private static final String TAG = "CHAT_ACTIVITY"; // Tag for logging
 
-    private ActivityChatBinding binding;
-    private FirebaseFirestore database;
-    private PreferenceManager preferenceManager;
+    private ActivityChatBinding binding; // View binding for layout elements
+    private FirebaseFirestore database; // Firestore instance
+    private PreferenceManager preferenceManager; // SharedPreferences manager
 
     private String chatId; // ID of the current chat
     private boolean isNewChat = false; // Indicates if the chat is new
     private List<User> selectedUsers; // List of selected users for a new chat
 
-    private List<Message> messagesList;
-    private MessagesAdapter messagesAdapter;
+    private List<Message> messagesList; // List of messages in the chat
+    private MessagesAdapter messagesAdapter; // Adapter for the RecyclerView
 
-    private ListenerRegistration messagesListener;
+    private ListenerRegistration messagesListener; // Listener for real-time updates from Firestore
 
     /**
      * Initializes the activity and sets up chat functionality.
@@ -121,7 +122,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles the "Send" button click.
+     * Handles the "Send" button click by creating or sending a message.
      */
     private void handleSendMessage() {
         String messageContent = binding.inputMessage.getText().toString().trim();
@@ -159,7 +160,7 @@ public class ChatActivity extends AppCompatActivity {
         for (User user : selectedUsers) {
             userIds.add(user.id);
         }
-        //userIds.add(preferenceManager.getString(Constants.KEY_ID, ""));
+        userIds.add(preferenceManager.getString(Constants.KEY_ID, ""));
 
         String newChatId = database.collection(Constants.KEY_COLLECTION_CHATS).document().getId();
         Log.d(TAG, "createChatWithInitialMessage: Generated chat ID: " + newChatId);
@@ -175,6 +176,10 @@ public class ChatActivity extends AppCompatActivity {
                         chatId = newChatId;
                         isNewChat = false;
                         Log.d(TAG, "createChatWithInitialMessage: Chat created successfully with ID: " + chatId);
+
+                        // Update chatIds for all users
+                        updateChatIdsForUsers(userIds);
+
                         sendMessage(initialMessage);
                         listenForMessages();
                     })
@@ -185,6 +190,21 @@ public class ChatActivity extends AppCompatActivity {
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "createChatWithInitialMessage: Chat construction failed", e);
             showError(e.getMessage());
+        }
+    }
+
+    /**
+     * Updates the chatIds field for all users in the chat.
+     *
+     * @param userIds The list of user IDs to update.
+     */
+    private void updateChatIdsForUsers(List<String> userIds) {
+        for (String userId : userIds) {
+            database.collection(Constants.KEY_COLLECTION_USERS)
+                    .document(userId)
+                    .update("chatIds", FieldValue.arrayUnion(chatId))
+                    .addOnSuccessListener(unused -> Log.d(TAG, "updateChatIdsForUsers: Chat ID added to user: " + userId))
+                    .addOnFailureListener(e -> Log.e(TAG, "updateChatIdsForUsers: Failed to update user: " + userId, e));
         }
     }
 
