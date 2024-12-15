@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatandroidapp.databinding.ActivityOtpVerificationBinding;
+import com.example.chatandroidapp.fragments.ProfileFragment;
 import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -96,10 +97,10 @@ public class OtpVerificationActivity extends AppCompatActivity {
      */
     private String fetchPhoneNumber(Intent intent) {
         switch (actionType) {
-            case Constants.ACTION_UPDATE_PHONE:
+            case ProfileFragment.ACTION_UPDATE_PHONE:
                 return intent.getStringExtra(Constants.KEY_PHONE);
-            case Constants.ACTION_SIGN_IN:
-            case Constants.ACTION_SIGN_UP:
+            case SignInActivity.ACTION_SIGN_IN:
+            case SignUpActivity.ACTION_SIGN_UP:
                 return preferenceManager.getString(Constants.KEY_PHONE, "");
             default:
                 return null;
@@ -205,13 +206,13 @@ public class OtpVerificationActivity extends AppCompatActivity {
      */
     private void proceedWithAction() {
         switch (actionType) {
-            case Constants.ACTION_SIGN_UP:
+            case SignUpActivity.ACTION_SIGN_UP:
                 setAndNavigateToMainActivity();
                 break;
-            case Constants.ACTION_SIGN_IN:
+            case SignInActivity.ACTION_SIGN_IN:
                 getAndNavigateToMainActivity();
                 break;
-            case Constants.ACTION_UPDATE_PHONE:
+            case ProfileFragment.ACTION_UPDATE_PHONE:
                 updatePhoneNumberInFirestore();
                 break;
             default:
@@ -278,7 +279,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
      * @param user The User object.
      */
     private void saveUserPreferences(User user) {
-        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+        preferenceManager.putBoolean(SignInActivity.KEY_IS_SIGNED_IN, true);
         preferenceManager.putString(Constants.KEY_ID, user.id);
         preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);

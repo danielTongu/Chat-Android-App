@@ -67,6 +67,21 @@
         app:layout_constraintTop_toBottomOf="@id/buttonBack"
         app:layout_constraintBottom_toTopOf="@id/buttonStartChat"/>
 
+    <!-- EditText for typing a message to sent -->
+    <EditText
+        android:id="@+id/inputMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_rectangle_round"
+        android:hint="Type a message"
+        android:inputType="text"
+        android:padding="10dp"
+        android:textColor="@color/primary"
+        android:textSize="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/buttonStartChat"/>
 
     <!-- Button to start chat activity with selected contacts -->
     <ImageButton

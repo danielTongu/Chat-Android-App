@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.chatandroidapp.adapters.UsersAdapter;
 import com.example.chatandroidapp.databinding.ActivityChatCreatorBinding;
+import com.example.chatandroidapp.module.Message;
 import com.example.chatandroidapp.module.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -30,7 +31,9 @@ import java.util.List;
  */
 public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapter.OnUserSelectedListener {
     public static final String KEY_SELECTED_USERS_LIST = "selectedUsers";
+    public static final String KEY_INITIAL_MESSAGE = "initialMessage";
     private static final String TAG = "CHAT_CREATOR_ACTIVITY";
+
 
     private ActivityChatCreatorBinding binding;
     private UsersAdapter userAdapter;
@@ -150,18 +153,25 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
      * Navigates to ChatActivity, passing the selected users as a Serializable object.
      */
     private void navigateToChatActivity() {
-        if (selectedUsers.isEmpty()) {
-            Utilities.showToast(this, "No users selected. Please select at least one contact.", Utilities.ToastType.WARNING);
-            return;
+        Log.d(TAG, "navigateToChatActivity: Navigating to ChatActivity.");
+        try {
+            if (selectedUsers.isEmpty()) {
+                throw new IllegalArgumentException("No users selected. Please select at least one contact.");
+            }
+            String message = Message.validateContent(binding.inputMessage.getText().toString());
+
+            // Create an intent and add the selected users as a Serializable list
+            Intent intent = new Intent(this, ChatActivity.class);
+            intent.putExtra(KEY_SELECTED_USERS_LIST, new ArrayList<>(selectedUsers));
+            intent.putExtra(KEY_INITIAL_MESSAGE, message);
+            startActivity(intent);
+            finish();
+
+        } catch(IllegalArgumentException e) {
+            Utilities.showToast(this, e.getMessage(), Utilities.ToastType.WARNING);
+        } catch (Exception f) {
+            Log.e(TAG, "navigateToChatActivity: ", f);
         }
-
-        Log.d(TAG, "navigateToChatActivity: Navigating to ChatActivity with selected users.");
-
-        // Create an intent and add the selected users as a Serializable list
-        Intent intent = new Intent(this, ChatActivity.class);
-        intent.putExtra(KEY_SELECTED_USERS_LIST, new ArrayList<>(selectedUsers));
-        startActivity(intent);
-        finish();
     }
 
     /**

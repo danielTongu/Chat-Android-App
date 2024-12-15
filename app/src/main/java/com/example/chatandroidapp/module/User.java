@@ -10,6 +10,7 @@ import android.util.Base64;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.example.chatandroidapp.activities.SignUpActivity;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.io.InputStream;
@@ -27,15 +28,14 @@ import java.util.regex.Pattern;
  */
 public class User implements Serializable {
     // Public fields matching Firestore document fields
-    public String id = "";                      // Unique identifier (Primary Key)
+    public String id = ""; // Unique identifier (Primary Key)
     public String firstName = "";
     public String lastName = "";
-    public String image = "";                   // Base64 encoded image string
+    public String image = ""; // Base64 encoded image string
     public String phone = "";
     public String email = "";
     public String hashedPassword = "";
     public String fcmToken = "";
-
     public List<String> chatIds = new ArrayList<>(); // stores all the chat IDs this user participates in
 
     @ServerTimestamp
@@ -147,8 +147,9 @@ public class User implements Serializable {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty.");
         }
-        if (password.length() < 6) {
-            throw new IllegalArgumentException("Password must be at least 6 characters long.");
+        if (password.length() < SignUpActivity.KEY_PASSWORD_MIN_LENGTH) {
+            throw new IllegalArgumentException(String.format("Password must be at least %d characters long.",
+                    SignUpActivity.KEY_PASSWORD_MIN_LENGTH));
         }
         return password;
     }

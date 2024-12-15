@@ -89,7 +89,7 @@ public class ChatsFragment extends Fragment {
         Log.d(TAG, "Loading chats for user ID: " + userId);
 
         ListenerRegistration chatListener = database.collection(Constants.KEY_COLLECTION_CHATS)
-                .whereArrayContains(Constants.KEY_USER_ID_LIST, userId)
+                .whereArrayContains(ChatActivity.KEY_USER_ID_LIST, userId)
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error loading chats", error);

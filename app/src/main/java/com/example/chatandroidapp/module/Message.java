@@ -1,6 +1,8 @@
 // Message.java
 package com.example.chatandroidapp.module;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.io.Serializable;
@@ -46,7 +48,7 @@ public class Message implements Serializable {
      * @return The validated message ID.
      * @throws IllegalArgumentException If the message ID is null or empty.
      */
-    private static String validateId(String id) throws IllegalArgumentException {
+    public static String validateId(String id) throws IllegalArgumentException {
         if (id == null || id.trim().isEmpty()) {
             throw new IllegalArgumentException("Message ID cannot be null or empty.");
         }
@@ -60,7 +62,7 @@ public class Message implements Serializable {
      * @return The validated chat ID.
      * @throws IllegalArgumentException If the chat ID is null or empty.
      */
-    private static String validateChatId(String chatId) throws IllegalArgumentException {
+    public static String validateChatId(String chatId) throws IllegalArgumentException {
         if (chatId == null || chatId.trim().isEmpty()) {
             throw new IllegalArgumentException("Chat ID cannot be null or empty.");
         }
@@ -74,7 +76,7 @@ public class Message implements Serializable {
      * @return The validated sender ID.
      * @throws IllegalArgumentException If the sender ID is null or empty.
      */
-    private static String validateSenderId(String senderId) throws IllegalArgumentException {
+    public static String validateSenderId(String senderId) throws IllegalArgumentException {
         if (senderId == null || senderId.trim().isEmpty()) {
             throw new IllegalArgumentException("Sender ID cannot be null or empty.");
         }
@@ -88,13 +90,14 @@ public class Message implements Serializable {
      * @return The validated message content.
      * @throws IllegalArgumentException If the content is null or empty.
      */
-    private static String validateContent(String content) throws IllegalArgumentException {
+    public static String validateContent(String content) throws IllegalArgumentException {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("Message content cannot be null or empty.");
         }
         return content.trim();
     }
 
+    @NonNull
     @Override
     public String toString() {
         return content;

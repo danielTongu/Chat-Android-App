@@ -35,6 +35,7 @@ import java.util.Map;
  * including phone number, email, password, and profile picture.
  */
 public class ProfileFragment extends Fragment {
+    public static final String ACTION_UPDATE_PHONE = "updatePhone";
 
     private static final String TAG = "PROFILE_FRAGMENT";
 
@@ -194,7 +195,7 @@ public class ProfileFragment extends Fragment {
         updates.put(key, value);
 
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(preferenceManager.getString(Constants.KEY_USER_ID, ""))
+                .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Log.d(TAG, "updateFirestoreField: Updated " + key + " successfully"))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update " + key, Utilities.ToastType.ERROR));
@@ -223,7 +224,7 @@ public class ProfileFragment extends Fragment {
      * Logs out the user, clears local data, and navigates to the sign-in screen.
      */
     private void logOutUser() {
-        if (!TextUtils.isEmpty(preferenceManager.getString(Constants.KEY_USER_ID, ""))) {
+        if (!TextUtils.isEmpty(preferenceManager.getString(Constants.KEY_ID, ""))) {
             removeFirebaseTokenFromFirestore();
         }
 
@@ -243,7 +244,7 @@ public class ProfileFragment extends Fragment {
         updates.put(Constants.KEY_FCM_TOKEN, null);
 
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(preferenceManager.getString(Constants.KEY_USER_ID, ""))
+                .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Log.d(TAG, "Firebase token removed successfully"))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to remove Firebase token", Utilities.ToastType.ERROR));
@@ -259,7 +260,7 @@ public class ProfileFragment extends Fragment {
         if (!TextUtils.isEmpty(newPhoneNumber) && !newPhoneNumber.equals(currentPhoneNumber)) {
             Intent intent = new Intent(requireContext(), OtpVerificationActivity.class);
             intent.putExtra(Constants.KEY_PHONE, newPhoneNumber);
-            intent.putExtra(Constants.KEY_ACTION_TYPE, Constants.ACTION_UPDATE_PHONE);
+            intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_UPDATE_PHONE);
             startActivity(intent);
         }
     }
@@ -272,7 +273,7 @@ public class ProfileFragment extends Fragment {
      */
     private void updateFirestore(Map<String, Object> updates, String successMessage) {
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(preferenceManager.getString(Constants.KEY_USER_ID, ""))
+                .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Utilities.showToast(requireContext(), successMessage, Utilities.ToastType.SUCCESS))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update profile", Utilities.ToastType.ERROR));

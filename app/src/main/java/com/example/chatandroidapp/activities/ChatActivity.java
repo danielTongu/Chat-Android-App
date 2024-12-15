@@ -29,6 +29,9 @@ import java.util.List;
  * updating user chat memberships, and displaying real-time chat messages.
  */
 public class ChatActivity extends AppCompatActivity {
+    public static final String KEY_USER_ID_LIST = "userIdList";
+    public static final String KEY_RECENT_MESSAGE_ID = "recentMessageId";
+    public static final String KEY_SENT_DATE = "sentDate";
     private static final String TAG = "CHAT_ACTIVITY"; // Tag for logging
 
     private ActivityChatBinding binding; // View binding for layout elements
@@ -38,6 +41,7 @@ public class ChatActivity extends AppCompatActivity {
     private String chatId; // ID of the current chat
     private boolean isNewChat = false; // Indicates if the chat is new
     private List<User> selectedUsers; // List of selected users for a new chat
+    private String initialMessage;
 
     private List<Message> messagesList; // List of messages in the chat
     private MessagesAdapter messagesAdapter; // Adapter for the RecyclerView
@@ -99,6 +103,11 @@ public class ChatActivity extends AppCompatActivity {
         } else if (intent.hasExtra(ChatCreatorActivity.KEY_SELECTED_USERS_LIST)) {
             isNewChat = true;
             selectedUsers = (List<User>) intent.getSerializableExtra(ChatCreatorActivity.KEY_SELECTED_USERS_LIST);
+            String msg = intent.getStringExtra(ChatCreatorActivity.KEY_INITIAL_MESSAGE);
+            if (!(msg == null || msg.isEmpty())) {
+                binding.inputMessage.setText(msg);
+                handleSendMessage();
+            }
             Log.d(TAG, "checkIntentData: New chat with selected users: " + selectedUsers);
         } else {
             Log.e(TAG, "checkIntentData: Invalid intent data");
@@ -263,7 +272,7 @@ public class ChatActivity extends AppCompatActivity {
     private void updateRecentMessageId(String messageId) {
         database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
-                .update(Constants.KEY_RECENT_MESSAGE_ID, messageId)
+                .update(KEY_RECENT_MESSAGE_ID, messageId)
                 .addOnSuccessListener(unused -> Log.d(TAG, "updateRecentMessageId: Recent message ID updated"))
                 .addOnFailureListener(e -> Log.e(TAG, "updateRecentMessageId: Failed to update recent message ID", e));
     }
@@ -281,7 +290,7 @@ public class ChatActivity extends AppCompatActivity {
         messagesListener = database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
                 .collection(Constants.KEY_COLLECTION_MESSAGES)
-                .orderBy(Constants.KEY_SENT_DATE)
+                .orderBy(KEY_SENT_DATE)
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "listenForMessages: Error listening for messages", error);

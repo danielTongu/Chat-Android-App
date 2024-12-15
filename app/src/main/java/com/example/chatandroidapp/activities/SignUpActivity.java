@@ -25,6 +25,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import java.io.InputStream;
 
 public class SignUpActivity extends AppCompatActivity {
+    public static final int KEY_PASSWORD_MIN_LENGTH = 5;
+    public static final String ACTION_SIGN_UP = "signUp";
     private static final String TAG = "SIGN_UP_ACTIVITY";
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -236,7 +238,7 @@ public class SignUpActivity extends AppCompatActivity {
      * Saves user preferences locally.
      */
     private void savePreferences(User user) {
-        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+        preferenceManager.putBoolean(SignInActivity.KEY_IS_SIGNED_IN, true);
         preferenceManager.putString(Constants.KEY_ID, user.id);
         preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);
@@ -251,7 +253,7 @@ public class SignUpActivity extends AppCompatActivity {
     private void navigateToOtpVerification() {
         saveBasicDetails();
         Intent intent = new Intent(this, OtpVerificationActivity.class);
-        intent.putExtra(Constants.KEY_ACTION_TYPE, Constants.ACTION_SIGN_UP);
+        intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_SIGN_UP);
         startActivity(intent);
         finish();
     }

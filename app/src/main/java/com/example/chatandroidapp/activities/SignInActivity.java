@@ -26,6 +26,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * Includes UI state management, validations, and navigation.
  */
 public class SignInActivity extends AppCompatActivity {
+    public static final String ACTION_SIGN_IN = "signIn";
+    public static final String KEY_IS_SIGNED_IN = "isSignedIn";
     private static final String TAG = "SIGN_IN_ACTIVITY";
 
     private ActivitySignInBinding binding;
@@ -40,7 +42,7 @@ public class SignInActivity extends AppCompatActivity {
 
         initializeComponents();
 
-        if (preferenceManager.getBoolean(Constants.KEY_IS_SIGNED_IN, false)) {
+        if (preferenceManager.getBoolean(KEY_IS_SIGNED_IN, false)) {
             Log.d(TAG, "User already signed in. Navigating to MainActivity.");
             navigateToMainActivity();
             return; // Skip the rest of the setup if the user is already signed in
@@ -194,7 +196,7 @@ public class SignInActivity extends AppCompatActivity {
      * Saves user details to shared preferences.
      */
     private void saveUserPreferences(User user) {
-        preferenceManager.putBoolean(Constants.KEY_IS_SIGNED_IN, true);
+        preferenceManager.putBoolean(KEY_IS_SIGNED_IN, true);
         preferenceManager.putString(Constants.KEY_ID, user.id);
         preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);
@@ -209,7 +211,7 @@ public class SignInActivity extends AppCompatActivity {
      */
     private void navigateToOtpVerification() {
         Intent intent = new Intent(this, OtpVerificationActivity.class);
-        intent.putExtra(Constants.KEY_ACTION_TYPE, Constants.ACTION_SIGN_IN);
+        intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_SIGN_IN);
         startActivity(intent);
         showLoading(false, "");
     }
