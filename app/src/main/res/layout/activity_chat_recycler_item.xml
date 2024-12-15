@@ -18,8 +18,8 @@
 
         <com.makeramen.roundedimageview.RoundedImageView
             android:id="@+id/receivedProfilePicture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="40sp"
+            android:layout_height="40sp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_profile"
             app:layout_constraintBottom_toBottomOf="@id/receivedMessage"
@@ -30,7 +30,7 @@
 
         <TextView
             android:id="@+id/receivedMessage"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:background="@drawable/bg_message_recieved"
@@ -76,7 +76,7 @@
 
         <TextView
             android:id="@+id/sentMessage"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_message_sent"
             android:paddingHorizontal="21dp"

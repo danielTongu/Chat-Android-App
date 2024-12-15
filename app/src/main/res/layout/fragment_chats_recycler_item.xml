@@ -8,25 +8,35 @@
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground">
 
+    <!-- Divider -->
+    <View
+        android:id="@+id/item_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/primary"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Last sender profile image -->
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/recentMessageSenderProfilePicture"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:layout_marginEnd="10dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_profile"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/previewMessageLayout"
+        app:layout_constraintBottom_toBottomOf="@id/previewMessageLayout"
         app:riv_border_color="@color/black"
         app:riv_border_width="2dp"
         app:riv_corner_radius="24dp"/>
 
     <!-- Last sent message and its timestamp -->
     <LinearLayout
+        android:id="@+id/previewMessageLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
-        android:layout_marginStart="10dp"
         android:orientation="vertical"
         android:paddingBottom="10dp"
         app:layout_constraintLeft_toRightOf="@id/recentMessageSenderProfilePicture"
@@ -73,13 +83,5 @@
             android:textColor="@color/secondary_text"
             android:textSize="15sp" />
     </LinearLayout>
-
-    <!-- Divider -->
-    <View
-        android:id="@+id/item_divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/primary"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

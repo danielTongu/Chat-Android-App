@@ -1,4 +1,3 @@
-// ChatsFragment.java
 package com.example.chatandroidapp.fragments;
 
 import android.content.Intent;
@@ -21,10 +20,8 @@ import com.example.chatandroidapp.module.Chat;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,17 +29,18 @@ import java.util.List;
 
 /**
  * ChatsFragment manages and displays a list of chats the user is involved in.
- * It supports real-time updates to show recent messages and allows users to open individual chats.
+ * It fetches data from Firestore, displays recent messages, and allows navigation to individual chats.
  */
 public class ChatsFragment extends Fragment {
-
-    private static final String TAG = "ChatsFragment";
+    private static final String TAG = "CHATS_FRAGMENT";
 
     private FragmentChatsBinding binding;
     private FirebaseFirestore database;
     private PreferenceManager preferenceManager;
-    private List<Chat> chatsList;
     private ChatsAdapter chatsAdapter;
+
+    private List<Chat> chatsList;
+    private List<ListenerRegistration> listenerRegistrations;
 
     /**
      * Inflates the fragment layout and initializes required components.
@@ -71,15 +69,10 @@ public class ChatsFragment extends Fragment {
     private void init() {
         preferenceManager = PreferenceManager.getInstance(requireContext());
         database = FirebaseFirestore.getInstance();
-
         chatsList = new ArrayList<>();
-        chatsAdapter = new ChatsAdapter(chatsList, new ChatsAdapter.ChatClickListener() {
-            @Override
-            public void onChatClicked(Chat chat) {
-                openChat(chat);
-            }
-        });
+        listenerRegistrations = new ArrayList<>();
 
+        chatsAdapter = new ChatsAdapter(chatsList, this::openChat, listenerRegistrations);
         binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewChats.setAdapter(chatsAdapter);
 
@@ -89,20 +82,101 @@ public class ChatsFragment extends Fragment {
 
     /**
      * Loads chats from Firestore where the user is a participant.
+     * Sorts chats by the most recent activity and updates the RecyclerView.
      */
     private void loadChats() {
         String userId = preferenceManager.getString(Constants.KEY_ID, "");
         Log.d(TAG, "Loading chats for user ID: " + userId);
 
-        database.collection(Constants.KEY_COLLECTION_CHATS)
+        ListenerRegistration chatListener = database.collection(Constants.KEY_COLLECTION_CHATS)
                 .whereArrayContains(Constants.KEY_USER_ID_LIST, userId)
-                .addSnapshotListener(new ChatEventListener());
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error loading chats", error);
+                        binding.progressBar.setVisibility(View.GONE);
+                        binding.processMessage.setVisibility(View.VISIBLE);
+                        binding.processMessage.setText("Failed to load chats. Check your connection.");
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        handleChatChanges(snapshots.getDocumentChanges());
+                    }
+                });
+
+        listenerRegistrations.add(chatListener);
     }
 
     /**
-     * Opens the selected chat by navigating to ChatActivity.
+     * Handles real-time updates to the chat list from Firestore.
      *
-     * @param chat The selected chat object.
+     * @param documentChanges List of document changes received from Firestore.
+     */
+    private void handleChatChanges(List<DocumentChange> documentChanges) {
+        boolean dataChanged = false;
+
+        for (DocumentChange change : documentChanges) {
+            Chat chat = change.getDocument().toObject(Chat.class);
+            chat.id = change.getDocument().getId();
+
+            switch (change.getType()) {
+                case ADDED:
+                    chatsList.add(chat);
+                    dataChanged = true;
+                    break;
+
+                case MODIFIED:
+                    for (int i = 0; i < chatsList.size(); i++) {
+                        if (chatsList.get(i).id.equals(chat.id)) {
+                            chatsList.set(i, chat);
+                            dataChanged = true;
+                            break;
+                        }
+                    }
+                    break;
+
+                case REMOVED:
+                    chatsList.removeIf(existingChat -> existingChat.id.equals(chat.id));
+                    dataChanged = true;
+                    break;
+            }
+        }
+
+        if (dataChanged) {
+            updateUI();
+        }
+    }
+
+    /**
+     * Updates the UI by sorting and refreshing the chat list.
+     */
+    private void updateUI() {
+        // Sort chats by the most recent activity (createdDate descending)
+        Collections.sort(chatsList, (c1, c2) -> {
+            if (c1.createdDate == null && c2.createdDate == null) { return 0; }
+            if (c1.createdDate == null) { return 1; }
+            if (c2.createdDate == null) { return -1; }
+            return c2.createdDate.compareTo(c1.createdDate);
+        });
+
+        // Update visibility based on the chat list size
+        if (chatsList.isEmpty()) {
+            binding.processMessage.setVisibility(View.VISIBLE);
+            binding.processMessage.setText("No chats yet.");
+            binding.recyclerViewChats.setVisibility(View.GONE);
+        } else {
+            binding.processMessage.setVisibility(View.GONE);
+            binding.recyclerViewChats.setVisibility(View.VISIBLE);
+        }
+
+        chatsAdapter.notifyDataSetChanged();
+        binding.progressBar.setVisibility(View.GONE);
+    }
+
+    /**
+     * Navigates to ChatActivity when a chat item is clicked.
+     *
+     * @param chat Chat object containing the chat details.
      */
     private void openChat(Chat chat) {
         Log.d(TAG, "Opening chat with ID: " + chat.id);
@@ -116,83 +190,23 @@ public class ChatsFragment extends Fragment {
      * Sets listeners for UI components, such as the Floating Action Button.
      */
     private void setListeners() {
-        binding.fabNewChat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "FAB clicked. Navigating to ChatCreatorActivity.");
-                Intent intent = new Intent(getContext(), ChatCreatorActivity.class);
-                startActivity(intent);
-            }
+        binding.fabNewChat.setOnClickListener(v -> {
+            Log.d(TAG, "FAB clicked. Navigating to ChatCreatorActivity.");
+            Intent intent = new Intent(getContext(), ChatCreatorActivity.class);
+            startActivity(intent);
         });
     }
 
     /**
-     * Cleans up resources when the fragment is destroyed.
+     * Removes Firestore listeners and cleans up resources to prevent memory leaks.
      */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
-    }
-
-    /**
-     * Event listener for handling real-time updates to the chat list from Firestore.
-     */
-    private class ChatEventListener implements EventListener<QuerySnapshot> {
-        @Override
-        public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException error) {
-            if (error != null) {
-                Log.e(TAG, "Error loading chats", error);
-                binding.progressBar.setVisibility(View.GONE);
-                binding.processMessage.setVisibility(View.VISIBLE);
-                binding.processMessage.setText("Failed to load chats. Check your connection.");
-                return;
-            }
-
-            if (snapshots != null) {
-                for (DocumentChange change : snapshots.getDocumentChanges()) {
-                    if (change.getType() == DocumentChange.Type.ADDED) {
-                        Chat chat = change.getDocument().toObject(Chat.class);
-                        chat.id = change.getDocument().getId(); // Assign Firestore document ID
-                        Log.d(TAG, "New chat added: " + chat.id);
-                        chatsList.add(chat);
-                    } else if (change.getType() == DocumentChange.Type.MODIFIED) {
-                        Chat updatedChat = change.getDocument().toObject(Chat.class);
-                        updatedChat.id = change.getDocument().getId(); // Assign Firestore document ID
-                        for (int i = 0; i < chatsList.size(); i++) {
-                            if (chatsList.get(i).id.equals(updatedChat.id)) {
-                                chatsList.set(i, updatedChat);
-                                break;
-                            }
-                        }
-                        Log.d(TAG, "Chat modified: " + updatedChat.id);
-                    } else if (change.getType() == DocumentChange.Type.REMOVED) {
-                        String removedChatId = change.getDocument().getId();
-                        chatsList.removeIf(chat -> chat.id.equals(removedChatId));
-                        Log.d(TAG, "Chat removed: " + removedChatId);
-                    }
-                }
-
-                // Sort chats by the most recent message timestamp (descending)
-                Collections.sort(chatsList, (c1, c2) -> {
-                    if (c1.createdDate == null && c2.createdDate == null) return 0;
-                    if (c1.createdDate == null) return 1;
-                    if (c2.createdDate == null) return -1;
-                    return c2.createdDate.compareTo(c1.createdDate);
-                });
-
-                if (!chatsList.isEmpty()) {
-                    binding.processMessage.setVisibility(View.GONE);
-                    binding.recyclerViewChats.setVisibility(View.VISIBLE);
-                } else {
-                    binding.processMessage.setVisibility(View.VISIBLE);
-                    binding.processMessage.setText("No chats yet.");
-                }
-
-                chatsAdapter.notifyDataSetChanged();
-            }
-
-            binding.progressBar.setVisibility(View.GONE);
+        for (ListenerRegistration listener : listenerRegistrations) {
+            listener.remove();
         }
+        listenerRegistrations.clear();
+        binding = null;
     }
 }
