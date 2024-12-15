@@ -73,7 +73,7 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
 
         // Handle checkbox state
         holder.checkBox.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
-        holder.checkBox.setChecked(usersList.contains(user));
+        holder.checkBox.setChecked(false);
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             listener.onUserSelected(user, isChecked);
         });

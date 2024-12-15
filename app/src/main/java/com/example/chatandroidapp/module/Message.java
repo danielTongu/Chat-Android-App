@@ -3,12 +3,13 @@ package com.example.chatandroidapp.module;
 
 import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * The Message class represents a single chat message exchanged between users.
  */
-public class Message {
+public class Message implements Serializable {
     @ServerTimestamp
     public Date sentDate = null;    // Server-side timestamp
     public String id = "";          // Unique identifier (Primary Key)

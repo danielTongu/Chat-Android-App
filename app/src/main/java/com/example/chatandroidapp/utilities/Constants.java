@@ -43,7 +43,6 @@ public class Constants {
     public static final String KEY_SENT_DATE = "sentDate";
 
     // Other Keys
-    public static final String KEY_SELECTED_USERS_LIST = "SELECTED_USERS";
     public static final String KEY_ID = "id"; // Used for retrieving current user ID from preferences
 
     public static final String KEY_IS_SIGNED_IN = "isSignedIn";

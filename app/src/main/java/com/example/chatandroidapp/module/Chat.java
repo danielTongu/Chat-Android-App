@@ -3,6 +3,7 @@ package com.example.chatandroidapp.module;
 
 import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 /**
  * The Chat class represents a conversation between multiple users.
  */
-public class Chat {
+public class Chat implements Serializable {
     @ServerTimestamp
     public Date createdDate = null;             // Server-side timestamp
     public String id = "";                      // Unique identifier (Primary Key)
@@ -94,11 +95,11 @@ public class Chat {
      *
      * @param recentMessageId The recent message ID to validate.
      * @return The validated recent message ID.
-     * @throws IllegalArgumentException If the recent message ID is null or empty.
+     * @throws IllegalArgumentException If the recent message ID is null.
      */
     private static String validateRecentMessageId(String recentMessageId) throws IllegalArgumentException {
-        if (recentMessageId == null || recentMessageId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Recent Message ID cannot be null or empty.");
+        if (recentMessageId == null ) {
+            throw new IllegalArgumentException("Recent Message ID cannot be null.");
         }
         return recentMessageId.trim();
     }

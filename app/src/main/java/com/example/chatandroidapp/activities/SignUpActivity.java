@@ -122,11 +122,11 @@ public class SignUpActivity extends AppCompatActivity {
         try {
             validateCommonFields();
             String password = binding.inputPassword.getText().toString().trim();
-            String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
+            String confirmPassword = binding.inputConfirmNewPassword.getText().toString().trim();
 
             User.validatePassword(password);
             if (!password.equals(confirmPassword)) {
-                binding.inputConfirmPassword.setError("Passwords do not match.");
+                binding.inputConfirmNewPassword.setError("Passwords do not match.");
                 return false;
             }
 

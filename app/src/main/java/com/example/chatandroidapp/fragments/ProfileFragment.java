@@ -1,6 +1,5 @@
 package com.example.chatandroidapp.fragments;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -43,12 +42,17 @@ public class ProfileFragment extends Fragment {
     private PreferenceManager preferenceManager;
     private FirebaseFirestore database;
     private FirebaseAuth firebaseAuth;
-    private ProfileImageHandler profileImageHandler;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        registerImagePickerLauncher(); // Ensure launcher is initialized early in lifecycle
+    }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentProfileBinding.inflate(inflater, container, false);
 
         initializeComponents();
@@ -59,29 +63,52 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Initializes Firebase, shared preferences, and profile image handler.
+     * Initializes Firebase, SharedPreferences, and image handler for profile image selection.
      */
     private void initializeComponents() {
         preferenceManager = PreferenceManager.getInstance(requireContext());
         database = FirebaseFirestore.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
+    }
 
-        profileImageHandler = new ProfileImageHandler(this) {
-            @Override
-            protected void handleImageSelection(Uri imageUri) {
-                try {
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), imageUri);
-                    binding.imageProfile.setImageBitmap(bitmap);
-
-                    String encodedImage = User.encodeImage(bitmap);
-                    updateFirestoreField(Constants.KEY_IMAGE, encodedImage);
-                    preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
-                } catch (Exception e) {
-                    Utilities.showToast(requireContext(), "Failed to set image", Utilities.ToastType.ERROR);
-                    Log.e(TAG, "handleImageSelection: Failed to set image", e);
+    /**
+     * Registers the image picker launcher to handle image selection results.
+     */
+    private void registerImagePickerLauncher() {
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                        Uri imageUri = result.getData().getData();
+                        if (imageUri != null) {
+                            handleImageSelection(imageUri);
+                        }
+                    } else {
+                        Utilities.showToast(requireContext(), "No image selected", Utilities.ToastType.WARNING);
+                    }
                 }
-            }
-        };
+        );
+    }
+
+    /**
+     * Handles the selected image, updating the profile picture in the UI and Firestore.
+     *
+     * @param imageUri The URI of the selected image.
+     */
+    private void handleImageSelection(Uri imageUri) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), imageUri);
+            binding.imageProfile.setImageBitmap(bitmap);
+
+            String encodedImage = User.encodeImage(bitmap);
+            updateFirestoreField(Constants.KEY_IMAGE, encodedImage);
+            preferenceManager.putString(Constants.KEY_IMAGE, encodedImage);
+
+            Utilities.showToast(requireContext(), "Profile image updated", Utilities.ToastType.SUCCESS);
+        } catch (Exception e) {
+            Log.e(TAG, "Error handling selected image", e);
+            Utilities.showToast(requireContext(), "Failed to process the image", Utilities.ToastType.ERROR);
+        }
     }
 
     /**
@@ -103,7 +130,7 @@ public class ProfileFragment extends Fragment {
      * Sets listeners for profile actions like image updates, profile updates, and logout.
      */
     private void setListeners() {
-        binding.layoutImage.setOnClickListener(v -> profileImageHandler.openImagePicker());
+        binding.layoutImage.setOnClickListener(v -> openImagePicker());
         binding.buttonUpdateProfile.setOnClickListener(v -> updateProfileDetails());
         binding.buttonLogout.setOnClickListener(v -> logOutUser());
         binding.inputPhoneNumber.setOnFocusChangeListener((v, hasFocus) -> {
@@ -112,19 +139,23 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
+     * Opens the image picker to select a profile picture.
+     */
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imagePickerLauncher.launch(intent);
+    }
+
+    /**
      * Updates the user's profile details in Firestore and SharedPreferences.
      */
     private void updateProfileDetails() {
-        String firstName = binding.inputFirstName.getText().toString().trim();
-        String lastName = binding.inputLastName.getText().toString().trim();
-        String email = binding.inputEmail.getText().toString().trim();
-        String newPassword = binding.inputNewPassword.getText().toString().trim();
-        String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
-
         try {
-            firstName = User.validateFirstName(firstName);
-            lastName = User.validateLastName(lastName);
-            email = User.validateEmail(email);
+            String firstName = User.validateFirstName(binding.inputFirstName.getText().toString().trim());
+            String lastName = User.validateLastName(binding.inputLastName.getText().toString().trim());
+            String email = User.validateEmail(binding.inputEmail.getText().toString().trim());
+            String newPassword = binding.inputNewPassword.getText().toString().trim();
+            String confirmPassword = binding.inputConfirmNewPassword.getText().toString().trim();
 
             if (!TextUtils.isEmpty(newPassword)) {
                 newPassword = User.validatePassword(newPassword);
@@ -159,20 +190,18 @@ public class ProfileFragment extends Fragment {
      * @param value The new value for the field.
      */
     private void updateFirestoreField(String key, String value) {
-        String userId = firebaseAuth.getCurrentUser().getUid();
         Map<String, Object> updates = new HashMap<>();
         updates.put(key, value);
 
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(userId)
+                .document(preferenceManager.getString(Constants.KEY_USER_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Log.d(TAG, "updateFirestoreField: Updated " + key + " successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "updateFirestoreField: Failed to update " + key, e));
+                .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update " + key, Utilities.ToastType.ERROR));
     }
 
     /**
      * Updates the user's Firestore details and SharedPreferences.
-     *
      * @param firstName The new first name.
      * @param lastName  The new last name.
      * @param email     The new email.
@@ -194,9 +223,8 @@ public class ProfileFragment extends Fragment {
      * Logs out the user, clears local data, and navigates to the sign-in screen.
      */
     private void logOutUser() {
-        String userId = preferenceManager.getString(Constants.KEY_ID, "");
-        if (!TextUtils.isEmpty(userId)) {
-            removeFirebaseTokenFromFirestore(userId);
+        if (!TextUtils.isEmpty(preferenceManager.getString(Constants.KEY_USER_ID, ""))) {
+            removeFirebaseTokenFromFirestore();
         }
 
         firebaseAuth.signOut();
@@ -209,18 +237,16 @@ public class ProfileFragment extends Fragment {
 
     /**
      * Removes the Firebase token from Firestore.
-     *
-     * @param userId The user's Firestore document ID.
      */
-    private void removeFirebaseTokenFromFirestore(String userId) {
+    private void removeFirebaseTokenFromFirestore() {
         Map<String, Object> updates = new HashMap<>();
         updates.put(Constants.KEY_FCM_TOKEN, null);
 
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(userId)
+                .document(preferenceManager.getString(Constants.KEY_USER_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Log.d(TAG, "Firebase token removed successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to remove Firebase token", e));
+                .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to remove Firebase token", Utilities.ToastType.ERROR));
     }
 
     /**
@@ -245,46 +271,10 @@ public class ProfileFragment extends Fragment {
      * @param successMessage The message to display upon successful update.
      */
     private void updateFirestore(Map<String, Object> updates, String successMessage) {
-        String userId = firebaseAuth.getCurrentUser().getUid();
-
         database.collection(Constants.KEY_COLLECTION_USERS)
-                .document(userId)
+                .document(preferenceManager.getString(Constants.KEY_USER_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Utilities.showToast(requireContext(), successMessage, Utilities.ToastType.SUCCESS))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update profile", Utilities.ToastType.ERROR));
-    }
-
-    /**
-     * Abstract class for handling profile image selection.
-     */
-    private static abstract class ProfileImageHandler {
-
-        private final ActivityResultLauncher<Intent> pickImageLauncher;
-
-        ProfileImageHandler(Fragment fragment) {
-            pickImageLauncher = fragment.registerForActivityResult(
-                    new ActivityResultContracts.StartActivityForResult(),
-                    result -> {
-                        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                            handleImageSelection(result.getData().getData());
-                        }
-                    }
-            );
-        }
-
-        /**
-         * Opens the image picker.
-         */
-        void openImagePicker() {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            pickImageLauncher.launch(intent);
-        }
-
-        /**
-         * Abstract method to handle image selection.
-         *
-         * @param imageUri The URI of the selected image.
-         */
-        protected abstract void handleImageSelection(Uri imageUri);
     }
 }

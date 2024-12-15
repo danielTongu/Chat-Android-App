@@ -39,6 +39,13 @@ public class SignInActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         initializeComponents();
+
+        if (preferenceManager.getBoolean(Constants.KEY_IS_SIGNED_IN, false)) {
+            Log.d(TAG, "User already signed in. Navigating to MainActivity.");
+            navigateToMainActivity();
+            return; // Skip the rest of the setup if the user is already signed in
+        }
+
         setupUI();
         setListeners();
     }

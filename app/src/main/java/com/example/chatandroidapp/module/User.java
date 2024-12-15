@@ -1,14 +1,18 @@
-// User.java
 package com.example.chatandroidapp.module;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.InputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * The User class represents a user in the chat application.
- * It includes utilities for encoding and decoding profile images.
+ * It includes utilities for encoding, decoding, and validating user information, including profile images.
  */
 public class User implements Serializable {
     // Public fields matching Firestore document fields
@@ -37,6 +41,8 @@ public class User implements Serializable {
      * Default constructor required for Firestore serialization/deserialization.
      */
     public User() {}
+
+    // --- IMAGE HANDLING FUNCTIONS ---
 
     /**
      * Encodes a Bitmap image to a Base64 string after resizing and compressing it.
@@ -74,12 +80,20 @@ public class User implements Serializable {
     }
 
     /**
-     * Validates the user's first name.
+     * Validates a user's profile image to ensure it is non-null and meets the application's requirements.
      *
-     * @param firstName The first name to validate.
-     * @return The trimmed first name if valid.
-     * @throws IllegalArgumentException If the first name is invalid.
+     * @param image The image to validate.
+     * @return The validated Bitmap image.
+     * @throws IllegalArgumentException If the image is invalid.
      */
+    public static Bitmap validateImage(Bitmap image) throws IllegalArgumentException {
+        if (image == null) {
+            throw new IllegalArgumentException("Profile image cannot be null.");
+        }
+        return image;
+    }
+
+    // --- VALIDATION FUNCTIONS ---
     public static String validateFirstName(String firstName) throws IllegalArgumentException {
         if (firstName == null || firstName.trim().isEmpty()) {
             throw new IllegalArgumentException("First name cannot be empty.");
@@ -91,13 +105,6 @@ public class User implements Serializable {
         return firstName;
     }
 
-    /**
-     * Validates the user's last name.
-     *
-     * @param lastName The last name to validate.
-     * @return The trimmed last name if valid.
-     * @throws IllegalArgumentException If the last name is invalid.
-     */
     public static String validateLastName(String lastName) throws IllegalArgumentException {
         if (lastName == null || lastName.trim().isEmpty()) {
             throw new IllegalArgumentException("Last name cannot be empty.");
@@ -109,13 +116,6 @@ public class User implements Serializable {
         return lastName;
     }
 
-    /**
-     * Validates the user's email address.
-     *
-     * @param email The email to validate.
-     * @return The trimmed and lowercased email if valid.
-     * @throws IllegalArgumentException If the email is invalid.
-     */
     public static String validateEmail(String email) throws IllegalArgumentException {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty.");
@@ -127,19 +127,11 @@ public class User implements Serializable {
         return email;
     }
 
-    /**
-     * Validates the user's phone number.
-     *
-     * @param phone The phone number to validate.
-     * @return The trimmed phone number if valid.
-     * @throws IllegalArgumentException If the phone number is invalid.
-     */
     public static String validatePhone(String phone) throws IllegalArgumentException {
         if (phone == null || phone.trim().isEmpty()) {
             throw new IllegalArgumentException("Phone number cannot be empty.");
         }
         phone = phone.trim();
-        // Simple regex for phone validation (can be enhanced as needed)
         Pattern phonePattern = Pattern.compile("^\\+?[0-9]{7,15}$");
         if (!phonePattern.matcher(phone).matches()) {
             throw new IllegalArgumentException("Invalid phone number format.");
@@ -147,13 +139,6 @@ public class User implements Serializable {
         return phone;
     }
 
-    /**
-     * Validates the user's password.
-     *
-     * @param password The password to validate.
-     * @return The password if valid.
-     * @throws IllegalArgumentException If the password is invalid.
-     */
     public static String validatePassword(String password) throws IllegalArgumentException {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty.");
@@ -164,51 +149,96 @@ public class User implements Serializable {
         return password;
     }
 
-    /**
-     * Hashes the user's password using SHA-256.
-     *
-     * @param password The raw password to hash.
-     * @return The hashed password as a hexadecimal string.
-     */
     public static String hashPassword(String password) {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty.");
         }
-
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashedBytes = digest.digest(password.getBytes());
-            // Convert byte array into hexadecimal string
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashedBytes) {
                 String hex = Integer.toHexString(0xff & b);
-                if(hex.length() == 1) hexString.append('0');
+                if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            // In a real-world scenario, we should consider better error handling
             throw new RuntimeException("Error hashing password.", e);
         }
-    }
-
-    /**
-     * Validates the user's profile image.
-     *
-     * @param image The image to validate.
-     * @return The Bitmap image if valid.
-     * @throws IllegalArgumentException If the image is invalid.
-     */
-    public static Bitmap validateImage(Bitmap image) throws IllegalArgumentException {
-        if (image == null) {
-            throw new IllegalArgumentException("Profile image cannot be null.");
-        }
-        return image;
     }
 
     @NonNull
     @Override
     public String toString() {
         return String.format("%s %s", firstName, lastName);
+    }
+
+    /**
+     * Callback interface for handling image selection results.
+     */
+    public interface ImageSelectionCallback {
+        /**
+         * Called when an image is successfully selected.
+         *
+         * @param bitmap The selected Bitmap image.
+         */
+        void onImageSelected(Bitmap bitmap);
+
+        /**
+         * Called when image selection fails.
+         *
+         * @param errorMessage The error message.
+         */
+        void onImageSelectionFailed(String errorMessage);
+    }
+
+    /**
+     * Handles the selection of a profile image by the user.
+     * This function uses a `Fragment` to handle activity result registration for modern APIs.
+     */
+    public static class ImageHandler {
+        private final Fragment fragment;
+        private final ImageSelectionCallback callback;
+
+        /**
+         * Constructor for ImageHandler.
+         *
+         * @param fragment The fragment to handle the image selection flow.
+         * @param callback The callback to handle the selected image.
+         */
+        public ImageHandler(Fragment fragment, ImageSelectionCallback callback) {
+            this.fragment = fragment;
+            this.callback = callback;
+        }
+
+        /**
+         * Opens the image picker for selecting a profile image.
+         */
+        public void openImagePicker() {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            fragment.registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                            handleImageSelection(result.getData().getData());
+                        }
+                    }
+            ).launch(intent);
+        }
+
+        /**
+         * Handles the image selection result, decodes the image, and passes it to the callback.
+         *
+         * @param imageUri The URI of the selected image.
+         */
+        private void handleImageSelection(Uri imageUri) {
+            try (InputStream inputStream = fragment.requireContext().getContentResolver().openInputStream(imageUri)) {
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                callback.onImageSelected(bitmap);
+            } catch (Exception e) {
+                callback.onImageSelectionFailed("Failed to load the selected image.");
+            }
+        }
     }
 }

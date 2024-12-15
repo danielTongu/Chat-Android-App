@@ -19,6 +19,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,8 @@ import java.util.List;
  * to the ChatActivity for further processing.
  */
 public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapter.OnUserSelectedListener {
-    private static final String TAG = "ChatCreatorActivity";
+    public static final String KEY_SELECTED_USERS_LIST = "selectedUsers";
+    private static final String TAG = "CHAT_CREATOR_ACTIVITY";
 
     private ActivityChatCreatorBinding binding;
     private UsersAdapter userAdapter;
@@ -157,7 +159,7 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
 
         // Create an intent and add the selected users as a Serializable list
         Intent intent = new Intent(this, ChatActivity.class);
-        intent.putExtra(Constants.KEY_SELECTED_USERS_LIST, new ArrayList<>(selectedUsers));
+        intent.putExtra(KEY_SELECTED_USERS_LIST, new ArrayList<>(selectedUsers));
         startActivity(intent);
         finish();
     }

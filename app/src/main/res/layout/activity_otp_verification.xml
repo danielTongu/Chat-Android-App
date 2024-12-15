@@ -76,26 +76,31 @@
             app:cornerRadius="8dp"
             android:backgroundTint="@color/primary" />
 
-        <!-- ProgressBar for Loading -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_gravity="center"
-            android:visibility="invisible"
-            android:layout_marginTop="16dp" />
-
-        <!--To display message while the otp is not sent or failure messages -->
-        <TextView
-            android:id="@+id/processMessage"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="17dp"
-            android:gravity="center"
-            android:text="Sending OTP"
-            android:textColor="@color/secondary_text"
-            android:textSize="20sp"
-            android:visibility="gone"/>
+            android:layout_marginTop="20dp"
+            android:animateLayoutChanges="true">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <!-- To display message -->
+            <TextView
+                android:id="@+id/processMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="processing..."
+                android:textColor="@color/secondary_text"
+                android:textSize="20sp"
+                android:visibility="gone"/>
+        </FrameLayout>
     </LinearLayout>
 
 </ScrollView>

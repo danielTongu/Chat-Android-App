@@ -84,7 +84,7 @@ public class ChatsFragment extends Fragment {
         binding.recyclerViewChats.setAdapter(chatsAdapter);
 
         binding.progressBar.setVisibility(View.VISIBLE);
-        binding.textNoChats.setVisibility(View.GONE);
+        binding.processMessage.setVisibility(View.GONE);
     }
 
     /**
@@ -144,8 +144,8 @@ public class ChatsFragment extends Fragment {
             if (error != null) {
                 Log.e(TAG, "Error loading chats", error);
                 binding.progressBar.setVisibility(View.GONE);
-                binding.textNoChats.setVisibility(View.VISIBLE);
-                binding.textNoChats.setText("Failed to load chats. Check your connection.");
+                binding.processMessage.setVisibility(View.VISIBLE);
+                binding.processMessage.setText("Failed to load chats. Check your connection.");
                 return;
             }
 
@@ -182,11 +182,11 @@ public class ChatsFragment extends Fragment {
                 });
 
                 if (!chatsList.isEmpty()) {
-                    binding.textNoChats.setVisibility(View.GONE);
+                    binding.processMessage.setVisibility(View.GONE);
                     binding.recyclerViewChats.setVisibility(View.VISIBLE);
                 } else {
-                    binding.textNoChats.setVisibility(View.VISIBLE);
-                    binding.textNoChats.setText("No chats yet.");
+                    binding.processMessage.setVisibility(View.VISIBLE);
+                    binding.processMessage.setText("No chats yet.");
                 }
 
                 chatsAdapter.notifyDataSetChanged();
