@@ -4,7 +4,7 @@
         <!-- Change the color of the search icon and hint text -->
         <item name="colorControlNormal">@color/white</item>
         <!-- Change the color of the typed query text -->
-        <item name="android:colorForeground">@color/white</item>
+        <item name="android:colorForeground">@color/primary_text</item>
     </style>
 
     <!-- Base application theme for the light mode -->
