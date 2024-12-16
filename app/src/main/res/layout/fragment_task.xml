@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_rectangle_round_top"
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
     tools:context=".fragments.TaskFragment">
@@ -19,19 +19,19 @@
         android:textColor="@color/primary"
         android:textSize="30sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Calendar View to navigate tasks by date -->
     <CalendarView
         android:id="@+id/tasksCoordinator"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/tasksTitle"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tasksTitle" />
 
     <!-- Header for selected date or to-do tasks -->
     <TextView
@@ -45,9 +45,9 @@
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/tasksCoordinator"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tasksCoordinator" />
 
     <!-- Reset Button -->
     <Button
@@ -57,9 +57,9 @@
         android:layout_marginTop="8dp"
         android:text="Show All Non-Completed Tasks"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/taskHeader"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/taskHeader" />
 
     <!-- RecyclerView to display tasks -->
     <androidx.recyclerview.widget.RecyclerView
@@ -68,11 +68,11 @@
         android:layout_height="0dp"
         android:paddingHorizontal="9dp"
         android:scrollbars="vertical"
-        tools:listitem="@layout/fragment_task_recycler_item"
-        app:layout_constraintTop_toBottomOf="@id/resetButton"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationSpace"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/resetButton"
+        tools:listitem="@layout/fragment_task_recycler_item" />
 
     <!-- Floating Action Button to add a new task -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -81,10 +81,10 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:src="@drawable/ic_add"
-        app:tint="@color/white"
         app:backgroundTint="@color/primary"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationSpace"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/white" />
 
     <!-- Spacer for the Bottom Navigation View -->
     <View

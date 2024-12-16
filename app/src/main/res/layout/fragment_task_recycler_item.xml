@@ -1,8 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:paddingVertical="8dp">
 
@@ -17,8 +17,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
 
         <!-- Task Title -->
         <TextView
@@ -26,9 +26,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textStyle="bold"
             android:textColor="@color/black"
             android:textSize="16sp"
+            android:textStyle="bold"
             tools:text="Task Title" />
 
         <!-- Task Date -->
@@ -39,16 +39,16 @@
             android:paddingStart="8dp"
             android:textColor="@color/secondary_text"
             android:textSize="14sp"
-            tools:text="12/12/2024"
-            tools:ignore="RtlSymmetry" />
+            tools:ignore="RtlSymmetry"
+            tools:text="12/12/2024" />
     </LinearLayout>
 
     <!-- Task Description and Time -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="4dp">
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
 
         <!-- Task Description -->
         <TextView
@@ -68,33 +68,35 @@
             android:paddingStart="8dp"
             android:textColor="@color/secondary_text"
             android:textSize="14sp"
-            tools:text="10:00 AM"
-            tools:ignore="RtlSymmetry" />
+            tools:ignore="RtlSymmetry"
+            tools:text="10:00 AM" />
     </LinearLayout>
 
     <!-- Actions: Complete Checkbox, Edit Button, and Delete Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
 
         <!-- Complete Checkbox -->
         <CheckBox
             android:id="@+id/task_completed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:checked="false"
+            android:focusable="false"
             android:text="Complete"
-            android:textColor="@color/secondary_text"
-            android:layout_gravity="center_vertical" />
+            android:textColor="@color/secondary_text" />
 
         <!-- Edit Button -->
         <ImageButton
             android:id="@+id/edit_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_edit"
             app:tint="@color/primary" />
@@ -104,8 +106,8 @@
             android:id="@+id/delete_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_delete"
             app:tint="@color/primary" />
