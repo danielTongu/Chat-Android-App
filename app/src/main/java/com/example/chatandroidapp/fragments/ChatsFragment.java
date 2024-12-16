@@ -16,7 +16,7 @@ import com.example.chatandroidapp.activities.ChatActivity;
 import com.example.chatandroidapp.activities.ChatCreatorActivity;
 import com.example.chatandroidapp.adapters.ChatsAdapter;
 import com.example.chatandroidapp.databinding.FragmentChatsBinding;
-import com.example.chatandroidapp.module.Chat;
+import com.example.chatandroidapp.models.Chat;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.google.firebase.firestore.DocumentChange;

@@ -1,5 +1,5 @@
 // Chat.java
-package com.example.chatandroidapp.module;
+package com.example.chatandroidapp.models;
 
 import com.google.firebase.firestore.ServerTimestamp;
 

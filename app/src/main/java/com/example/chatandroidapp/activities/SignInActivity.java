@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivitySignInBinding;
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;

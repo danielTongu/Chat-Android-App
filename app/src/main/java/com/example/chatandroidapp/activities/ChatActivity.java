@@ -10,9 +10,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.chatandroidapp.adapters.MessagesAdapter;
 import com.example.chatandroidapp.databinding.ActivityChatBinding;
-import com.example.chatandroidapp.module.Chat;
-import com.example.chatandroidapp.module.Message;
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.Chat;
+import com.example.chatandroidapp.models.Message;
+import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
@@ -20,7 +20,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;

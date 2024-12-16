@@ -52,6 +52,7 @@
         android:layout_height="40dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:enabled="false"
+        android:elevation="20sp"
         android:scaleType="fitXY"
         android:src="@drawable/ic_delete"
         app:layout_constraintRight_toRightOf="parent"

@@ -14,6 +14,7 @@ import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityMainBinding;
 import com.example.chatandroidapp.fragments.ChatsFragment;
 import com.example.chatandroidapp.fragments.ProfileFragment;
+import com.example.chatandroidapp.fragments.TaskFragment;
 import com.example.chatandroidapp.interfaces.SearchableFragment;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -113,24 +114,23 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setUpBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
+            boolean selectedFragment = true;
 
             if (item.getItemId() == R.id.navigation_profile) {
-                selectedFragment = new ProfileFragment();
+                loadFragment(new ProfileFragment());
             } else if (item.getItemId() == R.id.navigation_chats) {
-                selectedFragment = new ChatsFragment();
+                loadFragment(new ChatsFragment());
+            } else if (item.getItemId() == R.id.navigation_tasks) {
+                loadFragment(new TaskFragment());
+            } else {
+                selectedFragment = false;
             }
 
-            if (selectedFragment != null) {
-                loadFragment(selectedFragment);
-                return true;
-            }
-
-            return false;
+            return selectedFragment;
         });
 
         // Set default fragment to ChatsFragment
-        binding.bottomNavigation.setSelectedItemId(R.id.navigation_chats);
+        binding.bottomNavigation.setSelectedItemId(R.id.navigation_profile);
     }
 
     /**

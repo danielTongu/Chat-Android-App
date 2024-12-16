@@ -1,6 +1,6 @@
 package com.example.chatandroidapp.utilities;
 
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.User;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**

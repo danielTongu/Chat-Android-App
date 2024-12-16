@@ -11,9 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
-import com.example.chatandroidapp.module.Chat;
-import com.example.chatandroidapp.module.Message;
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.Chat;
+import com.example.chatandroidapp.models.Message;
+import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.FirebaseFirestore;

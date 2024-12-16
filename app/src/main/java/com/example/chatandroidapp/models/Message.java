@@ -1,5 +1,5 @@
 // Message.java
-package com.example.chatandroidapp.module;
+package com.example.chatandroidapp.models;
 
 import androidx.annotation.NonNull;
 

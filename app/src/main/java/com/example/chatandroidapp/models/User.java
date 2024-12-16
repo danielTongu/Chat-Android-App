@@ -1,4 +1,4 @@
-package com.example.chatandroidapp.module;
+package com.example.chatandroidapp.models;
 
 import android.content.Intent;
 import android.graphics.Bitmap;

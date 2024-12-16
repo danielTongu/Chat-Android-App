@@ -1,6 +1,6 @@
 package com.example.chatandroidapp.interfaces;
 
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.User;
 
 /**
  * UserListener is an interface that defines a callback method for handling user click events.

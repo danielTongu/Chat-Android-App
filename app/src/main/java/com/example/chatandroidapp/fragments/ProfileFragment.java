@@ -20,7 +20,7 @@ import androidx.fragment.app.Fragment;
 import com.example.chatandroidapp.activities.OtpVerificationActivity;
 import com.example.chatandroidapp.activities.SignInActivity;
 import com.example.chatandroidapp.databinding.FragmentProfileBinding;
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;

@@ -8,20 +8,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityChatRecyclerItemBinding;
-import com.example.chatandroidapp.module.Message;
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.Message;
+import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
-import com.example.chatandroidapp.module.Chat;
-import com.example.chatandroidapp.utilities.Utilities;
-import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.makeramen.roundedimageview.RoundedImageView;
 

@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
-import com.example.chatandroidapp.module.User;
+import com.example.chatandroidapp.models.User;
 
 import java.util.List;
 
