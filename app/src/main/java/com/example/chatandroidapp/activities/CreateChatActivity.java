@@ -1,4 +1,4 @@
-// ChatCreatorActivity.java
+// CreateChatActivity.java
 package com.example.chatandroidapp.activities;
 
 import android.content.Intent;
@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.chatandroidapp.adapters.UsersAdapter;
-import com.example.chatandroidapp.databinding.ActivityChatCreatorBinding;
+import com.example.chatandroidapp.databinding.ActivityCreateChatBinding;
 import com.example.chatandroidapp.models.Message;
 import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
@@ -24,17 +24,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ChatCreatorActivity allows the user to select contacts to start a chat.
+ * CreateChatActivity allows the user to select contacts to start a chat.
  * Instead of creating the chat immediately, it passes the selected users
  * to the MessagingActivity for further processing.
  */
-public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapter.OnUserSelectedListener {
+public class CreateChatActivity extends AppCompatActivity implements UsersAdapter.OnUserSelectedListener {
     public static final String KEY_SELECTED_USERS_LIST = "selectedUsers";
     public static final String KEY_INITIAL_MESSAGE = "initialMessage";
     private static final String TAG = "CHAT_CREATOR_ACTIVITY";
 
 
-    private ActivityChatCreatorBinding binding;
+    private ActivityCreateChatBinding binding;
     private UsersAdapter userAdapter;
     private final List<User> userList = new ArrayList<>();
     private final List<User> selectedUsers = new ArrayList<>();
@@ -44,10 +44,10 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityChatCreatorBinding.inflate(getLayoutInflater());
+        binding = ActivityCreateChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        Log.d(TAG, "onCreate: Initializing ChatCreatorActivity");
+        Log.d(TAG, "onCreate: Initializing CreateChatActivity");
 
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
         currentUserId = preferenceManager.getString(Constants.KEY_ID, "");

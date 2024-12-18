@@ -101,10 +101,10 @@ public class MessagingActivity extends AppCompatActivity {
         if (intent.hasExtra(Constants.KEY_ID)) {
             isNewChat = false;
             chatId = intent.getStringExtra(Constants.KEY_ID);
-        } else if (intent.hasExtra(ChatCreatorActivity.KEY_SELECTED_USERS_LIST)) {
+        } else if (intent.hasExtra(CreateChatActivity.KEY_SELECTED_USERS_LIST)) {
             isNewChat = true;
-            selectedUsers = (List<User>) intent.getSerializableExtra(ChatCreatorActivity.KEY_SELECTED_USERS_LIST);
-            String initialMessage = intent.getStringExtra(ChatCreatorActivity.KEY_INITIAL_MESSAGE);
+            selectedUsers = (List<User>) intent.getSerializableExtra(CreateChatActivity.KEY_SELECTED_USERS_LIST);
+            String initialMessage = intent.getStringExtra(CreateChatActivity.KEY_INITIAL_MESSAGE);
             if (initialMessage != null && !initialMessage.isEmpty()) {
                 binding.inputMessage.setText(initialMessage);
                 handleSendMessage();

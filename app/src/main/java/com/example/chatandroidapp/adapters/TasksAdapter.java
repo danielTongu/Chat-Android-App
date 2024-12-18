@@ -12,21 +12,19 @@ import com.example.chatandroidapp.models.Task;
 import java.util.List;
 
 /**
- * TaskAdapter handles displaying tasks and managing user interactions like
+ * TasksAdapter handles displaying tasks and managing user interactions like
  * marking tasks as completed, editing, and deleting.
  */
-public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
-
+public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TaskViewHolder> {
     private final List<Task> tasks; // List of tasks to display
     private final TaskAdapterListener listener; // Callback listener for interactions
 
     /**
-     * Constructor for TaskAdapter.
-     *
+     * Constructor for TasksAdapter.
      * @param tasks    The list of tasks to display.
      * @param listener The listener for task interactions.
      */
-    public TaskAdapter(List<Task> tasks, TaskAdapterListener listener) {
+    public TasksAdapter(List<Task> tasks, TaskAdapterListener listener) {
         this.tasks = tasks;
         this.listener = listener;
     }
@@ -56,30 +54,30 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public interface TaskAdapterListener {
         /**
          * Called when a task's completion status is toggled.
-         *
          * @param task The task whose completion status changed.
          */
         void onTaskCompletedChanged(Task task);
 
         /**
          * Called when a task is to be edited.
-         *
          * @param task The task to edit.
          */
         void onEditTask(Task task);
 
         /**
          * Called when a task is to be deleted.
-         *
          * @param task The task to delete.
          */
         void onDeleteTask(Task task);
     }
 
+
+
+
     /**
      * ViewHolder class for individual task items.
      */
-    class TaskViewHolder extends RecyclerView.ViewHolder {
+    public class TaskViewHolder extends RecyclerView.ViewHolder {
         private final ItemTaskBinding binding;
 
         public TaskViewHolder(@NonNull ItemTaskBinding binding) {
@@ -89,7 +87,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         /**
          * Binds a task object to the view.
-         *
          * @param task The task to display.
          */
         public void bind(final Task task) {
@@ -98,11 +95,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             binding.taskDate.setText(task.getCompletionDate());
             binding.taskTime.setText(task.getCompletionTime());
             binding.taskDescription.setText(task.getDescription());
-            binding.taskCompleted.setChecked(task.isCompleted());
 
-            // Handle checkbox toggle for task completion
+            // Temporarily disable the listener while updating the state, then enable it
+            binding.taskCompleted.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
+            binding.taskCompleted.setChecked(task.isCompleted());// Set the checkbox state
             binding.taskCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                task.setCompleted(isChecked);
                 listener.onTaskCompletedChanged(task);
             });
 

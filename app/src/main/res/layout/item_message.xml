@@ -34,10 +34,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:background="@drawable/bg_message_recieved"
-            android:paddingHorizontal="21dp"
-            android:paddingVertical="7dp"
+            android:paddingHorizontal="31dp"
+            android:paddingVertical="11dp"
             android:text="received message"
             android:textColor="@color/white"
+            android:elevation="30dp"
             android:textSize="20sp"
             app:layout_constraintStart_toEndOf="@id/receivedProfilePicture"
             app:layout_constraintTop_toTopOf="parent"
@@ -64,7 +65,6 @@
             app:layout_constraintTop_toBottomOf="@id/receivedMessage" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <!-- Sent message layout -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/sentMessageLayout"
@@ -78,8 +78,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_message_sent"
-            android:paddingHorizontal="21dp"
-            android:paddingVertical="7dp"
+            android:paddingHorizontal="31dp"
+            android:paddingVertical="11dp"
             android:text="sent message"
             android:textColor="@color/white"
             android:textSize="20sp"

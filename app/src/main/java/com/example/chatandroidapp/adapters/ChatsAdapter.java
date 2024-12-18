@@ -37,13 +37,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
     private final List<ListenerRegistration> listenerRegistrations;
 
     /**
-     * Interface for handling chat item clicks.
-     */
-    public interface ChatClickListener {
-        void onChatClicked(Chat chat);
-    }
-
-    /**
      * Constructor for ChatsAdapter.
      *
      * @param chats    List of Chat objects to display.
@@ -74,6 +67,14 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
     @Override
     public int getItemCount() {
         return chats.size();
+    }
+
+
+    /**
+     * Interface for handling chat item clicks.
+     */
+    public interface ChatClickListener {
+        void onChatClicked(Chat chat);
     }
 
     /**

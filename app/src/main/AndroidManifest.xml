@@ -21,7 +21,7 @@
             android:name=".activities.MessagingActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.ChatCreatorActivity"
+            android:name=".activities.CreateChatActivity"
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"

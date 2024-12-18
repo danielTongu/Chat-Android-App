@@ -199,21 +199,20 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
                 displayName = sender.firstName + " " + sender.lastName;
             } else if (!TextUtils.isEmpty(sender.email)) {
                 displayName = sender.email;
-            } else {
+            } else if (!TextUtils.isEmpty(sender.phone)) {
                 displayName = sender.phone;
+            } else {
+                displayName = "Unknown Sender";
             }
             senderName.setText(displayName);
 
             // Set sender's profile picture if available
+            senderImage.setImageResource(R.drawable.ic_profile); // Default icon
             if (!TextUtils.isEmpty(sender.image)) {
                 Bitmap senderImageBitmap = User.getBitmapFromEncodedString(sender.image);
                 if (senderImageBitmap != null) {
                     senderImage.setImageBitmap(senderImageBitmap);
-                } else {
-                    senderImage.setImageResource(R.drawable.ic_profile); // Default icon
                 }
-            } else {
-                senderImage.setImageResource(R.drawable.ic_profile); // Default icon
             }
         }
 

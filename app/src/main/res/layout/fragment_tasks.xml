@@ -7,7 +7,7 @@
     android:background="@drawable/bg_rectangle_round_top"
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
-    tools:context=".fragments.TaskFragment">
+    tools:context=".fragments.TasksFragment">
 
     <!-- Title of this fragment -->
     <TextView
@@ -33,32 +33,41 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tasksTitle" />
 
-    <!-- Header for selected date or to-do tasks -->
-    <TextView
-        android:id="@+id/taskHeader"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center"
-        android:text="To do"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tasksCoordinator" />
-
     <!-- Reset Button -->
     <Button
         android:id="@+id/resetButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Show All Non-Completed Tasks"
+        android:background="@drawable/bg_rectangle_round"
+        android:text="Show All Pending Tasks"
+        android:textSize="20sp"
         android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/fabAddTask"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Floating Action Button to add a new task -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddTask"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_add"
+        app:layout_constraintBottom_toTopOf="@id/taskHeader"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tasksCoordinator" />
+
+    <!-- Header for selected date or to-do tasks -->
+    <TextView
+        android:id="@+id/taskHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="8dp"
+        android:gravity="center"
+        android:text="All Pending Tasks"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/taskHeader" />
+        app:layout_constraintTop_toBottomOf="@id/fabAddTask" />
 
     <!-- RecyclerView to display tasks -->
     <androidx.recyclerview.widget.RecyclerView
@@ -70,18 +79,8 @@
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationSpace"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/resetButton"
+        app:layout_constraintTop_toBottomOf="@id/taskHeader"
         tools:listitem="@layout/item_task" />
-
-    <!-- Floating Action Button to add a new task -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddTask"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:src="@drawable/ic_add"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationSpace"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Spacer for the Bottom Navigation View -->
     <View

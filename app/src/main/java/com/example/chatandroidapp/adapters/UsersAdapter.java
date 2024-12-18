@@ -18,21 +18,18 @@ import com.example.chatandroidapp.models.User;
 import java.util.List;
 
 /**
- * UsersAdapter handles the display of users in the RecyclerView,
- * allowing selection for initiating a chat.
+ * UsersAdapter handles the display of users in the RecyclerView, allowing selection for initiating a chat.
  */
 public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHolder> {
-
-    /**
-     * Interface to handle user selection callbacks.
-     */
-    public interface OnUserSelectedListener {
-        void onUserSelected(User user, boolean selected);
-    }
-
     private final List<User> usersList;
     private final OnUserSelectedListener listener;
 
+    /**
+     * Constructor for UserAdapter.
+     *
+     * @param usersList    The list of users to display.
+     * @param listener The listener for user interactions.
+     */
     public UsersAdapter(List<User> usersList, OnUserSelectedListener listener) {
         this.usersList = usersList;
         this.listener = listener;
@@ -49,34 +46,7 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = usersList.get(position);
-        holder.textUserName.setText(user.firstName + " " + user.lastName);
-
-        // Load user profile image if available
-        if (user.image != null && !user.image.isEmpty()) {
-            // Decode the Base64 image string to Bitmap
-            Bitmap userBitmap = User.getBitmapFromEncodedString(user.image);
-            if (userBitmap != null) {
-                holder.imageUserProfile.setImageBitmap(userBitmap);
-            } else {
-                holder.imageUserProfile.setImageResource(R.drawable.ic_profile); // Fallback image
-            }
-        } else {
-            holder.imageUserProfile.setImageResource(R.drawable.ic_profile); // Fallback image
-        }
-
-        // Set user phone or email
-        if (user.phone != null && !user.phone.isEmpty()) {
-            holder.textUserInfo.setText(user.phone);
-        } else {
-            holder.textUserInfo.setText(user.email);
-        }
-
-        // Handle checkbox state
-        holder.checkBox.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
-        holder.checkBox.setChecked(false);
-        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            listener.onUserSelected(user, isChecked);
-        });
+        holder.bind(user);
     }
 
     @Override
@@ -84,21 +54,58 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         return usersList.size();
     }
 
+
+    /**
+     * Interface to handle user selection callbacks.
+     */
+    public interface OnUserSelectedListener {
+        void onUserSelected(User user, boolean selected);
+    }
+
+
     /**
      * ViewHolder class for user items.
      */
-    static class UserViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageUserProfile;
-        TextView textUserName;
-        TextView textUserInfo;
+     public class UserViewHolder extends RecyclerView.ViewHolder {
+        ImageView userImage;
+        TextView userName;
+        TextView userContactInfo;
         CheckBox checkBox;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageUserProfile = itemView.findViewById(R.id.userProfilePicture);
-            textUserName = itemView.findViewById(R.id.userFirstAndLastName);
-            textUserInfo = itemView.findViewById(R.id.userPhoneNumberOrEmail);
+            userImage = itemView.findViewById(R.id.userProfilePicture);
+            userName = itemView.findViewById(R.id.userFirstAndLastName);
+            userContactInfo = itemView.findViewById(R.id.userPhoneNumberOrEmail);
             checkBox = itemView.findViewById(R.id.userCheckBox);
+        }
+
+        /**
+         * Binds a user object to the view.
+         * @param user The user to display.
+         */
+        public void bind(final User user) {
+            userName.setText(String.format("%s %s", user.firstName, user.lastName));
+            userImage.setImageResource(R.drawable.ic_profile); // Fallback image
+
+            // Load user profile image if available
+            if (user.image != null && !user.image.isEmpty()) {
+                Bitmap userBitmap = User.getBitmapFromEncodedString(user.image);
+                if (userBitmap != null) {
+                    userImage.setImageBitmap(userBitmap);
+                }
+            }
+
+            // Set user phone or email
+            userContactInfo.setText( (user.phone != null && !user.phone.isEmpty()) ? user.phone: user.email);
+
+
+            // Handle checkbox state
+            checkBox.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
+            checkBox.setChecked(false);
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                listener.onUserSelected(user, isChecked);
+            });
         }
     }
 }
