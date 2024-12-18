@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Permission to access the Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -15,9 +14,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatAndroidApp"
         tools:targetApi="31">
-
         <activity
-            android:name=".activities.ChatActivity"
+            android:name=".activities.TaskWriterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.MessagingActivity"
             android:exported="false" />
         <activity
             android:name=".activities.ChatCreatorActivity"
@@ -30,9 +31,7 @@
             android:exported="false" />
         <activity
             android:name=".activities.SignUpActivity"
-            android:exported="false" />
-
-        <!-- Declaration of SignInActivity as the main launcher activity -->
+            android:exported="false" /> <!-- Declaration of SignInActivity as the main launcher activity -->
         <activity
             android:name=".activities.SignInActivity"
             android:exported="true">
@@ -41,9 +40,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Declaration of Firebase Cloud Messaging Service -->
+        </activity> <!-- Declaration of Firebase Cloud Messaging Service -->
         <service
             android:name=".firebase.MessagingService"
             android:exported="false">

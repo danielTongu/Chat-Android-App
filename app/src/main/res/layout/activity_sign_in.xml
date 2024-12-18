@@ -1,4 +1,4 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -7,172 +7,163 @@
     android:clipToPadding="false"
     android:overScrollMode="never"
     android:padding="24dp"
-    android:scrollbars="none"
     tools:context=".activities.SignInActivity">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none">
 
-        <!-- Title for "Welcome Back" -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="60dp"
-            android:text="Welcome Back"
-            android:textColor="@color/primary"
-            android:textSize="33sp"
-            android:textStyle="bold" />
-
-        <!-- Subtitle prompting the user to log in -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="Login To Continue"
-            android:textColor="@color/primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <!-- Toggle for Sign-In Method -->
-        <RadioGroup
-            android:id="@+id/radioGroupSignInMethod"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/radioSignInWithEmail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:text="Email"
-                android:textColor="@color/primary_text"
-                android:textSize="18sp" />
-
-            <RadioButton
-                android:id="@+id/radioSignInWithPhone"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="Phone"
-                android:textColor="@color/primary_text"
-                android:textSize="18sp" />
-        </RadioGroup>
-
-        <!-- Input field for email or phone -->
         <LinearLayout
-            android:id="@+id/ccpAndPhoneLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            android:visibility="gone">
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <com.hbb20.CountryCodePicker
-                android:id="@+id/countryCodePicker"
+            <!-- Title -->
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:ccp_showFlag="true"
-                app:ccp_textSize="20sp"
-                app:ccp_showNameCode="false" />
+                android:layout_marginTop="20dp"
+                android:text="Welcome Back"
+                android:textColor="@color/primary"
+                android:textSize="30sp"
+                android:textStyle="bold" />
 
+            <!-- Subtitle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Login To Continue"
+                android:textColor="@color/secondary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- Radio Group -->
+            <RadioGroup
+                android:id="@+id/radioGroupSignInMethod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioSignInWithEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="Email"
+                    android:textSize="20sp" />
+
+                <RadioButton
+                    android:id="@+id/radioSignInWithPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Phone"
+                    android:textSize="20sp" />
+            </RadioGroup>
+
+            <!-- Phone Input -->
+            <LinearLayout
+                android:id="@+id/ccpAndPhoneLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <com.hbb20.CountryCodePicker
+                    android:id="@+id/countryCodePicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:ccp_showFlag="true"
+                    app:ccp_showNameCode="false"
+                    app:ccp_textSize="20sp" />
+
+                <EditText
+                    android:id="@+id/input_phone_number"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginStart="8dp"
+                    android:hint="Enter Phone"
+                    android:inputType="phone"
+                    android:paddingHorizontal="12dp"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <!-- Email Input -->
             <EditText
-                android:id="@+id/input_phone_number"
+                android:id="@+id/inputEmail"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:background="@drawable/bg_rectangle_round"
-                android:hint="Enter Phone"
-                android:imeOptions="actionNext"
-                android:inputType="phone"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:textColor="@color/primary_text"
+                android:layout_marginTop="16dp"
+                android:hint="Enter Email"
+                android:inputType="textEmailAddress"
+                android:paddingHorizontal="12dp"
                 android:textSize="20sp" />
-        </LinearLayout>
 
-        <!-- Input field for email-->
-        <EditText
-            android:id="@+id/inputEmail"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_rectangle_round"
-            android:hint="Enter Email"
-            android:imeOptions="actionNext"
-            android:inputType="textEmailAddress"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
-            android:textSize="20sp" />
+            <!-- Password Input -->
+            <EditText
+                android:id="@+id/inputPassword"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:hint="Enter Password"
+                android:inputType="textPassword"
+                android:paddingHorizontal="12dp"
+                android:textSize="20sp" />
 
-        <!-- Input field for password -->
-        <EditText
-            android:id="@+id/inputPassword"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_rectangle_round"
-            android:hint="Password"
-            android:imeOptions="actionNext"
-            android:inputType="textPassword"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
-            android:textSize="20sp" />
+            <!-- Sign-In Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonSignIn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:text="Sign In"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonSignIn"
-            android:layout_marginTop="20dp"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Sign In"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:cornerRadius="8dp"
-            android:backgroundTint="@color/primary" />
-
-        <!-- FrameLayout for Sign-In button and ProgressBar -->
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:animateLayoutChanges="true">
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-            <!-- To display message -->
-            <TextView
-                android:id="@+id/processMessage"
+            <!-- Progress and Message Container -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="processing..."
-                android:textColor="@color/secondary_text"
-                android:textSize="20sp"
-                android:visibility="gone"/>
-        </FrameLayout>
+                android:layout_marginTop="16dp"
+                android:animateLayoutChanges="true">
 
-        <!-- Create New Account Link -->
-        <TextView
-            android:id="@+id/textCreateNewAccount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:text="Create New Account"
-            android:textColor="@color/primary"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:clickable="true" />
-    </LinearLayout>
-</ScrollView>
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/processMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="Processing..."
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- Create Account -->
+            <TextView
+                android:id="@+id/textCreateNewAccount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:clickable="true"
+                android:text="Create New Account"
+                android:textColor="@color/primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

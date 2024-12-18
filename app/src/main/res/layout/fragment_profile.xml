@@ -45,7 +45,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="Add Image"
-                android:textColor="@color/secondary_text"
                 android:textSize="16sp" />
         </FrameLayout>
 
@@ -54,11 +53,9 @@
             android:id="@+id/inputFirstName"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@drawable/bg_rectangle_round"
             android:hint="First Name"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
         <!-- Editable Last Name -->
@@ -67,11 +64,9 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_rectangle_round"
             android:hint="Last Name"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
         <!-- Editable Phone Number -->
@@ -80,12 +75,10 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_rectangle_round"
             android:hint="Phone Number"
             android:inputType="phone"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
         <!-- Editable Email -->
@@ -94,12 +87,10 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_rectangle_round"
             android:hint="Email"
             android:inputType="textEmailAddress"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
         <!-- New Password -->
@@ -108,12 +99,10 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_rectangle_round"
             android:hint="New Password"
             android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
         <!-- Confirm New Password -->
@@ -122,12 +111,10 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_rectangle_round"
             android:hint="Confirm New Password"
             android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
         <!-- Update Profile Button -->
@@ -136,9 +123,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:backgroundTint="@color/primary"
             android:text="Update Profile"
-            android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -148,9 +133,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:backgroundTint="@color/primary"
             android:text="Log Out"
-            android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>

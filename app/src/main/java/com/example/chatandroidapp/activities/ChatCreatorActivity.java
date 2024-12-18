@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * ChatCreatorActivity allows the user to select contacts to start a chat.
  * Instead of creating the chat immediately, it passes the selected users
- * to the ChatActivity for further processing.
+ * to the MessagingActivity for further processing.
  */
 public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapter.OnUserSelectedListener {
     public static final String KEY_SELECTED_USERS_LIST = "selectedUsers";
@@ -149,10 +149,10 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
     }
 
     /**
-     * Navigates to ChatActivity, passing the selected users as a Serializable object.
+     * Navigates to MessagingActivity, passing the selected users as a Serializable object.
      */
     private void navigateToChatActivity() {
-        Log.d(TAG, "navigateToChatActivity: Navigating to ChatActivity.");
+        Log.d(TAG, "navigateToChatActivity: Navigating to MessagingActivity.");
         try {
             if (selectedUsers.isEmpty()) {
                 throw new IllegalArgumentException("No users selected. Please select at least one contact.");
@@ -160,7 +160,7 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
             String message = Message.validateContent(binding.inputMessage.getText().toString());
 
             // Create an intent and add the selected users as a Serializable list
-            Intent intent = new Intent(this, ChatActivity.class);
+            Intent intent = new Intent(this, MessagingActivity.class);
             intent.putExtra(KEY_SELECTED_USERS_LIST, new ArrayList<>(selectedUsers));
             intent.putExtra(KEY_INITIAL_MESSAGE, message);
             startActivity(intent);

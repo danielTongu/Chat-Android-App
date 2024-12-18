@@ -16,8 +16,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingBottom="16dp">
 
             <ImageView
@@ -45,8 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Phone Number: +1-234-567-8901"
-            android:textColor="@color/secondary_text"
-            android:textSize="16sp"/>
+            android:textSize="20sp" />
 
         <!-- OTP Input Field -->
         <EditText
@@ -54,13 +53,11 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_rectangle_round"
+            android:digits="0123456789"
             android:hint="Enter the OTP sent to your phone"
             android:inputType="number"
-            android:digits="0123456789"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textColor="@color/primary_text"
             android:textSize="20sp" />
 
         <!-- Verify Button -->
@@ -70,11 +67,9 @@
             android:layout_height="60dp"
             android:layout_marginTop="20dp"
             android:text="Verify"
-            android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:cornerRadius="8dp"
-            android:backgroundTint="@color/primary" />
+            app:cornerRadius="8dp" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -97,9 +92,8 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:text="processing..."
-                android:textColor="@color/secondary_text"
                 android:textSize="20sp"
-                android:visibility="gone"/>
+                android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
 

@@ -66,13 +66,12 @@ dependencies {
     implementation(libs.constraintlayout) // Enables complex layouts with a flat view hierarchy
     implementation(libs.roundedimageview) // Library for displaying images with rounded corners
 
-    //------ Firebase setup ---------//
     implementation(libs.firebase.bom) // Firebase BoM to manage Firebase dependencies' versions
     implementation(libs.firebase.messaging) // Firebase Cloud Messaging for push notifications
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+
     implementation(libs.ccp)
-    //-------------------------------//
 
     // Testing libraries
     testImplementation(libs.junit) // JUnit framework for unit tests

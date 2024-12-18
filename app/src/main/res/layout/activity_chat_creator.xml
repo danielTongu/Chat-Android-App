@@ -39,7 +39,7 @@
         android:padding="11dp"
         app:layout_constraintBottom_toTopOf="@id/buttonStartChat"
         app:layout_constraintTop_toBottomOf="@id/buttonBack"
-        tools:listitem="@layout/activity_chat_creator_recycler_item" />
+        tools:listitem="@layout/item_user" />
 
     <!-- ProgressBar to display while processing a step -->
     <ProgressBar
@@ -60,7 +60,6 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="No contacts found"
-        android:textColor="@color/secondary_text"
         android:textSize="20sp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/buttonStartChat"
@@ -76,7 +75,6 @@
         android:hint="Type a message"
         android:inputType="text"
         android:padding="10dp"
-        android:textColor="@color/black"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

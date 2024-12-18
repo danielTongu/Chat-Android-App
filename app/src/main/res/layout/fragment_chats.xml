@@ -22,7 +22,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- RecyclerView to display existing chats. When item clicked, routes to ChatActivity -->
+    <!-- RecyclerView to display existing chats. When item clicked, routes to MessagingActivity -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewChats"
         android:layout_width="match_parent"
@@ -33,10 +33,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textChatsTitle"
         app:stackFromEnd="true"
-        tools:listitem="@layout/fragment_chats_recycler_item" />
+        tools:listitem="@layout/item_chat" />
 
 
-    <!-- Floating Action Button for starting a new ChatActivity -->
+    <!-- Floating Action Button for starting a new MessagingActivity -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabNewChat"
         android:layout_width="wrap_content"
@@ -67,7 +67,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:text="No chats"
-        android:textColor="@color/secondary_text"
+        android:textColor="@color/dark_gray"
         android:textSize="20sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
-import com.example.chatandroidapp.databinding.ActivityChatRecyclerItemBinding;
+import com.example.chatandroidapp.databinding.ItemMessageBinding;
 import com.example.chatandroidapp.models.Message;
 import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
@@ -54,6 +54,19 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
         this.userCache = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Formats a Date object into a readable string.
+     *
+     * @param date The Date object to format.
+     * @return A formatted string.
+     */
+    private static String formatDate(Date date) {
+        if (date == null) {
+            return "";
+        }
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(date);
+    }
+
     @Override
     public int getItemViewType(int position) {
         Message message = messages.get(position);
@@ -67,7 +80,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
     @NonNull
     @Override
     public BaseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ActivityChatRecyclerItemBinding binding = ActivityChatRecyclerItemBinding.inflate(
+        ItemMessageBinding binding = ItemMessageBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
         if (viewType == VIEW_TYPE_SENT) {
             return new SentMessageViewHolder(binding);
@@ -91,9 +104,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
      * Abstract base ViewHolder for shared functionality.
      */
     abstract static class BaseViewHolder extends RecyclerView.ViewHolder {
-        final ActivityChatRecyclerItemBinding binding;
+        final ItemMessageBinding binding;
 
-        BaseViewHolder(ActivityChatRecyclerItemBinding binding) {
+        BaseViewHolder(ItemMessageBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
@@ -106,7 +119,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
      */
     class SentMessageViewHolder extends BaseViewHolder {
 
-        SentMessageViewHolder(ActivityChatRecyclerItemBinding binding) {
+        SentMessageViewHolder(ItemMessageBinding binding) {
             super(binding);
         }
 
@@ -129,7 +142,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
         private final TextView receivedMessage;
         private final TextView receivedTimestamp;
 
-        ReceivedMessageViewHolder(ActivityChatRecyclerItemBinding binding) {
+        ReceivedMessageViewHolder(ItemMessageBinding binding) {
             super(binding);
             senderImage = binding.receivedProfilePicture;
             senderName = binding.receivedNameOrPhoneOrEmail;
@@ -211,18 +224,5 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.BaseVi
             senderName.setText("Unknown Sender");
             senderImage.setImageResource(R.drawable.ic_profile); // Default icon
         }
-    }
-
-    /**
-     * Formats a Date object into a readable string.
-     *
-     * @param date The Date object to format.
-     * @return A formatted string.
-     */
-    private static String formatDate(Date date) {
-        if (date == null) {
-            return "";
-        }
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(date);
     }
 }

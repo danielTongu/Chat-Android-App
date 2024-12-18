@@ -1,8 +1,8 @@
-// Message.java
 package com.example.chatandroidapp.models;
 
 import androidx.annotation.NonNull;
 
+import com.google.firebase.firestore.PropertyName;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.io.Serializable;
@@ -10,19 +10,42 @@ import java.util.Date;
 
 /**
  * The Message class represents a single chat message exchanged between users.
+ * All fields are immutable and final, except for `sentDate` which is auto-assigned by Firestore.
  */
-public class Message implements Serializable {
+public class Message implements Serializable, Comparable<Message> {
+
+    /** Server-side timestamp for when the message was sent. Auto-assigned by Firestore. */
     @ServerTimestamp
-    public Date sentDate = null;    // Server-side timestamp
-    public String id = "";          // Unique identifier (Primary Key)
-    public String chatId = "";      // ID of the chat this message belongs to
-    public String senderId = "";    // ID of the user who sent the message
-    public String content = "";     // The actual message content
+    @PropertyName("sentDate")
+    public final Date sentDate;
+
+    /** Unique identifier for the message (Primary Key). */
+    @PropertyName("id")
+    public final String id;
+
+    /** ID of the chat this message belongs to. */
+    @PropertyName("chatId")
+    public final String chatId;
+
+    /** ID of the user who sent the message. */
+    @PropertyName("senderId")
+    public final String senderId;
+
+    /** The actual message content. */
+    @PropertyName("content")
+    public final String content;
 
     /**
      * Default constructor required for Firestore serialization/deserialization.
+     * Initializes all fields to null or empty values.
      */
-    public Message() {}
+    public Message() {
+        this.sentDate = null;
+        this.id = "";
+        this.chatId = "";
+        this.senderId = "";
+        this.content = "";
+    }
 
     /**
      * Parameterized constructor to create a new Message instance.
@@ -38,8 +61,10 @@ public class Message implements Serializable {
         this.chatId = validateChatId(chatId);
         this.senderId = validateSenderId(senderId);
         this.content = validateContent(content);
-        this.sentDate = new Date(); // This will be overridden by Firestore's @ServerTimestamp
+        this.sentDate = null; // Auto-assigned by Firestore
     }
+
+    // ==================== VALIDATION METHODS ====================
 
     /**
      * Validates the message ID.
@@ -97,9 +122,33 @@ public class Message implements Serializable {
         return content.trim();
     }
 
+    // ==================== OVERRIDDEN METHODS ====================
+
     @NonNull
     @Override
     public String toString() {
         return content;
     }
+
+    /**
+     * Compares two messages based on their sent dates.
+     *
+     * @param other The other message to compare against.
+     * @return A negative integer, zero, or a positive integer as this message's sentDate
+     *         is earlier than, equal to, or later than the specified message's sentDate.
+     */
+    @Override
+    public int compareTo(Message other) {
+        if (this.sentDate == null && other.sentDate == null) {
+            return 0; // Both dates are null
+        }
+        if (this.sentDate == null) {
+            return -1; // Null dates are considered earlier
+        }
+        if (other.sentDate == null) {
+            return 1; // Null dates are considered earlier
+        }
+        return this.sentDate.compareTo(other.sentDate); // Compare dates chronologically
+    }
+
 }

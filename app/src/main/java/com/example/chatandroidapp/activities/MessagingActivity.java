@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.chatandroidapp.adapters.MessagesAdapter;
-import com.example.chatandroidapp.databinding.ActivityChatBinding;
+import com.example.chatandroidapp.databinding.ActivityMessagingBinding;
 import com.example.chatandroidapp.models.Chat;
 import com.example.chatandroidapp.models.Message;
 import com.example.chatandroidapp.models.User;
@@ -25,14 +25,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ChatActivity manages real-time messaging between users.
+ * MessagingActivity manages real-time messaging between users.
  * It handles sending, receiving, and deleting messages in a chat, as well as
  * displaying chat information and managing chat participants.
  */
-public class ChatActivity extends AppCompatActivity {
+public class MessagingActivity extends AppCompatActivity {
 
     // ----------------------------- Variables -----------------------------
-    private ActivityChatBinding binding;
+    private ActivityMessagingBinding binding;
     private FirebaseFirestore database;
     private PreferenceManager preferenceManager;
 
@@ -53,7 +53,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityChatBinding.inflate(getLayoutInflater());
+        binding = ActivityMessagingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         initializeComponents();
@@ -138,7 +138,7 @@ public class ChatActivity extends AppCompatActivity {
                 .orderBy("sentDate")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
-                        logCriticalError("Failed to listen for messages.", e);
+                        logCriticalError("listenForMessages: Failed to listen for messages.", e);
                         return;
                     }
 
@@ -180,46 +180,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     /**
-     * Sends a message in the current chat.
-     *
-     * @param messageContent The content of the message to send.
-     */
-    private void sendMessage(String messageContent) {
-        if (chatId == null) {
-            Utilities.showToast(this, "Unable to send message. Please try again.", Utilities.ToastType.ERROR);
-            return;
-        }
-
-        String senderId = preferenceManager.getString(Constants.KEY_ID, "");
-        Message message = new Message(null, chatId, senderId, messageContent);
-
-        database.collection(Constants.KEY_COLLECTION_CHATS)
-                .document(chatId)
-                .collection(Constants.KEY_COLLECTION_MESSAGES)
-                .add(message)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        updateRecentMessage(message);
-                        Utilities.showToast(ChatActivity.this, "", Utilities.ToastType.SUCCESS);
-                    } else {
-                        logCriticalError("Failed to send message.", task.getException());
-                        Utilities.showToast(ChatActivity.this, "Failed to send message. Please try again.", Utilities.ToastType.ERROR);
-                    }
-                });
-    }
-
-    /**
-     * Updates the most recent message in Firestore for the chat.
-     *
-     * @param message The recent message to update.
-     */
-    private void updateRecentMessage(Message message) {
-        database.collection(Constants.KEY_COLLECTION_CHATS)
-                .document(chatId)
-                .update("recentMessageId", message.id);
-    }
-
-    /**
      * Creates a new chat in Firestore and sends the initial message.
      *
      * @param initialMessage The content of the initial message.
@@ -246,9 +206,60 @@ public class ChatActivity extends AppCompatActivity {
                     listenForMessages();
                 })
                 .addOnFailureListener(e -> {
-                    logCriticalError("Failed to create chat in Firestore.", e);
-                    Utilities.showToast(ChatActivity.this, "Failed to create chat. Please try again.", Utilities.ToastType.ERROR);
+                    logCriticalError("createChatWithInitialMessage: Failed to create chat in Firestore.", e);
+                    Utilities.showToast(MessagingActivity.this, "Failed to create chat. Please try again.", Utilities.ToastType.ERROR);
                 });
+    }
+
+    /**
+     * Sends a message in the current chat.
+     *
+     * @param messageContent The content of the message to send.
+     */
+    private void sendMessage(String messageContent) {
+        if (chatId == null) {
+            Utilities.showToast(this, "Unable to send message. Please try again.", Utilities.ToastType.ERROR);
+            return;
+        }
+
+        String senderId = preferenceManager.getString(Constants.KEY_ID, "");
+
+        // Generate a new message document ID
+        String messageId = database.collection(Constants.KEY_COLLECTION_CHATS)
+                .document(chatId)
+                .collection(Constants.KEY_COLLECTION_MESSAGES)
+                .document()
+                .getId();
+
+        // Create the Message object
+        Message message = new Message(messageId, chatId, senderId, messageContent);
+
+        // Save the message to Firestore
+        database.collection(Constants.KEY_COLLECTION_CHATS)
+                .document(chatId)
+                .collection(Constants.KEY_COLLECTION_MESSAGES)
+                .document(messageId) // Use the generated ID as the document ID
+                .set(message)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        updateRecentMessage(message);
+                        Utilities.showToast(MessagingActivity.this, "Message sent successfully.", Utilities.ToastType.SUCCESS);
+                    } else {
+                        logCriticalError("sendMessage: Failed to send message.", task.getException());
+                        Utilities.showToast(MessagingActivity.this, "Failed to send message. Please try again.", Utilities.ToastType.ERROR);
+                    }
+                });
+    }
+
+    /**
+     * Updates the most recent message in Firestore for the chat.
+     *
+     * @param message The recent message to update.
+     */
+    private void updateRecentMessage(Message message) {
+        database.collection(Constants.KEY_COLLECTION_CHATS)
+                .document(chatId)
+                .update("recentMessageId", message.id);
     }
 
     /**
@@ -261,7 +272,7 @@ public class ChatActivity extends AppCompatActivity {
             database.collection(Constants.KEY_COLLECTION_USERS)
                     .document(userId)
                     .update("chatIds", FieldValue.arrayUnion(chatId))
-                    .addOnFailureListener(e -> logCriticalError("Failed to update chatIds for user: " + userId, e));
+                    .addOnFailureListener(e -> logCriticalError("updateChatIdsForUsers: Failed to update chatIds for user: " + userId, e));
         }
     }
 
@@ -285,17 +296,17 @@ public class ChatActivity extends AppCompatActivity {
                         if (chat != null && chat.creatorId.equals(preferenceManager.getString(Constants.KEY_ID, ""))) {
                             deleteChatFromFirestore(chat);
                         } else {
-                            Utilities.showToast(ChatActivity.this, "You do not have permission to delete this chat.", Utilities.ToastType.ERROR);
+                            Utilities.showToast(MessagingActivity.this, "You do not have permission to delete this chat.", Utilities.ToastType.ERROR);
                         }
                     } else {
-                        Utilities.showToast(ChatActivity.this, "Chat does not exist.", Utilities.ToastType.ERROR);
+                        Utilities.showToast(MessagingActivity.this, "Chat does not exist.", Utilities.ToastType.ERROR);
                     }
                     binding.progressBar.setVisibility(View.GONE);
                 })
                 .addOnFailureListener(e -> {
                     binding.progressBar.setVisibility(View.GONE);
-                    logCriticalError("Failed to verify chat deletion permissions.", e);
-                    Utilities.showToast(ChatActivity.this, "An error occurred. Please try again.", Utilities.ToastType.ERROR);
+                    logCriticalError("deleteChat: Failed to verify chat deletion permissions.", e);
+                    Utilities.showToast(MessagingActivity.this, "An error occurred. Please try again.", Utilities.ToastType.ERROR);
                 });
 
     }
@@ -315,12 +326,12 @@ public class ChatActivity extends AppCompatActivity {
                                 .document(userId)
                                 .update("chatIds", FieldValue.arrayRemove(chatId));
                     }
-                    Utilities.showToast(ChatActivity.this, "", Utilities.ToastType.SUCCESS);
+                    Utilities.showToast(MessagingActivity.this, "", Utilities.ToastType.SUCCESS);
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    logCriticalError("Failed to delete chat.", e);
-                    Utilities.showToast(ChatActivity.this, "Failed to delete chat. Please try again.", Utilities.ToastType.ERROR);
+                    logCriticalError("deleteChatFromFirestore: Failed to delete chat.", e);
+                    Utilities.showToast(MessagingActivity.this, "Failed to delete chat. Please try again.", Utilities.ToastType.ERROR);
                 });
     }
 
@@ -337,7 +348,7 @@ public class ChatActivity extends AppCompatActivity {
 
         fetchChatDetails(chatId, chat -> {
             if (chat == null) {
-                Utilities.showToast(ChatActivity.this, "Chat information is unavailable.", Utilities.ToastType.ERROR);
+                Utilities.showToast(MessagingActivity.this, "Chat information is unavailable.", Utilities.ToastType.ERROR);
                 return;
             }
 
@@ -370,7 +381,7 @@ public class ChatActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     binding.progressBar.setVisibility(View.GONE);
-                    logCriticalError("Failed to load chat information.", e);
+                    logCriticalError("fetchChatDetails: Failed to load chat information.", e);
                     callback.onChatFetched(null);
                 });
     }
@@ -392,8 +403,7 @@ public class ChatActivity extends AppCompatActivity {
                         User user = document.toObject(User.class);
                         if (user != null) {
                             String contactInfo = user.phone != null && !user.phone.isEmpty()
-                                    ? user.phone
-                                    : user.email != null ? user.email : "No contact info available";
+                                    ? user.phone : user.email != null ? user.email : "No contact info available";
                             participantDetails.add(user.firstName + " " + user.lastName + " (" + contactInfo + ")");
                         }
                     }
@@ -402,7 +412,7 @@ public class ChatActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     binding.progressBar.setVisibility(View.GONE);
-                    logCriticalError("Failed to load participant details.", e);
+                    logCriticalError("fetchParticipantDetails: Failed to load participant details.", e);
                     callback.onDetailsFetched(null);
                 });
     }
@@ -455,7 +465,7 @@ public class ChatActivity extends AppCompatActivity {
      * @param e       The exception that occurred.
      */
     private void logCriticalError(String message, Exception e) {
-        android.util.Log.e("ChatActivity", message, e);
+        android.util.Log.e("CHAT_ACTIVITY", message, e);
     }
 
     /**

@@ -6,13 +6,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.chatandroidapp.databinding.FragmentTaskRecyclerItemBinding;
+import com.example.chatandroidapp.databinding.ItemTaskBinding;
 import com.example.chatandroidapp.models.Task;
 
 import java.util.List;
 
 /**
- * TaskAdapter handles the display of tasks in a RecyclerView and manages interactions like
+ * TaskAdapter handles displaying tasks and managing user interactions like
  * marking tasks as completed, editing, and deleting.
  */
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
@@ -34,7 +34,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        FragmentTaskRecyclerItemBinding binding = FragmentTaskRecyclerItemBinding.inflate(
+        ItemTaskBinding binding = ItemTaskBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
         return new TaskViewHolder(binding);
     }
@@ -51,18 +51,45 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     /**
+     * Interface for task interaction callbacks.
+     */
+    public interface TaskAdapterListener {
+        /**
+         * Called when a task's completion status is toggled.
+         *
+         * @param task The task whose completion status changed.
+         */
+        void onTaskCompletedChanged(Task task);
+
+        /**
+         * Called when a task is to be edited.
+         *
+         * @param task The task to edit.
+         */
+        void onEditTask(Task task);
+
+        /**
+         * Called when a task is to be deleted.
+         *
+         * @param task The task to delete.
+         */
+        void onDeleteTask(Task task);
+    }
+
+    /**
      * ViewHolder class for individual task items.
      */
     class TaskViewHolder extends RecyclerView.ViewHolder {
-        private final FragmentTaskRecyclerItemBinding binding;
+        private final ItemTaskBinding binding;
 
-        public TaskViewHolder(@NonNull FragmentTaskRecyclerItemBinding binding) {
+        public TaskViewHolder(@NonNull ItemTaskBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
 
         /**
          * Binds a task object to the view.
+         *
          * @param task The task to display.
          */
         public void bind(final Task task) {
@@ -85,28 +112,5 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             // Handle delete button click
             binding.deleteButton.setOnClickListener(v -> listener.onDeleteTask(task));
         }
-    }
-
-    /**
-     * Interface for task interaction callbacks.
-     */
-    public interface TaskAdapterListener {
-        /**
-         * Called when a task's completion status is toggled.
-         * @param task The task whose completion status changed.
-         */
-        void onTaskCompletedChanged(Task task);
-
-        /**
-         * Called when a task is to be edited.
-         * @param task The task to edit.
-         */
-        void onEditTask(Task task);
-
-        /**
-         * Called when a task is to be deleted.
-         * @param task The task to delete.
-         */
-        void onDeleteTask(Task task);
     }
 }

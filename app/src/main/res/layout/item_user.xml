@@ -20,10 +20,10 @@
         android:layout_height="50dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_profile"
+        app:layout_constraintBottom_toBottomOf="@id/layoutUserInfo"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/layoutUserInfo"
-        app:layout_constraintBottom_toBottomOf="@id/layoutUserInfo"
-        app:riv_border_color="@color/black"
+        app:riv_border_color="@color/lighter_gray"
         app:riv_border_width="2dp"
         app:riv_corner_radius="24dp" />
 
@@ -33,8 +33,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:paddingVertical="10dp"
         android:orientation="vertical"
+        android:paddingVertical="10dp"
         app:layout_constraintEnd_toStartOf="@+id/userCheckBox"
         app:layout_constraintLeft_toRightOf="@id/userProfilePicture"
         app:layout_constraintStart_toEndOf="@+id/userProfilePicture"
@@ -48,7 +48,6 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="Username"
-            android:textColor="@color/black"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -60,7 +59,6 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="+0(000)-000-0000"
-            android:textColor="@color/secondary_text"
             android:textSize="17sp" />
     </LinearLayout>
 
@@ -71,9 +69,8 @@
         android:layout_height="wrap_content"
         android:checked="false"
         android:focusable="false"
-        android:textColor="@color/primary"
+        app:layout_constraintBottom_toBottomOf="@id/layoutUserInfo"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/layoutUserInfo"
-        app:layout_constraintBottom_toBottomOf="@id/layoutUserInfo"/>
+        app:layout_constraintTop_toTopOf="@id/layoutUserInfo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

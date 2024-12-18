@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         setUpSearchView();
 
         String firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME, "");
-        Utilities.showToast(this, "Welcome, " + firstName + "!", Utilities.ToastType.INFO);
+        //Utilities.showToast(this, "Welcome, " + firstName + "!", Utilities.ToastType.INFO);
     }
 
     /**

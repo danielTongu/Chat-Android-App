@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.chatandroidapp.activities.ChatActivity;
+import com.example.chatandroidapp.activities.MessagingActivity;
 import com.example.chatandroidapp.activities.ChatCreatorActivity;
 import com.example.chatandroidapp.adapters.ChatsAdapter;
 import com.example.chatandroidapp.databinding.FragmentChatsBinding;
@@ -24,12 +24,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * ChatsFragment manages and displays a list of chats the user is involved in.
- * It fetches data from Firestore, displays recent messages, and allows navigation to individual chats.
+ * It fetches data from Firestore, displays recent messages, and handles navigation to individual chats.
  */
 public class ChatsFragment extends Fragment {
     private static final String TAG = "CHATS_FRAGMENT";
@@ -38,7 +37,6 @@ public class ChatsFragment extends Fragment {
     private FirebaseFirestore database;
     private PreferenceManager preferenceManager;
     private ChatsAdapter chatsAdapter;
-
     private List<Chat> chatsList;
     private List<ListenerRegistration> listenerRegistrations;
 
@@ -75,13 +73,12 @@ public class ChatsFragment extends Fragment {
         binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewChats.setAdapter(chatsAdapter);
 
-        binding.progressBar.setVisibility(View.VISIBLE);
-        binding.processMessage.setVisibility(View.GONE);
+        // Initially show progress and default message
+        showEmptyState();
     }
 
     /**
      * Loads chats from Firestore where the user is a participant.
-     * Sorts chats by the most recent activity and updates the RecyclerView.
      */
     private void loadChats() {
         String userId = preferenceManager.getString(Constants.KEY_ID, "");
@@ -91,9 +88,8 @@ public class ChatsFragment extends Fragment {
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error loading chats", error);
-                        binding.progressBar.setVisibility(View.GONE);
-                        binding.processMessage.setVisibility(View.VISIBLE);
-                        binding.processMessage.setText("Failed to load chats. Check your connection.");
+                        showLoadingState(false);
+                        showErrorMessage("Failed to load chats. Please check your connection.");
                         return;
                     }
 
@@ -115,7 +111,6 @@ public class ChatsFragment extends Fragment {
 
         for (DocumentChange change : documentChanges) {
             Chat chat = change.getDocument().toObject(Chat.class);
-            chat.id = change.getDocument().getId();
 
             switch (change.getType()) {
                 case ADDED:
@@ -149,35 +144,37 @@ public class ChatsFragment extends Fragment {
      * Updates the UI by sorting and refreshing the chat list.
      */
     private void updateUI() {
+        showLoadingState(true);
         // Sort chats by the most recent activity (createdDate descending)
-        Collections.sort(chatsList, (c1, c2) -> {
-            if (c1.createdDate == null && c2.createdDate == null) { return 0; }
-            if (c1.createdDate == null) { return 1; }
-            if (c2.createdDate == null) { return -1; }
+        chatsList.sort((c1, c2) -> {
+            if (c1.createdDate == null && c2.createdDate == null) {
+                return 0;
+            }
+            if (c1.createdDate == null) {
+                return 1;
+            }
+            if (c2.createdDate == null) {
+                return -1;
+            }
             return c2.createdDate.compareTo(c1.createdDate);
         });
 
         // Update visibility based on the chat list size
         if (chatsList.isEmpty()) {
-            binding.processMessage.setVisibility(View.VISIBLE);
-            binding.processMessage.setText("No chats yet.");
-            binding.recyclerViewChats.setVisibility(View.GONE);
+            showEmptyState();
         } else {
-            binding.processMessage.setVisibility(View.GONE);
-            binding.recyclerViewChats.setVisibility(View.VISIBLE);
+            showChats();
+            showLoadingState(false);
         }
-
-        chatsAdapter.notifyDataSetChanged();
-        binding.progressBar.setVisibility(View.GONE);
     }
 
     /**
-     * Navigates to ChatActivity when a chat item is clicked.
+     * Navigates to MessagingActivity when a chat item is clicked.
      *
      * @param chat Chat object containing the chat details.
      */
     private void openChat(Chat chat) {
-        Intent intent = new Intent(getContext(), ChatActivity.class);
+        Intent intent = new Intent(getContext(), MessagingActivity.class);
         intent.putExtra(Constants.KEY_ID, chat.id);
         startActivity(intent);
     }
@@ -190,6 +187,53 @@ public class ChatsFragment extends Fragment {
             Intent intent = new Intent(getContext(), ChatCreatorActivity.class);
             startActivity(intent);
         });
+    }
+
+    /**
+     * Displays the loading state with progress bar and message.
+     *
+     * @param isLoading true to show loading, false to hide.
+     */
+    private void showLoadingState(boolean isLoading) {
+        if (isLoading) {
+            binding.progressBar.setVisibility(View.VISIBLE);
+            binding.processMessage.setVisibility(View.VISIBLE);
+            binding.processMessage.setText("Loading chats...");
+            binding.recyclerViewChats.setVisibility(View.GONE);
+        } else {
+            binding.progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Displays an error message and hides other views.
+     *
+     * @param message The error message to display.
+     */
+    private void showErrorMessage(String message) {
+        binding.progressBar.setVisibility(View.GONE);
+        binding.processMessage.setVisibility(View.VISIBLE);
+        binding.processMessage.setText(message);
+        binding.recyclerViewChats.setVisibility(View.GONE);
+    }
+
+    /**
+     * Displays the empty state message when no chats are available.
+     */
+    private void showEmptyState() {
+        binding.processMessage.setVisibility(View.VISIBLE);
+        binding.processMessage.setText("No chats yet.");
+        binding.recyclerViewChats.setVisibility(View.GONE);
+        binding.progressBar.setVisibility(View.GONE);
+    }
+
+    /**
+     * Displays the chat list and hides other views.
+     */
+    private void showChats() {
+        binding.processMessage.setVisibility(View.GONE);
+        binding.recyclerViewChats.setVisibility(View.VISIBLE);
+        binding.progressBar.setVisibility(View.GONE);
     }
 
     /**

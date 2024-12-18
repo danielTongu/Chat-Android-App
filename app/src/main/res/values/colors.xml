@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
+    <!-- Colors for buttons backgrounds and links texts -->
+    <color name="primary">#f40a06</color>
+    <color name="secondary">#641E16</color>
+
+    <!--Colors for texts -->
     <color name="black">#FF000000</color>
-    <color name="dark_gray">#2B2D30</color>
-    <color name="gray">#4F4F4F</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="primary">#FFD83D68</color>
-    <color name="input_background">#ECECEC</color>
-    <color name="icon_background">#20FFFFFF</color>
 
-    <!-- Text Colors -->
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#757575</color>
+    <!-- Neutral Grayscale Palette for back grounds -->
+    <color name="darker_gray">#FF1C1C1C</color>
+    <color name="dark_gray">#FF383838</color>
+    <color name="gray">#FF555555</color>
+    <color name="light_gray">#FF757575</color>
+    <color name="lighter_gray">#FFAAAAAA</color>
 
-    <!-- Message Backgrounds -->
-    <color name="received_message_background">#090D16</color>
-
-    <!-- Custom Toast Colors -->
-    <color name="error">#CF5B56</color>
-    <color name="warning">#FFD600</color>
-    <color name="success">#6AAB73</color>
-    <color name="info">#5285EC</color>
+    <!-- Toast and Highlight Colors -->
+    <color name="error">#f40a06</color>
+    <color name="warning">#ffd700</color>
+    <color name="success">#4caf50</color>
+    <color name="info">#006dfb</color>
 </resources>

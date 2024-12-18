@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="@color/input_background" />
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <!-- Background color of the circle -->
+    <solid android:color="@color/white" />
+    <!-- Border for the circle -->
+    <stroke android:width="2dp" android:color="@color/lighter_gray" />
 </shape>

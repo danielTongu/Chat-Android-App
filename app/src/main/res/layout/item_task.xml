@@ -26,8 +26,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="16sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             tools:text="Task Title" />
 
@@ -37,8 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
-            android:textColor="@color/secondary_text"
-            android:textSize="14sp"
+            android:textSize="16sp"
             tools:ignore="RtlSymmetry"
             tools:text="12/12/2024" />
     </LinearLayout>
@@ -56,8 +54,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/secondary_text"
-            android:textSize="14sp"
+            android:textSize="17sp"
             tools:text="Task description goes here." />
 
         <!-- Task Time -->
@@ -66,8 +63,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
-            android:textColor="@color/secondary_text"
-            android:textSize="14sp"
+            android:textColor="@color/dark_gray"
+            android:textSize="16sp"
             tools:ignore="RtlSymmetry"
             tools:text="10:00 AM" />
     </LinearLayout>
@@ -87,8 +84,7 @@
             android:layout_gravity="center_vertical"
             android:checked="false"
             android:focusable="false"
-            android:text="Complete"
-            android:textColor="@color/secondary_text" />
+            android:text="Done" />
 
         <!-- Edit Button -->
         <ImageButton
@@ -96,10 +92,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="8dp"
+            android:layout_marginHorizontal="20dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_edit"
-            app:tint="@color/primary" />
+            android:src="@drawable/ic_edit"/>
 
         <!-- Delete Button -->
         <ImageButton
