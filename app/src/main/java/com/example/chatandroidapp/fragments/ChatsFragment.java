@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -19,9 +18,13 @@ import com.example.chatandroidapp.databinding.FragmentChatsBinding;
 import com.example.chatandroidapp.models.Chat;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,12 +72,18 @@ public class ChatsFragment extends Fragment {
         chatsList = new ArrayList<>();
         listenerRegistrations = new ArrayList<>();
 
-        chatsAdapter = new ChatsAdapter(chatsList, this::openChat, listenerRegistrations);
+        chatsAdapter = new ChatsAdapter(chatsList, new ChatsAdapter.ChatClickListener() {
+            @Override
+            public void onChatClicked(Chat chat) {
+                openChat(chat);
+            }
+        }, listenerRegistrations);
+
         binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewChats.setAdapter(chatsAdapter);
 
-        // Initially show progress and default message
-        showEmptyState();
+        // Initially, show an empty state
+        showLoading(false, "No chats yet.");
     }
 
     /**
@@ -85,16 +94,23 @@ public class ChatsFragment extends Fragment {
 
         ListenerRegistration chatListener = database.collection(Constants.KEY_COLLECTION_CHATS)
                 .whereArrayContains("userIdList", userId)
-                .addSnapshotListener((snapshots, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "Error loading chats", error);
-                        showLoadingState(false);
-                        showErrorMessage("Failed to load chats. Please check your connection.");
-                        return;
-                    }
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    /**
+                     * Called when there is a change in the chat collection.
+                     * @param snapshots The new snapshot state of the chat collection.
+                     * @param error A FirebaseFirestoreException if an error occurred.
+                     */
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) {
+                            Log.e(TAG, "Error loading chats", error);
+                            showLoading(false, "Failed to load chats. Please check your connection.");
+                            return;
+                        }
 
-                    if (snapshots != null) {
-                        handleChatChanges(snapshots.getDocumentChanges());
+                        if (snapshots != null) {
+                            handleChatChanges(snapshots.getDocumentChanges());
+                        }
                     }
                 });
 
@@ -129,8 +145,13 @@ public class ChatsFragment extends Fragment {
                     break;
 
                 case REMOVED:
-                    chatsList.removeIf(existingChat -> existingChat.id.equals(chat.id));
-                    dataChanged = true;
+                    for (int i = 0; i < chatsList.size(); i++) {
+                        if (chatsList.get(i).id.equals(chat.id)) {
+                            chatsList.remove(i);
+                            dataChanged = true;
+                            break;
+                        }
+                    }
                     break;
             }
         }
@@ -144,7 +165,6 @@ public class ChatsFragment extends Fragment {
      * Updates the UI by sorting and refreshing the chat list.
      */
     private void updateUI() {
-        showLoadingState(true);
         // Sort chats by the most recent activity (createdDate descending)
         chatsList.sort((c1, c2) -> {
             if (c1.createdDate == null && c2.createdDate == null) {
@@ -159,12 +179,10 @@ public class ChatsFragment extends Fragment {
             return c2.createdDate.compareTo(c1.createdDate);
         });
 
-        // Update visibility based on the chat list size
         if (chatsList.isEmpty()) {
-            showEmptyState();
+            showLoading(false, "No chats yet.");
         } else {
-            showChats();
-            showLoadingState(false);
+            showLoading(false, null);
         }
     }
 
@@ -183,57 +201,35 @@ public class ChatsFragment extends Fragment {
      * Sets listeners for UI components, such as the Floating Action Button.
      */
     private void setListeners() {
-        binding.fabNewChat.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), CreateChatActivity.class);
-            startActivity(intent);
+        binding.fabNewChat.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called when the FAB is clicked to create a new chat.
+             * @param v The clicked view.
+             */
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), CreateChatActivity.class);
+                startActivity(intent);
+            }
         });
     }
 
     /**
-     * Displays the loading state with progress bar and message.
-     *
-     * @param isLoading true to show loading, false to hide.
+     * @param isLoading Whether or not the app is in a loading state.
+     * @param message   The message to show (for empty or error states). Pass null to show chats.
      */
-    private void showLoadingState(boolean isLoading) {
-        if (isLoading) {
-            binding.progressBar.setVisibility(View.VISIBLE);
-            binding.processMessage.setVisibility(View.VISIBLE);
-            binding.processMessage.setText("Loading chats...");
+    private void showLoading(boolean isLoading, String message) {
+        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        binding.fabNewChat.setEnabled(!isLoading);
+
+        if (message != null && !message.isEmpty()) {
             binding.recyclerViewChats.setVisibility(View.GONE);
+            binding.textProgressMessage.setVisibility(View.VISIBLE);
+            binding.textProgressMessage.setText(message);
         } else {
-            binding.progressBar.setVisibility(View.GONE);
+            binding.recyclerViewChats.setVisibility(View.VISIBLE);
+            binding.textProgressMessage.setVisibility(View.GONE);
         }
-    }
-
-    /**
-     * Displays an error message and hides other views.
-     *
-     * @param message The error message to display.
-     */
-    private void showErrorMessage(String message) {
-        binding.progressBar.setVisibility(View.GONE);
-        binding.processMessage.setVisibility(View.VISIBLE);
-        binding.processMessage.setText(message);
-        binding.recyclerViewChats.setVisibility(View.GONE);
-    }
-
-    /**
-     * Displays the empty state message when no chats are available.
-     */
-    private void showEmptyState() {
-        binding.processMessage.setVisibility(View.VISIBLE);
-        binding.processMessage.setText("No chats yet.");
-        binding.recyclerViewChats.setVisibility(View.GONE);
-        binding.progressBar.setVisibility(View.GONE);
-    }
-
-    /**
-     * Displays the chat list and hides other views.
-     */
-    private void showChats() {
-        binding.processMessage.setVisibility(View.GONE);
-        binding.recyclerViewChats.setVisibility(View.VISIBLE);
-        binding.progressBar.setVisibility(View.GONE);
     }
 
     /**

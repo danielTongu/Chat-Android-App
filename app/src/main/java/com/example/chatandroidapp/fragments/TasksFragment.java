@@ -7,20 +7,26 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CalendarView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.chatandroidapp.activities.TaskWriterActivity;
+import com.example.chatandroidapp.activities.TaskEditorActivity;
 import com.example.chatandroidapp.adapters.TasksAdapter;
 import com.example.chatandroidapp.databinding.FragmentTasksBinding;
 import com.example.chatandroidapp.models.Task;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
+import com.example.chatandroidapp.utilities.Utilities;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,16 +36,38 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * TasksFragment manages task display, filtering, and navigation to TaskWriterActivity for adding or editing tasks.
+ * TasksFragment manages task display, filtering, and navigation to TaskEditorActivity for adding or editing tasks.
+ * It handles fetching tasks from Firestore, filtering them by date or completion status,
+ * and provides UI interactions for marking tasks complete, editing, and deleting.
  */
 public class TasksFragment extends Fragment {
-    private FragmentTasksBinding binding; // View Binding for the fragment layout
-    private TasksAdapter tasksAdapter; // Adapter for the RecyclerView
-    private List<Task> allTasksList; // Full list of tasks from Firestore
-    private List<Task> filteredTasksList; // Filtered or displayed list of tasks
-    private PreferenceManager preferenceManager; // PreferenceManager for user data
-    private FirebaseFirestore db; // Firestore database instance
 
+    /** ViewBinding instance for fragment_tasks.xml */
+    private FragmentTasksBinding binding;
+
+    /** Adapter for displaying tasks in a RecyclerView */
+    private TasksAdapter tasksAdapter;
+
+    /** Full list of tasks obtained from Firestore */
+    private List<Task> allTasksList;
+
+    /** Current filtered list of tasks displayed to the user */
+    private List<Task> filteredTasksList;
+
+    /** PreferenceManager for storing user-related data */
+    private PreferenceManager preferenceManager;
+
+    /** Firestore database instance */
+    private FirebaseFirestore db;
+
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate views in the fragment.
+     * @param container          The parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The View for the fragment's UI, or null.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -55,20 +83,40 @@ public class TasksFragment extends Fragment {
     }
 
     /**
-     * Sets up the RecyclerView with a LinearLayoutManager and TasksAdapter.
+     * Sets up the RecyclerView with a LinearLayoutManager and a TasksAdapter.
+     * The adapter uses an explicit listener for handling task actions.
      */
     private void setupRecyclerView() {
         filteredTasksList = new ArrayList<>();
         allTasksList = new ArrayList<>();
+
         tasksAdapter = new TasksAdapter(filteredTasksList, new TasksAdapter.TaskAdapterListener() {
+            /**
+             * Triggered when a task's completion state is toggled.
+             * @param task The task to toggle completion for.
+             */
             @Override
-            public void onTaskCompletedChanged(Task task) { toggleTaskCompletion(task); }
+            public void onTaskCompletedChanged(Task task) {
+                toggleTaskCompletion(task);
+            }
 
+            /**
+             * Triggered when the user requests to edit a task.
+             * @param task The task to edit.
+             */
             @Override
-            public void onEditTask(Task task) { navigateToTaskWriter(task); }
+            public void onEditTask(Task task) {
+                navigateToTaskEditorActivity(task);
+            }
 
+            /**
+             * Triggered when the user requests to delete a task.
+             * @param task The task to delete.
+             */
             @Override
-            public void onDeleteTask(Task task) { deleteTaskFromFirestore(task); }
+            public void onDeleteTask(Task task) {
+                deleteTaskFromFirestore(task);
+            }
         });
 
         binding.tasksRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -76,84 +124,151 @@ public class TasksFragment extends Fragment {
     }
 
     /**
-     * Sets up listeners for UI elements like the calendar and Floating Action Button.
+     * Sets up listeners for UI elements such as the CalendarView and the Floating Action Button (FAB).
+     * Handles date selection and task list resetting.
      */
     private void setupListeners() {
-        binding.tasksCoordinator.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            // CalendarView provides the selected date as year, month, day
-            Calendar selectedCalendar = Calendar.getInstance();
-            selectedCalendar.set(year, month, dayOfMonth);
-            long selectedDateMillis = selectedCalendar.getTimeInMillis();
-
-            // Filter tasks by the selected date
-            filterTasksByDate(selectedDateMillis);
+        binding.tasksCoordinator.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            /**
+             * Triggered when the user changes the date on the CalendarView.
+             *
+             * @param view The CalendarView whose date was changed.
+             * @param year The year component of the selected date.
+             * @param month The month component of the selected date (0-indexed).
+             * @param dayOfMonth The day of the month selected.
+             */
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                Calendar selectedCalendar = Calendar.getInstance();
+                selectedCalendar.set(year, month, dayOfMonth);
+                long selectedDateMillis = selectedCalendar.getTimeInMillis();
+                filterTasksByDate(selectedDateMillis);
+            }
         });
 
-        binding.resetButton.setOnClickListener(v -> showAllNonCompletedTasks());
-        binding.fabAddTask.setOnClickListener(v -> navigateToTaskWriter(null));
+        binding.resetButton.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called when the reset button is clicked. Shows all non-completed tasks.
+             * @param v The View that was clicked.
+             */
+            @Override
+            public void onClick(View v) {
+                showAllNonCompletedTasks();
+            }
+        });
+
+        binding.fabAddTask.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called when the FAB is clicked. Navigates to TaskEditorActivity to add a new task.
+             * @param v The View that was clicked.
+             */
+            @Override
+            public void onClick(View v) {
+                navigateToTaskEditorActivity(null);
+            }
+        });
     }
 
     /**
-     * Marks a task as completed or not completed and updates it in Firestore.
-     * @param task The task to toggle completion status for.
+     * Toggles the completion status of a given task and updates Firestore accordingly.
+     * @param task The task whose completion status should be toggled.
      */
     private void toggleTaskCompletion(Task task) {
         task.setCompleted(!task.isCompleted());
 
-        // Update Firestore
         db.collection("Users")
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .collection("Tasks")
                 .document(task.getId())
-                .update("completed", task.isCompleted());
-
-        // Find the position of the updated task
-        int position = allTasksList.indexOf(task);
-        if (position != -1) {
-            tasksAdapter.notifyItemChanged(position);
-        }
+                .update("completed", task.isCompleted())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    /**
+                     * Called when the completion update is successful.
+                     * @param unused Unused parameter.
+                     */
+                    @Override
+                    public void onSuccess(Void unused) {
+                        int position = allTasksList.indexOf(task);
+                        if (position != -1) {
+                            tasksAdapter.notifyItemChanged(position);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    /**
+                     * Called if the update fails.
+                     * @param e The exception that occurred.
+                     */
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Utilities.showToast(getContext(), "Failed to update task completion", Utilities.ToastType.ERROR);
+                        Log.e("TasksFragment", "Failed to update task completion: " + e.getMessage());
+                    }
+                });
     }
 
     /**
-     * Fetches tasks from Firestore, deletes outdated tasks, and updates the task lists.
+     * Fetches tasks from Firestore.
+     * Outdated and completed tasks are deleted.
+     * All pending tasks are displayed initially.
      */
     private void fetchTasksFromFirestore() {
         db.collection("Users")
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .collection("Tasks")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    allTasksList.clear();
-                    filteredTasksList.clear();
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    /**
+                     * Called when tasks are successfully fetched from Firestore.
+                     * @param queryDocumentSnapshots The snapshots of the fetched documents.
+                     */
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        allTasksList.clear();
+                        filteredTasksList.clear();
 
-                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        Task task = doc.toObject(Task.class);
-                        if (task != null) {
-                            task.setId(doc.getId());
+                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                            Task task = doc.toObject(Task.class);
+                            if (task != null) {
+                                task.setId(doc.getId());
 
-                            // Check if the task is outdated and delete it
-                            if (task.isOutdated() && task.isCompleted()) {
-                                deleteTaskFromFirestore(task);
-                            } else {
-                                allTasksList.add(task);
-                                if (!task.isCompleted()) { filteredTasksList.add(task); }
+                                // Delete outdated and completed tasks
+                                if (task.isOutdated() && task.isCompleted()) {
+                                    deleteTaskFromFirestore(task);
+                                } else {
+                                    allTasksList.add(task);
+                                    if (!task.isCompleted()) {
+                                        filteredTasksList.add(task);
+                                    }
+                                }
                             }
                         }
-                    }
 
-                    binding.resetButton.setVisibility(View.GONE);
-                    binding.taskHeader.setText(allTasksList.isEmpty() ? "No tasks" : "All Pending Tasks");
-                    tasksAdapter.notifyItemRangeInserted(0, filteredTasksList.size());
+                        binding.resetButton.setVisibility(View.GONE);
+                        binding.taskHeader.setText(allTasksList.isEmpty() ? "No tasks" : "All Pending Tasks");
+                        tasksAdapter.notifyDataSetChanged();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    /**
+                     * Called if fetching tasks fails.
+                     * @param e The exception that caused the failure.
+                     */
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Utilities.showToast(getContext(), "Failed to fetch tasks.", Utilities.ToastType.ERROR);
+                        Log.e("TasksFragment", "Failed to fetch tasks: " + e.getMessage());
+                    }
                 });
     }
 
     /**
-     * Filters tasks by the selected date, deletes outdated tasks, and updates the RecyclerView.
+     * Filters the tasks by the selected date. Outdated completed tasks are deleted.
+     * Updates the UI to show tasks for the selected date.
      *
-     * @param selectedDateMillis The selected date from the CalendarView in milliseconds.
+     * @param selectedDateMillis The date selected by the user, in milliseconds.
      */
     private void filterTasksByDate(long selectedDateMillis) {
-        // Format the selected date from CalendarView
         SimpleDateFormat calendarFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String formattedSelectedDate = calendarFormatter.format(new Date(selectedDateMillis));
 
@@ -164,19 +279,18 @@ public class TasksFragment extends Fragment {
             Task task = iterator.next();
             try {
                 String taskCompletionDate = task.getCompletionDate();
-
                 if (task.isOutdated() && task.isCompleted()) {
-                    deleteTaskFromFirestore(task); // Delete from db
-                    iterator.remove(); // Safely remove from local list
+                    deleteTaskFromFirestore(task);
+                    iterator.remove();
                 } else if (taskCompletionDate.equals(formattedSelectedDate)) {
-                    filteredTasksList.add(task); // Add matching task to filtered list
+                    filteredTasksList.add(task);
                 }
             } catch (Exception e) {
+                Utilities.showToast(getContext(), "Error processing task date.", Utilities.ToastType.ERROR);
                 Log.e("DEBUG", "Error processing task date: " + e.getMessage());
             }
         }
 
-        // Update UI
         binding.resetButton.setVisibility(View.VISIBLE);
 
         if (filteredTasksList.isEmpty()) {
@@ -185,73 +299,84 @@ public class TasksFragment extends Fragment {
             binding.taskHeader.setText(String.format("Tasks for %s", formattedSelectedDate));
         }
 
-        // Notify adapter after clearing and re-populating the list
         tasksAdapter.notifyDataSetChanged();
     }
 
     /**
-     * Displays all non-completed tasks, deletes outdated tasks, and resets the UI.
+     * Shows all non-completed tasks. Deletes outdated completed tasks first, then updates the UI.
      */
     private void showAllNonCompletedTasks() {
         filteredTasksList.clear();
 
-        // Use an Iterator to safely remove outdated tasks while iterating
         Iterator<Task> iterator = allTasksList.iterator();
         while (iterator.hasNext()) {
             Task task = iterator.next();
-
             if (task.isOutdated() && task.isCompleted()) {
-                deleteTaskFromFirestore(task); // Delete task from Firestore and local list
-                iterator.remove(); // Safe removal from the local list
+                deleteTaskFromFirestore(task);
+                iterator.remove();
             } else if (!task.isCompleted()) {
                 filteredTasksList.add(task);
             }
         }
 
-        // Update UI header
         binding.taskHeader.setText(allTasksList.isEmpty() ? "No task" : "All Pending Tasks");
         binding.resetButton.setVisibility(View.GONE);
-
-        // Notify adapter for new range after clearing
         tasksAdapter.notifyDataSetChanged();
     }
 
     /**
-     * Deletes a task from Firestore and updates the UI.
-     *
+     * Deletes a task from Firestore and updates the local lists and RecyclerView.
      * @param task The task to delete.
      */
-    private void deleteTaskFromFirestore(Task task) {
+    private void deleteTaskFromFirestore(final Task task) {
         db.collection("Users")
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .collection("Tasks")
                 .document(task.getId())
                 .delete()
-                .addOnSuccessListener(unused -> {
-                    int position = allTasksList.indexOf(task);
-                    if (position != -1) {
-                        allTasksList.remove(task);
-                        filteredTasksList.remove(task);
-                        tasksAdapter.notifyItemRemoved(position);
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    /**
+                     * Called when the task is successfully deleted from Firestore.
+                     * @param unused Unused parameter.
+                     */
+                    @Override
+                    public void onSuccess(Void unused) {
+                        int position = allTasksList.indexOf(task);
+                        if (position != -1) {
+                            allTasksList.remove(task);
+                            filteredTasksList.remove(task);
+                            tasksAdapter.notifyItemRemoved(position);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    /**
+                     * Called if the deletion fails.
+                     * @param e The exception that occurred.
+                     */
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Utilities.showToast(getContext(), "Failed to delete task", Utilities.ToastType.ERROR);
+                        Log.e("TasksFragment", "Failed to delete task: " + e.getMessage());
                     }
                 });
     }
 
     /**
-     * Navigates to TaskWriterActivity for adding or editing a task.
-     *
-     * @param task The task to edit, or null if adding a new task.
+     * Navigates to TaskEditorActivity for adding a new task or editing an existing one.
+     * @param task The task to edit, or null if creating a new task.
      */
-    private void navigateToTaskWriter(Task task) {
-        Intent intent = new Intent(getContext(), TaskWriterActivity.class);
+    private void navigateToTaskEditorActivity(Task task) {
+        Intent intent = new Intent(getContext(), TaskEditorActivity.class);
         if (task != null) {
-            intent.putExtra("Task", task); // Pass the task if editing
+            intent.putExtra("Task", task);
         }
         startActivity(intent);
     }
 
     /**
-     * Cleans up resources when the fragment view is destroyed.
+     * Called when the view is destroyed.
+     * Cleans up binding references to avoid memory leaks.
      */
     @Override
     public void onDestroyView() {

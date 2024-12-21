@@ -1,93 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_rectangle_round_top"
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
     tools:context=".fragments.TasksFragment">
 
-    <!-- Title of this fragment -->
+    <!-- Fixed Title -->
     <TextView
         android:id="@+id/tasksTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="24dp"
+        android:gravity="center"
+        android:paddingBottom="16dp"
         android:text="Tasks"
         android:textColor="@color/primary"
         android:textSize="30sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Calendar View to navigate tasks by date -->
-    <CalendarView
-        android:id="@+id/tasksCoordinator"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tasksTitle" />
-
-    <!-- Reset Button -->
-    <Button
-        android:id="@+id/resetButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_rectangle_round"
-        android:text="Show All Pending Tasks"
-        android:textSize="20sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/fabAddTask"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- Floating Action Button to add a new task -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddTask"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_add"
-        app:layout_constraintBottom_toTopOf="@id/taskHeader"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tasksCoordinator" />
-
-    <!-- Header for selected date or to-do tasks -->
-    <TextView
-        android:id="@+id/taskHeader"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginVertical="8dp"
-        android:gravity="center"
-        android:text="All Pending Tasks"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/fabAddTask" />
-
-    <!-- RecyclerView to display tasks -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tasksRecyclerView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:paddingHorizontal="9dp"
-        android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationSpace"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/taskHeader"
-        tools:listitem="@layout/item_task" />
-
-    <!-- Spacer for the Bottom Navigation View -->
-    <View
-        android:id="@+id/bottomNavigationSpace"
+    <!-- Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tasksTitle">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Calendar View -->
+            <CalendarView
+                android:background="@drawable/bg_rectangle_round"
+                android:id="@+id/tasksCoordinator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <!-- Floating Action Button -->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabAddTask"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="16dp"
+                android:src="@drawable/ic_add" />
+
+            <!-- Reset Button -->
+            <Button
+                android:id="@+id/resetButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Show All Pending Tasks"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+            <!-- Task Header -->
+            <TextView
+                android:id="@+id/taskHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:gravity="center"
+                android:text="All Pending Tasks"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- Task RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tasksRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="24dp"
+                android:scrollbars="vertical"
+                tools:listitem="@layout/item_task" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

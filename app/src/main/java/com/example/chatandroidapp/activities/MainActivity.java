@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (selectedFragment != null) {
-            int visibility =  selectedFragment instanceof SearchableView ? View.VISIBLE : View.INVISIBLE;
+            int visibility =  selectedFragment instanceof SearchableView ? View.VISIBLE : View.GONE;
             binding.searchView.setVisibility(visibility);
             loadFragment(selectedFragment);
             return true;

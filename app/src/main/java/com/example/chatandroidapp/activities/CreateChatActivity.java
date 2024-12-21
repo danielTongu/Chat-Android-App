@@ -93,8 +93,8 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
 
                     if (queryDocumentSnapshots.isEmpty()) {
                         Log.d(TAG, "loadUsersFromFirestore: No users found in Firestore.");
-                        binding.processMessage.setVisibility(View.VISIBLE);
-                        binding.processMessage.setText("No contacts found.");
+                        binding.textProgressMessage.setVisibility(View.VISIBLE);
+                        binding.textProgressMessage.setText("No contacts found.");
                         return;
                     }
 
@@ -103,8 +103,8 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "loadUsersFromFirestore: Failed to fetch users.", e);
                     toggleProgressBar(false, null);
-                    binding.processMessage.setVisibility(View.VISIBLE);
-                    binding.processMessage.setText("Failed to load contacts. Please try again.");
+                    binding.textProgressMessage.setVisibility(View.VISIBLE);
+                    binding.textProgressMessage.setText("Failed to load contacts. Please try again.");
                     Utilities.showToast(this, "Failed to load users: " + e.getMessage(), Utilities.ToastType.ERROR);
                 });
     }
@@ -125,8 +125,8 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
         }
 
         if (userList.isEmpty()) {
-            binding.processMessage.setVisibility(View.VISIBLE);
-            binding.processMessage.setText("No contacts available.");
+            binding.textProgressMessage.setVisibility(View.VISIBLE);
+            binding.textProgressMessage.setText("No contacts available.");
         } else {
             userAdapter.notifyDataSetChanged();
         }
@@ -141,10 +141,10 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
     private void toggleProgressBar(boolean isLoading, String message) {
         binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
         if (message != null) {
-            binding.processMessage.setText(message);
-            binding.processMessage.setVisibility(View.VISIBLE);
+            binding.textProgressMessage.setText(message);
+            binding.textProgressMessage.setVisibility(View.VISIBLE);
         } else {
-            binding.processMessage.setVisibility(View.GONE);
+            binding.textProgressMessage.setVisibility(View.GONE);
         }
     }
 

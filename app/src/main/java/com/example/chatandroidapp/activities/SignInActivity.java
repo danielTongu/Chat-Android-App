@@ -1,15 +1,12 @@
 package com.example.chatandroidapp.activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkCapabilities;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.widget.RadioGroup;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatandroidapp.R;
@@ -18,108 +15,148 @@ import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 /**
- * Handles user authentication with email/password or phone/OTP.
- * Includes UI state management, validations, and navigation.
+ * Handles user authentication via email/password or phone/OTP.
+ * Manages UI states, input validations, and navigation after successful authentication.
  */
 public class SignInActivity extends AppCompatActivity {
-    public static final String ACTION_SIGN_IN = "signIn";
+
+    /** Key used to store whether the user is signed in. */
     public static final String KEY_IS_SIGNED_IN = "isSignedIn";
+
+    /** Action type for sign-in, used when starting OtpVerificationActivity. */
+    public static final String ACTION_SIGN_IN = "signIn";
+
+    /** Tag for logging and debugging purposes. */
     private static final String TAG = "SIGN_IN_ACTIVITY";
 
+    /** Binding object for accessing views defined in activity_sign_in.xml. */
     private ActivitySignInBinding binding;
+
+    /** Manages application preferences like login status, user info, etc. */
     private PreferenceManager preferenceManager;
+
+    /** Firebase Firestore instance for database operations. */
     private FirebaseFirestore firestore;
 
+    /**
+     * Called when the activity is created.
+     * Initializes UI, checks existing login state, and sets up event listeners.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     * previously being shut down then this Bundle contains the data it most recently
+     * supplied in onSaveInstanceState(Bundle). Note: Otherwise it is null.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         binding = ActivitySignInBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         initializeComponents();
 
+        // If user is already signed in, go directly to MainActivity
         if (preferenceManager.getBoolean(KEY_IS_SIGNED_IN, false)) {
-            Log.d(TAG, "User already signed in. Navigating to MainActivity.");
             navigateToMainActivity();
-            return; // Skip the rest of the setup if the user is already signed in
+        } else {
+            setupUI();
+            setListeners();
         }
-
-        setupUI();
-        setListeners();
     }
 
     /**
-     * Initializes required components and managers.
+     * Initializes Firestore instance and PreferenceManager for user data management.
      */
     private void initializeComponents() {
         firestore = FirebaseFirestore.getInstance();
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-        Log.d(TAG, "Components initialized");
     }
 
     /**
-     * Configures UI settings and input visibility for sign-in methods.
+     * Configures UI elements, sets default values, and registers views.
      */
     private void setupUI() {
         binding.countryCodePicker.setDefaultCountryUsingNameCode("US");
         binding.countryCodePicker.resetToDefaultCountry();
         binding.countryCodePicker.registerCarrierNumberEditText(binding.inputPhoneNumber);
-
-        binding.radioGroupSignInMethod.setOnCheckedChangeListener((group, checkedId) -> toggleInputFields(checkedId));
-        binding.radioGroupSignInMethod.check(R.id.radioSignInWithPhone); // Default selection
     }
 
     /**
-     * Sets up event listeners for buttons and inputs.
+     * Sets up various click listeners for UI interactions.
+     * Also sets up the default sign-in method (phone by default).
      */
     private void setListeners() {
-        binding.buttonSignIn.setOnClickListener(v -> {
-            if (isNetworkAvailable()) {
-                handleSignIn();
-            } else {
-                Utilities.showToast(this, "No internet connection. Check your network settings.", Utilities.ToastType.ERROR);
+        binding.radioGroupSignInMethod.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            /**
+             * Called when the checked radio button has changed.
+             *
+             * @param group     The group in which the checked radio button has changed.
+             * @param checkedId The unique identifier of the newly checked radio button.
+             */
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                toggleInputFields(checkedId);
             }
         });
 
-        binding.textCreateNewAccount.setOnClickListener(v -> startActivity(new Intent(this, SignUpActivity.class)));
+        binding.radioGroupSignInMethod.check(R.id.radioSignInWithPhone); // Set default sign-in method to phone
+
+        binding.buttonSignIn.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called when the sign-in button is clicked.
+             * @param v The view that was clicked.
+             */
+            @Override
+            public void onClick(View v) { handleSignIn(); }
+        });
+
+        binding.textCreateNewAccount.setOnClickListener(new View.OnClickListener() {
+            /**
+             * Called when the "Create New Account" text is clicked.
+             * @param v The view that was clicked.
+             */
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SignInActivity.this, SignUpActivity.class));
+            }
+        });
     }
 
     /**
-     * Toggles input fields based on the selected sign-in method.
+     * Toggles between email/password fields and phone fields based on the sign-in method selected.
      *
-     * @param checkedId ID of the selected radio button.
+     * @param checkedId The ID of the currently checked radio button.
      */
     private void toggleInputFields(int checkedId) {
         if (checkedId == R.id.radioSignInWithEmail) {
-            showEmailFields();
-        } else if (checkedId == R.id.radioSignInWithPhone) {
-            showPhoneFields();
+            // Show email and password fields, hide phone fields
+            binding.inputEmail.setVisibility(View.VISIBLE);
+            binding.inputPassword.setVisibility(View.VISIBLE);
+            binding.layoutCcpAndPhone.setVisibility(View.GONE);
+            binding.buttonSignIn.setText("Sign In");
+        } else {
+            // Show phone fields, hide email and password fields
+            binding.inputEmail.setVisibility(View.GONE);
+            binding.inputPassword.setVisibility(View.GONE);
+            binding.layoutCcpAndPhone.setVisibility(View.VISIBLE);
+            binding.buttonSignIn.setText("Send Code");
         }
     }
 
-    private void showEmailFields() {
-        binding.inputEmail.setVisibility(View.VISIBLE);
-        binding.inputPassword.setVisibility(View.VISIBLE);
-        binding.ccpAndPhoneLayout.setVisibility(View.GONE);
-        binding.buttonSignIn.setText("Sign In");
-    }
-
-    private void showPhoneFields() {
-        binding.inputEmail.setVisibility(View.GONE);
-        binding.inputPassword.setVisibility(View.GONE);
-        binding.ccpAndPhoneLayout.setVisibility(View.VISIBLE);
-        binding.buttonSignIn.setText("Send Code");
-    }
-
     /**
-     * Initiates the appropriate sign-in method based on user selection.
+     * Determines which sign-in method is chosen (phone or email) and proceeds accordingly.
      */
     private void handleSignIn() {
         showLoading(true, "Processing...");
+
         if (binding.radioSignInWithPhone.isChecked()) {
             signInWithPhone();
         } else {
@@ -128,7 +165,8 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles phone-based sign-in.
+     * Validates and initiates phone-based sign-in.
+     * If valid, navigates the user to OTP verification screen.
      */
     private void signInWithPhone() {
         String phoneNumber = binding.countryCodePicker.getFullNumberWithPlus();
@@ -141,7 +179,32 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Validates and processes email-based sign-in.
+     * Checks if the provided phone number is valid. If invalid, shows a warning.
+     *
+     * @param phoneNumber The phone number to validate.
+     * @return True if valid; otherwise false.
+     */
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        if (phoneNumber.isEmpty() || !binding.countryCodePicker.isValidFullNumber()) {
+            Utilities.showToast(this, "Invalid phone number.", Utilities.ToastType.WARNING);
+            binding.inputPhoneNumber.setError("Invalid phone number");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Navigates the user to the OTP verification screen for phone-based authentication.
+     */
+    private void navigateToOtpVerification() {
+        Intent intent = new Intent(this, OtpVerificationActivity.class);
+        intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_SIGN_IN);
+        startActivity(intent);
+        showLoading(false, "");
+    }
+
+    /**
+     * Validates user inputs and initiates email-based sign-in if inputs are valid.
      */
     private void signInWithEmail() {
         String email = binding.inputEmail.getText().toString().trim();
@@ -155,24 +218,46 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Authenticates the user via Firestore for email-based sign-in.
+     * Authenticates the user with Firestore by checking email and hashed password.
+     *
+     * @param email    The user-entered email address.
+     * @param password The user-entered password.
      */
-    private void authenticateUser(String email, String password) {
+    private void authenticateUser(final String email, final String password) {
         firestore.collection(Constants.KEY_COLLECTION_USERS)
                 .whereEqualTo(Constants.KEY_EMAIL, email)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        verifyPassword(task.getResult().getDocuments().get(0), password);
-                    } else {
-                        showAuthenticationError();
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    /**
+                     * Called when the Firestore query completes.
+                     * @param task The completed task for the Firestore query.
+                     */
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                            verifyPassword(task.getResult().getDocuments().get(0), password);
+                        } else {
+                            showAuthenticationError();
+                        }
                     }
                 })
-                .addOnFailureListener(e -> showAuthenticationError());
+                .addOnFailureListener(new OnFailureListener() {
+                    /**
+                     * Called when the Firestore query fails.
+                     * @param e The exception that caused the failure.
+                     */
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        showAuthenticationError();
+                    }
+                });
     }
 
     /**
-     * Verifies the entered password against the stored hashed password.
+     * Verifies if the provided password matches the stored hashed password.
+     *
+     * @param document Firestore document containing user details.
+     * @param password The user-entered password.
      */
     private void verifyPassword(DocumentSnapshot document, String password) {
         User user = document.toObject(User.class);
@@ -185,15 +270,8 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Displays authentication failure messages.
-     */
-    private void showAuthenticationError() {
-        Utilities.showToast(this, "Invalid email or password.", Utilities.ToastType.ERROR);
-        showLoading(false, "");
-    }
-
-    /**
-     * Saves user details to shared preferences.
+     * Saves user details (e.g., name, phone, email, etc.) to shared preferences upon successful authentication.
+     * @param user The authenticated user's details.
      */
     private void saveUserPreferences(User user) {
         preferenceManager.putBoolean(KEY_IS_SIGNED_IN, true);
@@ -207,100 +285,64 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     /**
-     * Navigates to OTP verification activity for phone-based sign-in.
-     */
-    private void navigateToOtpVerification() {
-        Intent intent = new Intent(this, OtpVerificationActivity.class);
-        intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_SIGN_IN);
-        startActivity(intent);
-        showLoading(false, "");
-    }
-
-    /**
-     * Navigates to the main activity after a successful sign-in.
+     * Navigates the user to the MainActivity, clearing the activity stack to prevent
+     * back navigation to the sign-in screen.
      */
     private void navigateToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
+        // Clear the activity stack to ensure users can't go back to sign-in after logging in
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 
     /**
-     * Validates the entered phone number.
+     * Checks whether the entered email and password are valid.
+     *
+     * @param email    The entered email address.
+     * @param password The entered password.
+     * @return True if both fields are valid; otherwise false.
      */
-    private boolean isValidPhoneNumber(String phoneNumber) {
-        if (phoneNumber.isEmpty() || !binding.countryCodePicker.isValidFullNumber()) {
-            Utilities.showToast(this, "Please enter a valid phone number.", Utilities.ToastType.WARNING);
-            binding.inputPhoneNumber.setError("Invalid phone number");
+    private boolean isValidEmailAndPassword(String email, String password) {
+        if (email.isEmpty()) {
+            Utilities.showToast(this, "Enter your email.", Utilities.ToastType.WARNING);
+            return false;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Utilities.showToast(this, "Enter a valid email.", Utilities.ToastType.WARNING);
+            return false;
+        } else if (password.isEmpty()) {
+            Utilities.showToast(this, "Enter your password.", Utilities.ToastType.WARNING);
             return false;
         }
         return true;
     }
 
     /**
-     * Validates the entered email and password.
+     * Shows an error message when authentication fails and resets the loading indicator.
      */
-    private boolean isValidEmailAndPassword(String email, String password) {
-        boolean isValid = false;
-        if (email.isEmpty()) {
-            Utilities.showToast(this, "Please enter your email.", Utilities.ToastType.WARNING);
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Utilities.showToast(this, "Please enter a valid email.", Utilities.ToastType.WARNING);
-        } else if (password.isEmpty()) {
-            Utilities.showToast(this, "Please enter your password.", Utilities.ToastType.WARNING);
-        } else {
-            isValid = true;
-        }
-        return isValid;
+    private void showAuthenticationError() {
+        Utilities.showToast(this, "Invalid email or password.", Utilities.ToastType.ERROR);
+        showLoading(false, "");
     }
 
     /**
-     * Checks if there is an active internet connection.
-     */
-    private boolean isNetworkAvailable() {
-        boolean isAvailable = false;
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        if (connectivityManager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                isAvailable = checkNetworkCapabilities(connectivityManager);
-            } else {
-                isAvailable = checkNetworkInfo(connectivityManager);
-            }
-        }
-        return isAvailable;
-    }
-
-    private boolean checkNetworkCapabilities(ConnectivityManager connectivityManager) {
-        android.net.Network network = connectivityManager.getActiveNetwork();
-        if (network == null) return false;
-        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
-        return capabilities != null && (
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
-                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH));
-    }
-
-    private boolean checkNetworkInfo(ConnectivityManager connectivityManager) {
-        return connectivityManager.getActiveNetworkInfo() != null &&
-                connectivityManager.getActiveNetworkInfo().isConnected();
-    }
-
-    /**
-     * Displays or hides the loading indicator with an optional message.
+     * Displays or hides a loading indicator while processing sign-in requests.
+     * Disables user interaction when loading is active.
+     *
+     * @param isLoading True to show loading indicator, false to hide.
+     * @param message   An optional message to display alongside the loading indicator.
      */
     private void showLoading(boolean isLoading, String message) {
-        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
-        binding.buttonSignIn.setEnabled(!isLoading);
-        binding.radioGroupSignInMethod.setEnabled(!isLoading);
-        binding.textCreateNewAccount.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        binding.layoutProgress.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        binding.textProgressMessage.setText(message);
 
-        if (message != null && !message.isEmpty()) {
-            binding.processMessage.setText(message);
-            binding.processMessage.setVisibility(View.VISIBLE);
-        } else {
-            binding.processMessage.setVisibility(View.GONE);
-        }
+        // Disable/enable interactive elements
+        binding.radioSignInWithEmail.setEnabled(!isLoading);
+        binding.radioSignInWithPhone.setEnabled(!isLoading);
+        binding.inputPhoneNumber.setEnabled(!isLoading);
+        binding.layoutCcpAndPhone.setEnabled(!isLoading);
+        binding.inputEmail.setEnabled(!isLoading);
+        binding.inputPassword.setEnabled(!isLoading);
+        binding.buttonSignIn.setEnabled(!isLoading);
+        binding.textCreateNewAccount.setEnabled(!isLoading);
     }
 }

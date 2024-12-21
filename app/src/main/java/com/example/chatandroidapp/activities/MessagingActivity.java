@@ -30,18 +30,18 @@ import java.util.List;
  * displaying chat information and managing chat participants.
  */
 public class MessagingActivity extends AppCompatActivity {
-
-    // ----------------------------- Variables -----------------------------
     private ActivityMessagingBinding binding;
     private FirebaseFirestore database;
     private PreferenceManager preferenceManager;
 
-    private String chatId; // ID of the current chat
-    private boolean isNewChat = false; // Determines if this is a new or existing chat
-    private List<User> selectedUsers; // Selected users for new chats
-    private List<Message> messagesList; // List of messages in the chat
-    private MessagesAdapter messagesAdapter; // Adapter for the RecyclerView
-    private ListenerRegistration messagesListener; // Firestore listener for real-time updates
+
+    private String chatId;              // ID of the current chat
+    private boolean isNewChat = false;  // Determines if this is a new or existing chat
+    private List<User> userList;        // Users participating in this chat (new chat scenario)
+    private final List<Message> messageList = new ArrayList<>();
+    private MessagesAdapter messagesAdapter;    // Adapter for the RecyclerView
+    private ListenerRegistration messagesListener;  // Firestore listener for real-time updates
+
 
     // ----------------------------- Lifecycle Methods -----------------------------
 
@@ -60,9 +60,7 @@ public class MessagingActivity extends AppCompatActivity {
         checkIntentData();
         setListeners();
 
-        if (!isNewChat && chatId != null) {
-            listenForMessages();
-        }
+        if (!isNewChat && chatId != null) { listenForMessages(); }
     }
 
     /**
@@ -84,13 +82,12 @@ public class MessagingActivity extends AppCompatActivity {
     private void initializeComponents() {
         database = FirebaseFirestore.getInstance();
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-
-        messagesList = new ArrayList<>();
-        messagesAdapter = new MessagesAdapter(messagesList, this);
+        messagesAdapter = new MessagesAdapter(messageList, this);
         binding.messagesRecyclerview.setLayoutManager(new LinearLayoutManager(this));
         binding.messagesRecyclerview.setAdapter(messagesAdapter);
 
-        toggleEmptyState(true); // Start with the empty state visible
+        // Start by showing an empty state (no messages)
+        toggleEmptyState(true);
     }
 
     /**
@@ -99,25 +96,28 @@ public class MessagingActivity extends AppCompatActivity {
     private void checkIntentData() {
         Intent intent = getIntent();
         if (intent.hasExtra(Constants.KEY_ID)) {
+            // Existing chat scenario
             isNewChat = false;
             chatId = intent.getStringExtra(Constants.KEY_ID);
         } else if (intent.hasExtra(CreateChatActivity.KEY_SELECTED_USERS_LIST)) {
+            // New chat scenario
             isNewChat = true;
-            selectedUsers = (List<User>) intent.getSerializableExtra(CreateChatActivity.KEY_SELECTED_USERS_LIST);
+            userList = (List<User>) intent.getSerializableExtra(CreateChatActivity.KEY_SELECTED_USERS_LIST);
+
+            // If there's an initial message (from CreateChatActivity), send it now
             String initialMessage = intent.getStringExtra(CreateChatActivity.KEY_INITIAL_MESSAGE);
             if (initialMessage != null && !initialMessage.isEmpty()) {
                 binding.inputMessage.setText(initialMessage);
-                handleSendMessage();
+                handleSendMessage(); // create chat + send message
             }
         } else {
+            // No valid extras found
             showErrorAndExit("Invalid chat data. Please try again.");
         }
     }
 
-    // ----------------------------- Listener Setup -----------------------------
-
     /**
-     * Sets up UI listeners for buttons and other user interactions.
+     * Sets up UI listeners for buttons and other user interactions without using lambdas.
      */
     private void setListeners() {
         binding.buttonBack.setOnClickListener(v -> onBackPressed());
@@ -126,10 +126,12 @@ public class MessagingActivity extends AppCompatActivity {
         binding.buttonDeleteChat.setOnClickListener(v -> deleteChat());
     }
 
+
     // ----------------------------- Messaging and Chat Management -----------------------------
 
+
     /**
-     * Listens for new messages in the chat and updates the RecyclerView.
+     * Listens for new messages in the chat and updates the RecyclerView in real-time.
      */
     private void listenForMessages() {
         messagesListener = database.collection(Constants.KEY_COLLECTION_CHATS)
@@ -143,15 +145,17 @@ public class MessagingActivity extends AppCompatActivity {
                     }
 
                     if (snapshots != null) {
+                        // Clear the list before re-adding to avoid duplicates
+                        messageList.clear();
                         for (DocumentSnapshot doc : snapshots.getDocuments()) {
                             Message message = doc.toObject(Message.class);
                             if (message != null) {
-                                messagesList.add(message);
-                                messagesAdapter.notifyItemInserted(messagesList.size() - 1);
-                                binding.messagesRecyclerview.smoothScrollToPosition(messagesList.size() - 1);
+                                messageList.add(message);
                             }
                         }
-                        toggleEmptyState(messagesList.isEmpty());
+                        messagesAdapter.notifyDataSetChanged();
+                        binding.messagesRecyclerview.smoothScrollToPosition(messageList.size() - 1);
+                        toggleEmptyState(messageList.isEmpty());
                     }
                 });
     }
@@ -161,7 +165,6 @@ public class MessagingActivity extends AppCompatActivity {
      */
     private void handleSendMessage() {
         String messageContent = binding.inputMessage.getText().toString().trim();
-
         if (messageContent.isEmpty()) {
             Utilities.showToast(this, "Message content cannot be empty.", Utilities.ToastType.WARNING);
             return;
@@ -184,26 +187,28 @@ public class MessagingActivity extends AppCompatActivity {
      *
      * @param initialMessage The content of the initial message.
      */
-    private void createChatWithInitialMessage(String initialMessage) {
+    private void createChatWithInitialMessage(final String initialMessage) {
         List<String> userIds = new ArrayList<>();
-        for (User user : selectedUsers) {
+        for (User user : userList) {
             userIds.add(user.id);
         }
+        // Include the current user
         userIds.add(preferenceManager.getString(Constants.KEY_ID, ""));
 
-        String newChatId = database.collection(Constants.KEY_COLLECTION_CHATS).document().getId();
+        // Generate a new chat ID
+        final String newChatId = database.collection(Constants.KEY_COLLECTION_CHATS).document().getId();
+        final Chat chat = new Chat(newChatId, preferenceManager.getString(Constants.KEY_ID, ""), userIds, "");
 
-        Chat chat = new Chat(newChatId, preferenceManager.getString(Constants.KEY_ID, ""), userIds, "");
-
+        // Create the new chat in Firestore
         database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(newChatId)
                 .set(chat)
                 .addOnSuccessListener(unused -> {
                     chatId = newChatId;
                     isNewChat = false;
-                    updateChatIdsForUsers(userIds);
+                    updateChatIdsForUsers(chat.userIdList);
                     sendMessage(initialMessage);
-                    listenForMessages();
+                    listenForMessages(); // Now that we have a valid chat, listen for messages
                 })
                 .addOnFailureListener(e -> {
                     logCriticalError("createChatWithInitialMessage: Failed to create chat in Firestore.", e);
@@ -211,12 +216,12 @@ public class MessagingActivity extends AppCompatActivity {
                 });
     }
 
+
     /**
      * Sends a message in the current chat.
-     *
      * @param messageContent The content of the message to send.
      */
-    private void sendMessage(String messageContent) {
+    private void sendMessage(final String messageContent) {
         if (chatId == null) {
             Utilities.showToast(this, "Unable to send message. Please try again.", Utilities.ToastType.ERROR);
             return;
@@ -224,26 +229,25 @@ public class MessagingActivity extends AppCompatActivity {
 
         String senderId = preferenceManager.getString(Constants.KEY_ID, "");
 
-        // Generate a new message document ID
-        String messageId = database.collection(Constants.KEY_COLLECTION_CHATS)
+        // Generate a new message ID
+        final String messageId = database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
                 .collection(Constants.KEY_COLLECTION_MESSAGES)
                 .document()
                 .getId();
 
         // Create the Message object
-        Message message = new Message(messageId, chatId, senderId, messageContent);
+        final Message message = new Message(messageId, chatId, senderId, messageContent);
 
         // Save the message to Firestore
         database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
                 .collection(Constants.KEY_COLLECTION_MESSAGES)
-                .document(messageId) // Use the generated ID as the document ID
+                .document(messageId)
                 .set(message)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         updateRecentMessage(message);
-                        Utilities.showToast(MessagingActivity.this, "Message sent successfully.", Utilities.ToastType.SUCCESS);
                     } else {
                         logCriticalError("sendMessage: Failed to send message.", task.getException());
                         Utilities.showToast(MessagingActivity.this, "Failed to send message. Please try again.", Utilities.ToastType.ERROR);
@@ -253,10 +257,9 @@ public class MessagingActivity extends AppCompatActivity {
 
     /**
      * Updates the most recent message in Firestore for the chat.
-     *
      * @param message The recent message to update.
      */
-    private void updateRecentMessage(Message message) {
+    private void updateRecentMessage(final Message message) {
         database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
                 .update("recentMessageId", message.id);
@@ -264,11 +267,10 @@ public class MessagingActivity extends AppCompatActivity {
 
     /**
      * Updates the `chatIds` field for all users in the chat.
-     *
      * @param userIds List of user IDs participating in the chat.
      */
     private void updateChatIdsForUsers(List<String> userIds) {
-        for (String userId : userIds) {
+        for (final String userId : userIds) {
             database.collection(Constants.KEY_COLLECTION_USERS)
                     .document(userId)
                     .update("chatIds", FieldValue.arrayUnion(chatId))
@@ -308,25 +310,24 @@ public class MessagingActivity extends AppCompatActivity {
                     logCriticalError("deleteChat: Failed to verify chat deletion permissions.", e);
                     Utilities.showToast(MessagingActivity.this, "An error occurred. Please try again.", Utilities.ToastType.ERROR);
                 });
-
     }
 
     /**
-     * Deletes the chat from Firestore and updates user records.
+     * Deletes the chat from Firestore and updates user records accordingly.
      *
      * @param chat The chat object to delete.
      */
-    private void deleteChatFromFirestore(Chat chat) {
+    private void deleteChatFromFirestore(final Chat chat) {
         database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
                 .delete()
                 .addOnSuccessListener(unused -> {
-                    for (String userId : chat.userIdList) {
+                    for (final String userId : chat.userIdList) {
                         database.collection(Constants.KEY_COLLECTION_USERS)
                                 .document(userId)
                                 .update("chatIds", FieldValue.arrayRemove(chatId));
                     }
-                    Utilities.showToast(MessagingActivity.this, "", Utilities.ToastType.SUCCESS);
+                    Utilities.showToast(MessagingActivity.this, "Chat deleted successfully", Utilities.ToastType.SUCCESS);
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -335,7 +336,9 @@ public class MessagingActivity extends AppCompatActivity {
                 });
     }
 
+
     // ----------------------------- Chat Info and Helpers -----------------------------
+
 
     /**
      * Retrieves and displays chat information, including participants and the creator.
@@ -351,7 +354,6 @@ public class MessagingActivity extends AppCompatActivity {
                 Utilities.showToast(MessagingActivity.this, "Chat information is unavailable.", Utilities.ToastType.ERROR);
                 return;
             }
-
             fetchParticipantDetails(chat.userIdList, participantDetails -> {
                 String chatInfo = formatChatInfo(chat, participantDetails);
                 displayChatInfoDialog(chatInfo);
@@ -363,9 +365,9 @@ public class MessagingActivity extends AppCompatActivity {
      * Fetches the chat details from Firestore.
      *
      * @param chatId   The ID of the chat to fetch.
-     * @param callback A callback to handle the fetched chat details.
+     * @param callback A callback to handle the fetched chat.
      */
-    private void fetchChatDetails(String chatId, OnChatFetchedCallback callback) {
+    private void fetchChatDetails(String chatId, final OnChatFetchedCallback callback) {
         binding.progressBar.setVisibility(View.VISIBLE);
         database.collection(Constants.KEY_COLLECTION_CHATS)
                 .document(chatId)
@@ -387,12 +389,12 @@ public class MessagingActivity extends AppCompatActivity {
     }
 
     /**
-     * Fetches and formats participant details from Firestore.
+     * Fetches participant details from Firestore and returns them in a callback.
      *
-     * @param userIdList The list of user IDs to fetch details for.
-     * @param callback   A callback to handle the formatted participant details.
+     * @param userIdList The list of participant IDs in this chat.
+     * @param callback   A callback to handle the fetched participant details.
      */
-    private void fetchParticipantDetails(List<String> userIdList, OnDetailsFetchedCallback callback) {
+    private void fetchParticipantDetails(final List<String> userIdList, final OnDetailsFetchedCallback callback) {
         binding.progressBar.setVisibility(View.VISIBLE);
         database.collection(Constants.KEY_COLLECTION_USERS)
                 .whereIn("id", userIdList)
@@ -402,9 +404,15 @@ public class MessagingActivity extends AppCompatActivity {
                     for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                         User user = document.toObject(User.class);
                         if (user != null) {
-                            String contactInfo = user.phone != null && !user.phone.isEmpty()
-                                    ? user.phone : user.email != null ? user.email : "No contact info available";
-                            participantDetails.add(user.firstName + " " + user.lastName + " (" + contactInfo + ")");
+                            String contactInfo = !user.phone.isEmpty()
+                                    ? user.phone
+                                    : !user.email.isEmpty()
+                                    ? user.email
+                                    : "No contact info";
+
+                            participantDetails.add(
+                                    user.firstName + " " + user.lastName + " (" + contactInfo + ")"
+                            );
                         }
                     }
                     callback.onDetailsFetched(participantDetails);
@@ -420,21 +428,21 @@ public class MessagingActivity extends AppCompatActivity {
     /**
      * Formats the chat and participant details into a readable string.
      *
-     * @param chat               The chat object.
-     * @param participantDetails The formatted participant details.
-     * @return A string containing the formatted chat information.
+     * @param chat               The chat object with creation date, creator, etc.
+     * @param participantDetails The participant details retrieved.
+     * @return A single string containing all relevant chat info.
      */
     private String formatChatInfo(Chat chat, List<String> participantDetails) {
-        String creator = chat.creatorId.equals(preferenceManager.getString(Constants.KEY_ID, "")) ? "You" : chat.creatorId;
-        return new StringBuilder()
-                .append("Created At: ").append(chat.createdDate).append("\n")
-                .append("Creator: ").append(creator).append("\n\n")
-                .append("Participants:\n").append(String.join("\n", participantDetails))
-                .toString();
+        String creatorId = preferenceManager.getString(Constants.KEY_ID, "");
+        String creatorName = chat.creatorId.equals(creatorId) ? "You" : chat.creatorId;
+
+        return "Created At: " + (chat.createdDate != null ? chat.createdDate.toString() : "N/A") + "\n" +
+                "Creator: " + creatorName + "\n\n" +
+                "Participants:\n" + String.join("\n", participantDetails);
     }
 
     /**
-     * Displays the chat information in a dialog.
+     * Displays the chat information in an AlertDialog.
      *
      * @param chatInfo The formatted chat information string.
      */
@@ -446,15 +454,17 @@ public class MessagingActivity extends AppCompatActivity {
                 .show();
     }
 
+
     // ----------------------------- Utility -----------------------------
+
 
     /**
      * Toggles the empty state message visibility based on the RecyclerView content.
      *
-     * @param isEmpty True if the RecyclerView has no content.
+     * @param isEmpty True if the RecyclerView has no messages.
      */
     private void toggleEmptyState(boolean isEmpty) {
-        binding.processMessage.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        binding.textProgressMessage.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         binding.messagesRecyclerview.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
@@ -470,7 +480,6 @@ public class MessagingActivity extends AppCompatActivity {
 
     /**
      * Shows an error message and exits the activity.
-     *
      * @param message The error message to display.
      */
     private void showErrorAndExit(String message) {
@@ -478,7 +487,9 @@ public class MessagingActivity extends AppCompatActivity {
         finish();
     }
 
+
     // ----------------------------- Callback Interfaces -----------------------------
+
 
     /**
      * Callback interface for handling fetched chat details.

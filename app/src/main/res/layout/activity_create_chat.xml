@@ -55,7 +55,7 @@
 
     <!--Message to display when no contacts or network absence -->
     <TextView
-        android:id="@+id/processMessage"
+        android:id="@+id/text_progress_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
