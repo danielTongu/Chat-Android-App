@@ -38,8 +38,8 @@
             <!-- Profile Picture -->
             <FrameLayout
                 android:id="@+id/layoutImage"
-                android:layout_width="210dp"
-                android:layout_height="210dp"
+                android:layout_width="131dp"
+                android:layout_height="131dp"
                 android:layout_marginTop="24dp">
 
                 <com.makeramen.roundedimageview.RoundedImageView
@@ -48,7 +48,7 @@
                     android:layout_height="match_parent"
                     android:background="@drawable/bg_circle"
                     android:scaleType="centerCrop"
-                    app:riv_oval="true" />
+                    app:riv_oval="true"/>
 
                 <TextView
                     android:id="@+id/textUploadImage"
@@ -56,7 +56,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="Upload Image"
-                    android:textSize="18sp" />
+                    android:textSize="18sp"/>
             </FrameLayout>
 
             <!-- Editable Fields -->

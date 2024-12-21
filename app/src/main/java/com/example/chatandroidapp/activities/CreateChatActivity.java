@@ -25,8 +25,7 @@ import java.util.List;
 
 /**
  * CreateChatActivity allows the user to select contacts to start a chat.
- * Instead of creating the chat immediately, it passes the selected users
- * to the MessagingActivity for further processing.
+ * Instead of creating the chat immediately, it passes the selected users to the MessagingActivity for further processing.
  */
 public class CreateChatActivity extends AppCompatActivity implements UsersAdapter.OnUserSelectedListener {
     public static final String KEY_SELECTED_USERS_LIST = "selectedUsers";
@@ -47,8 +46,6 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
         binding = ActivityCreateChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        Log.d(TAG, "onCreate: Initializing CreateChatActivity");
-
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
         currentUserId = preferenceManager.getString(Constants.KEY_ID, "");
 
@@ -67,8 +64,6 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
      * Sets up the UI components and event listeners.
      */
     private void setupUI() {
-        Log.d(TAG, "setupUI: Configuring UI elements");
-
         binding.buttonBack.setOnClickListener(v -> onBackPressed());
         binding.buttonStartChat.setOnClickListener(v -> navigateToChatActivity());
 
@@ -83,7 +78,6 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
      * Loads the list of users from Firestore.
      */
     private void loadUsersFromFirestore() {
-        Log.d(TAG, "loadUsersFromFirestore: Fetching users from Firestore");
         toggleProgressBar(true, "Loading contacts...");
 
         FirebaseFirestore.getInstance().collection(Constants.KEY_COLLECTION_USERS)
@@ -115,8 +109,6 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
      * @param queryDocumentSnapshots The result from Firestore query.
      */
     private void populateUserList(QuerySnapshot queryDocumentSnapshots) {
-        Log.d(TAG, "populateUserList: Populating user list");
-
         for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
             User user = document.toObject(User.class);
             if (user != null && !user.id.equals(currentUserId)) {
@@ -152,7 +144,6 @@ public class CreateChatActivity extends AppCompatActivity implements UsersAdapte
      * Navigates to MessagingActivity, passing the selected users as a Serializable object.
      */
     private void navigateToChatActivity() {
-        Log.d(TAG, "navigateToChatActivity: Navigating to MessagingActivity.");
         try {
             if (selectedUsers.isEmpty()) {
                 throw new IllegalArgumentException("No users selected. Please select at least one contact.");

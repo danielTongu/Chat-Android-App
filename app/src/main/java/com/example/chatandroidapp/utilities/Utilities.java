@@ -78,6 +78,7 @@ public class Utilities {
         int iconResId;
         int bgColor = ContextCompat.getColor(context, R.color.dark_gray); // Default background color
         int textColor = ContextCompat.getColor(context, R.color.white); // Default text color
+        int duration = Toast.LENGTH_LONG;
 
         switch (type) {
             case INFO:
@@ -94,6 +95,7 @@ public class Utilities {
                 textColor = ContextCompat.getColor(context, R.color.white);
                 break;
             case SUCCESS:
+                duration = Toast.LENGTH_SHORT;
                 iconResId = R.drawable.ic_success;
                 textColor = ContextCompat.getColor(context, R.color.success);
                 break;
@@ -108,8 +110,8 @@ public class Utilities {
         textView.setTextColor(textColor);
 
         Toast toast = new Toast(context);
-        toast.setGravity(Gravity.BOTTOM, 0, 100);
-        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.setDuration(duration);
         toast.setView(layout);
         toast.show();
     }

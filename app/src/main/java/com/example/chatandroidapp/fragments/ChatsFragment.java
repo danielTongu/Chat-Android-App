@@ -2,246 +2,166 @@ package com.example.chatandroidapp.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.chatandroidapp.activities.CreateChatActivity;
-import com.example.chatandroidapp.activities.MessagingActivity;
 import com.example.chatandroidapp.adapters.ChatsAdapter;
 import com.example.chatandroidapp.databinding.FragmentChatsBinding;
 import com.example.chatandroidapp.models.Chat;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ChatsFragment manages and displays a list of chats the user is involved in.
- * It fetches data from Firestore, displays recent messages, and handles navigation to individual chats.
+ * ChatsFragment display a list of chat previews in a RecyclerView.
+ * Users can tap on a chat to open it in MessagingActivity or
+ * click on a FloatingActionButton (FAB) to proceed to a ChatCreatorActivity to start a new chat.
  */
 public class ChatsFragment extends Fragment {
-    private static final String TAG = "CHATS_FRAGMENT";
 
+    /** Binding for fragment_chats.xml layout. */
     private FragmentChatsBinding binding;
-    private FirebaseFirestore database;
-    private PreferenceManager preferenceManager;
-    private ChatsAdapter chatsAdapter;
-    private List<Chat> chatsList;
-    private List<ListenerRegistration> listenerRegistrations;
 
-    /**
-     * Inflates the fragment layout and initializes required components.
-     *
-     * @param inflater LayoutInflater to inflate the layout.
-     * @param container Container for the fragment.
-     * @param savedInstanceState Saved instance state for the fragment.
-     * @return The inflated layout's root view.
-     */
-    @Nullable
+    /** Firestore reference for real-time chat updates. */
+    private FirebaseFirestore firestore;
+    /** Adapter for displaying chat previews. */
+
+    private ChatsAdapter chatsAdapter;
+
+    /** List of Chat objects shown in the RecyclerView. */
+    private final List<Chat> chatList = new ArrayList<>();
+
+    /** Real-time listener registration for removing snapshot listener on cleanup. */
+    private ListenerRegistration chatListenerRegistration;
+
+    /** Used for filtering chats for the current user if desired. */
+    private PreferenceManager preferenceManager;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentChatsBinding.inflate(inflater, container, false);
-
-        init();
-        loadChats();
-        setListeners();
-
         return binding.getRoot();
     }
 
     /**
-     * Initializes key components such as Firestore, preference manager, RecyclerView, and adapter.
+     * Called when the view has been created. Initializes Firestore, sets up the RecyclerView,
+     * starts listening for chat updates, and configures UI listeners.
+     *
+     * @param view               The root view of the fragment.
+     * @param savedInstanceState The saved instance state.
      */
-    private void init() {
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        firestore = FirebaseFirestore.getInstance();
         preferenceManager = PreferenceManager.getInstance(requireContext());
-        database = FirebaseFirestore.getInstance();
-        chatsList = new ArrayList<>();
-        listenerRegistrations = new ArrayList<>();
 
-        chatsAdapter = new ChatsAdapter(chatsList, new ChatsAdapter.ChatClickListener() {
-            @Override
-            public void onChatClicked(Chat chat) {
-                openChat(chat);
-            }
-        }, listenerRegistrations);
-
-        binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.recyclerViewChats.setAdapter(chatsAdapter);
-
-        // Initially, show an empty state
-        showLoading(false, "No chats yet.");
+        initRecyclerView();
+        listenForChats();
+        setListeners();
     }
 
     /**
-     * Loads chats from Firestore where the user is a participant.
-     */
-    private void loadChats() {
-        String userId = preferenceManager.getString(Constants.KEY_ID, "");
-
-        ListenerRegistration chatListener = database.collection(Constants.KEY_COLLECTION_CHATS)
-                .whereArrayContains("userIdList", userId)
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    /**
-                     * Called when there is a change in the chat collection.
-                     * @param snapshots The new snapshot state of the chat collection.
-                     * @param error A FirebaseFirestoreException if an error occurred.
-                     */
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException error) {
-                        if (error != null) {
-                            Log.e(TAG, "Error loading chats", error);
-                            showLoading(false, "Failed to load chats. Please check your connection.");
-                            return;
-                        }
-
-                        if (snapshots != null) {
-                            handleChatChanges(snapshots.getDocumentChanges());
-                        }
-                    }
-                });
-
-        listenerRegistrations.add(chatListener);
-    }
-
-    /**
-     * Handles real-time updates to the chat list from Firestore.
-     *
-     * @param documentChanges List of document changes received from Firestore.
-     */
-    private void handleChatChanges(List<DocumentChange> documentChanges) {
-        boolean dataChanged = false;
-
-        for (DocumentChange change : documentChanges) {
-            Chat chat = change.getDocument().toObject(Chat.class);
-
-            switch (change.getType()) {
-                case ADDED:
-                    chatsList.add(chat);
-                    dataChanged = true;
-                    break;
-
-                case MODIFIED:
-                    for (int i = 0; i < chatsList.size(); i++) {
-                        if (chatsList.get(i).id.equals(chat.id)) {
-                            chatsList.set(i, chat);
-                            dataChanged = true;
-                            break;
-                        }
-                    }
-                    break;
-
-                case REMOVED:
-                    for (int i = 0; i < chatsList.size(); i++) {
-                        if (chatsList.get(i).id.equals(chat.id)) {
-                            chatsList.remove(i);
-                            dataChanged = true;
-                            break;
-                        }
-                    }
-                    break;
-            }
-        }
-
-        if (dataChanged) {
-            updateUI();
-        }
-    }
-
-    /**
-     * Updates the UI by sorting and refreshing the chat list.
-     */
-    private void updateUI() {
-        // Sort chats by the most recent activity (createdDate descending)
-        chatsList.sort((c1, c2) -> {
-            if (c1.createdDate == null && c2.createdDate == null) {
-                return 0;
-            }
-            if (c1.createdDate == null) {
-                return 1;
-            }
-            if (c2.createdDate == null) {
-                return -1;
-            }
-            return c2.createdDate.compareTo(c1.createdDate);
-        });
-
-        if (chatsList.isEmpty()) {
-            showLoading(false, "No chats yet.");
-        } else {
-            showLoading(false, null);
-        }
-    }
-
-    /**
-     * Navigates to MessagingActivity when a chat item is clicked.
-     *
-     * @param chat Chat object containing the chat details.
-     */
-    private void openChat(Chat chat) {
-        Intent intent = new Intent(getContext(), MessagingActivity.class);
-        intent.putExtra(Constants.KEY_ID, chat.id);
-        startActivity(intent);
-    }
-
-    /**
-     * Sets listeners for UI components, such as the Floating Action Button.
-     */
-    private void setListeners() {
-        binding.fabNewChat.setOnClickListener(new View.OnClickListener() {
-            /**
-             * Called when the FAB is clicked to create a new chat.
-             * @param v The clicked view.
-             */
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), CreateChatActivity.class);
-                startActivity(intent);
-            }
-        });
-    }
-
-    /**
-     * @param isLoading Whether or not the app is in a loading state.
-     * @param message   The message to show (for empty or error states). Pass null to show chats.
-     */
-    private void showLoading(boolean isLoading, String message) {
-        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        binding.fabNewChat.setEnabled(!isLoading);
-
-        if (message != null && !message.isEmpty()) {
-            binding.recyclerViewChats.setVisibility(View.GONE);
-            binding.textProgressMessage.setVisibility(View.VISIBLE);
-            binding.textProgressMessage.setText(message);
-        } else {
-            binding.recyclerViewChats.setVisibility(View.VISIBLE);
-            binding.textProgressMessage.setVisibility(View.GONE);
-        }
-    }
-
-    /**
-     * Removes Firestore listeners and cleans up resources to prevent memory leaks.
+     * Cleans up resources (like snapshot listeners) when the fragment's view is destroyed.
      */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        for (ListenerRegistration listener : listenerRegistrations) {
-            listener.remove();
+        if (chatListenerRegistration != null) {
+            chatListenerRegistration.remove();
         }
-        listenerRegistrations.clear();
         binding = null;
+    }
+
+    /**
+     * Initializes the RecyclerView with a linear layout and sets the ChatsAdapter.
+     */
+    private void initRecyclerView() {
+        chatsAdapter = new ChatsAdapter(chatList, requireContext());
+        binding.recyclerViewChats.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewChats.setAdapter(chatsAdapter);
+    }
+
+    /**
+     * Sets up a snapshot listener to Firestore's "chats" collection. Whenever a chat is added,
+     * updated, or removed, the UI will reflect it in real-time.
+     * We filter out chats the current user is not a participant of by checking chat.userIdList.
+     */
+    private void listenForChats() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+
+        final String currentUserId = preferenceManager.getString(Constants.KEY_ID, "");
+
+        // Listen for changes in all chats
+        chatListenerRegistration = firestore.collection(Constants.KEY_COLLECTION_CHATS)
+                .addSnapshotListener((snapshots, error) -> {
+                    binding.progressBar.setVisibility(View.GONE);
+                    if (error != null) {
+                        // Log or handle the error. For now, we just show empty state.
+                        showEmptyState(true);
+                        return;
+                    }
+                    if (snapshots == null) {
+                        showEmptyState(true);
+                        return;
+                    }
+
+                    chatList.clear();
+                    // Iterate over all Chat documents
+                    for (QueryDocumentSnapshot snapshot : snapshots) {
+                        Chat chat = snapshot.toObject(Chat.class);
+                        if (chat != null && chat.userIdList != null) {
+                            if (chat.userIdList.contains(currentUserId)) {
+                                chatList.add(chat);
+                            }
+                        }
+                    }
+                    if (chatList.isEmpty()) {
+                        showEmptyState(true);
+                    } else {
+                        showEmptyState(false);
+                        chatsAdapter.notifyDataSetChanged();
+                        binding.recyclerViewChats.smoothScrollToPosition(chatList.size() - 1);
+                    }
+                });
+    }
+
+    /**
+     * Configures click listeners for UI elements, such as the FloatingActionButton that starts
+     * a new chat in MessagingActivity.
+     */
+    private void setListeners() {
+        binding.fabNewChat.setOnClickListener(view -> {
+            Intent intent = new Intent(requireContext(), CreateChatActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    /**
+     * Shows or hides the "No chats available" state depending on whether there are chats in the list.
+     *
+     * @param isEmpty True if chatList is empty, otherwise false.
+     */
+    private void showEmptyState(boolean isEmpty) {
+        if (isEmpty) {
+            binding.textProgressMessage.setVisibility(View.VISIBLE);
+            binding.recyclerViewChats.setVisibility(View.GONE);
+        } else {
+            binding.textProgressMessage.setVisibility(View.GONE);
+            binding.recyclerViewChats.setVisibility(View.VISIBLE);
+        }
     }
 }
