@@ -27,24 +27,45 @@ import java.util.regex.Pattern;
  * It includes utilities for encoding, decoding, and validating user information, including profile images.
  */
 public class User implements Serializable {
-    // Public fields matching Firestore document fields
-    public String id = ""; // Unique identifier (Primary Key)
-    public String firstName = "";
-    public String lastName = "";
-    public String image = ""; // Base64 encoded image string
-    public String phone = "";
-    public String email = "";
-    public String hashedPassword = "";
-    public String fcmToken = "";
-    public List<String> chatIds = new ArrayList<>(); // stores all the chat IDs this user participates in
+    /** Unique identifier for the user (Primary Key). */
+    public String id = "";
 
+    /** User's first name.*/
+    public String firstName = "unknown";
+
+    /** User's last name.*/
+    public String lastName = "";
+
+    /** Base64 encoded string of the user's profile image. */
+    public String image = "";
+
+    /** User's phone number. */
+    public String phone = "";
+
+    /** User's email address. */
+    public String email = "";
+
+    /** SHA-256 hashed password of the user. */
+    public String hashedPassword = "";
+
+    /** Firebase Cloud Messaging token for push notifications. */
+    public String fcmToken = "";
+
+    /** List of chat IDs that the user participates in. */
+    public List<String> chatIds = new ArrayList<>();
+
+    /** Server-side timestamp indicating when the user was created.*/
     @ServerTimestamp
-    public Date createdDate = null; // Server-side timestamp
+    public Date createdDate = null;
+
+    /** Default constructor required for Firestore serialization/deserialization. */
+    public User() {}
 
     /**
-     * Default constructor required for Firestore serialization/deserialization.
+     * Constructs a User with the specified ID.
+     * @param id The unique identifier for the user.
      */
-    public User() {}
+    public User(String id) { this.id = id; }
 
     // --- IMAGE HANDLING FUNCTIONS ---
 
@@ -98,6 +119,13 @@ public class User implements Serializable {
     }
 
     // --- VALIDATION FUNCTIONS ---
+    /**
+     * Validates the user's first name.
+     *
+     * @param firstName The first name to validate.
+     * @return The trimmed and validated first name.
+     * @throws IllegalArgumentException If the first name is invalid.
+     */
     public static String validateFirstName(String firstName) throws IllegalArgumentException {
         if (firstName == null || firstName.trim().isEmpty()) {
             throw new IllegalArgumentException("First name cannot be empty.");
@@ -109,6 +137,13 @@ public class User implements Serializable {
         return firstName;
     }
 
+    /**
+     * Validates the user's last name.
+     *
+     * @param lastName The last name to validate.
+     * @return The trimmed and validated last name.
+     * @throws IllegalArgumentException If the last name is invalid.
+     */
     public static String validateLastName(String lastName) throws IllegalArgumentException {
         if (lastName == null || lastName.trim().isEmpty()) {
             throw new IllegalArgumentException("Last name cannot be empty.");
@@ -120,6 +155,13 @@ public class User implements Serializable {
         return lastName;
     }
 
+    /**
+     * Validates the user's email address.
+     *
+     * @param email The email address to validate.
+     * @return The trimmed and validated email address.
+     * @throws IllegalArgumentException If the email address is invalid.
+     */
     public static String validateEmail(String email) throws IllegalArgumentException {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty.");
@@ -131,6 +173,13 @@ public class User implements Serializable {
         return email;
     }
 
+    /**
+     * Validates the user's phone number.
+     *
+     * @param phone The phone number to validate.
+     * @return The trimmed and validated phone number.
+     * @throws IllegalArgumentException If the phone number is invalid.
+     */
     public static String validatePhone(String phone) throws IllegalArgumentException {
         if (phone == null || phone.trim().isEmpty()) {
             throw new IllegalArgumentException("Phone number cannot be empty.");
@@ -143,6 +192,13 @@ public class User implements Serializable {
         return phone;
     }
 
+    /**
+     * Validates the user's password.
+     *
+     * @param password The password to validate.
+     * @return The validated password.
+     * @throws IllegalArgumentException If the password is invalid.
+     */
     public static String validatePassword(String password) throws IllegalArgumentException {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty.");
@@ -154,6 +210,14 @@ public class User implements Serializable {
         return password;
     }
 
+    /**
+     * Hashes the user's password using SHA-256.
+     *
+     * @param password The password to hash.
+     * @return The SHA-256 hashed password as a hexadecimal string.
+     * @throws IllegalArgumentException If the password is null or empty.
+     * @throws RuntimeException         If the SHA-256 algorithm is not available.
+     */
     public static String hashPassword(String password) {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty.");
@@ -173,6 +237,10 @@ public class User implements Serializable {
         }
     }
 
+    /**
+     * Returns a string representation of the user, combining first and last names.
+     * @return The user's full name.
+     */
     @NonNull
     @Override
     public String toString() {

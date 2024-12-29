@@ -1,215 +1,283 @@
 package com.example.chatandroidapp.adapters;
 
-import android.text.TextUtils;
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatandroidapp.R;
+import com.example.chatandroidapp.activities.MessagingActivity;
+import com.example.chatandroidapp.databinding.ItemChatBinding;
 import com.example.chatandroidapp.models.Chat;
 import com.example.chatandroidapp.models.Message;
 import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
-import com.google.firebase.firestore.ListenerRegistration;
+import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Adapter for displaying chats in a RecyclerView.
- * Ensures only valid data is displayed and prevents memory leaks.
+ * ChatsAdapter manages the display of chat items in the RecyclerView for ChatsFragment.
+ * Each item shows the most recent message, timestamp, and sender details.
+ * When a chat item is clicked, it launches the MessagingActivity with the existing chat ID.
  */
 public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHolder> {
 
-    private static final String TAG = "CHATS_ADAPTER";
+    /** List of Chat objects to be displayed in the RecyclerView. */
+    private final List<Chat> chatList;
 
-    private final List<Chat> chats;
-    private final ChatClickListener listener;
+    /** Android Context for inflating layouts and starting activities. */
+    private final Context context;
+
+    /** Reference to Firebase Firestore for fetching message/user data on demand. */
     private final FirebaseFirestore firestore;
-    private final List<ListenerRegistration> listenerRegistrations;
 
-    /**
-     * Interface for handling chat item clicks.
-     */
-    public interface ChatClickListener {
-        void onChatClicked(Chat chat);
-    }
+    /** In-memory cache for storing User objects to avoid repeated Firestore lookups. */
+    private final ConcurrentHashMap<String, User> userCache;
+
+    /** For retrieving the current user ID and other preferences if needed. */
+    private final PreferenceManager preferenceManager;
 
     /**
      * Constructor for ChatsAdapter.
      *
-     * @param chats    List of Chat objects to display.
-     * @param listener Listener for handling chat item clicks.
-     * @param listenerRegistrations List to track Firestore listeners for cleanup.
+     * @param chatList The list of Chat objects to display.
+     * @param context  The context for layout inflater and starting activities.
      */
-    public ChatsAdapter(List<Chat> chats, ChatClickListener listener, List<ListenerRegistration> listenerRegistrations) {
-        this.chats = chats;
-        this.listener = listener;
+    public ChatsAdapter(List<Chat> chatList, Context context) {
+        this.chatList = chatList;
+        this.context = context;
         this.firestore = FirebaseFirestore.getInstance();
-        this.listenerRegistrations = listenerRegistrations;
+        this.userCache = new ConcurrentHashMap<>();
+        this.preferenceManager = PreferenceManager.getInstance(context);
     }
 
+    /**
+     * Creates and returns a new ChatViewHolder to display a chat item.
+     *
+     * @param parent   The parent ViewGroup into which the new view will be added.
+     * @param viewType The view type of the new view (not used here).
+     * @return A new instance of ChatViewHolder.
+     */
     @NonNull
     @Override
     public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_chat, parent, false);
-        return new ChatViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
-        Chat chat = chats.get(position);
-        holder.bind(chat);
-    }
-
-    @Override
-    public int getItemCount() {
-        return chats.size();
+        ItemChatBinding binding = ItemChatBinding.inflate(
+                LayoutInflater.from(parent.getContext()), parent, false
+        );
+        return new ChatViewHolder(binding);
     }
 
     /**
-     * ViewHolder for displaying individual chat items.
+     * Binds data from the given Chat object to the specified ViewHolder.
+     * Also sets an OnClickListener to launch the MessagingActivity for this chat item.
+     *
+     * @param holder   The ChatViewHolder which should be updated to represent the contents of the Chat.
+     * @param position The position of the Chat item in the chatList.
      */
-    class ChatViewHolder extends RecyclerView.ViewHolder {
-        private final TextView senderName;
-        private final TextView recentMessage;
-        private final TextView timestamp;
+    @Override
+    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
+        final Chat chat = chatList.get(position);
+        holder.bind(chat);
+        holder.itemView.setOnClickListener(view -> {
+            Intent intent = new Intent(context, MessagingActivity.class);
+            intent.putExtra(Constants.KEY_ID, chat.id);
+            context.startActivity(intent);
+        });
+    }
 
-        public ChatViewHolder(@NonNull View itemView) {
-            super(itemView);
-            senderName = itemView.findViewById(R.id.recentSenderNameOrPhoneOrEmail);
-            recentMessage = itemView.findViewById(R.id.recentMessage);
-            timestamp = itemView.findViewById(R.id.recentMessageTimestamp);
+    /**
+     * Returns the total number of chat items in the data set.
+     *
+     * @return The size of chatList.
+     */
+    @Override
+    public int getItemCount() {
+        return chatList.size();
+    }
 
-            itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        listener.onChatClicked(chats.get(position));
-                    }
-                }
-            });
+    /**
+     * ChatViewHolder holds references to the views for each chat item (item_chat.xml).
+     * It is responsible for binding the data for a single Chat.
+     */
+    public class ChatViewHolder extends RecyclerView.ViewHolder {
+
+        /**
+         * Binding object for item_chat.xml layout.
+         */
+        private final ItemChatBinding binding;
+
+        /**
+         * Constructor that accepts the binding for item_chat.xml.
+         *
+         * @param itemChatBinding The ItemChatBinding object for accessing views without findViewById.
+         */
+        public ChatViewHolder(@NonNull ItemChatBinding itemChatBinding) {
+            super(itemChatBinding.getRoot());
+            binding = itemChatBinding;
         }
 
         /**
-         * Binds chat data to the view, including recent message and sender details.
-         * Only displays valid chats with complete data.
+         * Binds a Chat object's data to this ViewHolder's views.
          *
-         * @param chat Chat object containing the data.
+         * @param chat The Chat object to display.
          */
-        public void bind(Chat chat) {
-            if (TextUtils.isEmpty(chat.recentMessageId)) {
-                Log.d(TAG, "Skipping chat with no recent message ID: " + chat.id);
-                return;
+        public void bind(final Chat chat) {
+            binding.messageChatId.setText(chat.id);
+
+            if (chat.recentMessageId.isEmpty()) {
+                binding.recentSenderNameOrPhoneOrEmail.setText("No message");
+                binding.recentMessage.setText("");
+                binding.recentMessageTimestamp.setText("");
+                binding.recentMessageSenderProfilePicture.setImageResource(R.drawable.ic_profile);
+            } else {
+                fetchRecentMessageAndBind(chat);
             }
-
-            fetchRecentMessage(chat);
         }
 
         /**
-         * Fetches the recent message and its sender's details from Firestore.
+         * Fetches the recent message from Firestore using the given Chat's recentMessageId.
+         * Once fetched, we display the message content/timestamp and the sender's data.
          *
-         * @param chat Chat object containing the recentMessageId.
+         * @param chat The Chat object containing the recentMessageId and chatId.
          */
-        private void fetchRecentMessage(Chat chat) {
-            ListenerRegistration messageListener = firestore.collection(Constants.KEY_COLLECTION_CHATS)
+        private void fetchRecentMessageAndBind(final Chat chat) {
+            firestore.collection(Constants.KEY_COLLECTION_CHATS)
                     .document(chat.id)
                     .collection(Constants.KEY_COLLECTION_MESSAGES)
                     .document(chat.recentMessageId)
-                    .addSnapshotListener((snapshot, error) -> {
-                        if (error != null || snapshot == null || !snapshot.exists()) {
-                            Log.e(TAG, "Skipping chat with invalid recent message for chat ID: " + chat.id, error);
-                            return;
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            Message recentMessage = documentSnapshot.toObject(Message.class);
+                            if (recentMessage != null) {
+                                binding.recentMessage.setText(recentMessage.content);
+                                binding.recentMessageTimestamp.setText(formatDate(recentMessage.sentDate));
+                                fetchSenderAndBindData(recentMessage.senderId);
+                                return;
+                            }
                         }
-
-                        Message recentMessage = snapshot.toObject(Message.class);
-                        if (recentMessage != null) {
-                            fetchSenderDetails(recentMessage);
-                        }
+                        showNoMessageData();
+                    })
+                    .addOnFailureListener(e -> {
+                        showNoMessageData();
+                        Log.e("CHATS_ADAPTER", "Error fetching recent message: " + chat.recentMessageId, e);
                     });
-
-            listenerRegistrations.add(messageListener);
         }
 
         /**
-         * Fetches the sender's details from Firestore.
+         * Fetches the sender (User) from Firestore. Once retrieved, we display the sender's details
+         * in the chat preview (profile picture, display name).
          *
-         * @param recentMessage Message object containing the senderId.
+         * @param senderId The ID of the user who sent the recent message.
          */
-        private void fetchSenderDetails(Message recentMessage) {
-            ListenerRegistration senderListener = firestore.collection(Constants.KEY_COLLECTION_USERS)
-                    .document(recentMessage.senderId)
-                    .addSnapshotListener((snapshot, error) -> {
-                        if (error != null || snapshot == null || !snapshot.exists()) {
-                            Log.e(TAG, "Skipping chat with invalid sender for sender ID: " + recentMessage.senderId, error);
-                            return;
-                        }
+        private void fetchSenderAndBindData(final String senderId) {
+            if (userCache.containsKey(senderId)) {
+                User cachedUser = userCache.get(senderId);
+                if (cachedUser != null) {
+                    bindSenderData(cachedUser);
+                    return;
+                }
+            }
+            fetchUserFromFirestore(senderId);
+        }
 
-                        User sender = snapshot.toObject(User.class);
-                        if (sender != null) {
-                            bindMessageToView(recentMessage, sender);
+        /**
+         * Actually fetches a User object from Firestore and then caches (even if null),
+         * ensuring we don't repeatedly fetch the same user.
+         *
+         * @param senderId The user ID to fetch from Firestore.
+         */
+        private void fetchUserFromFirestore(final String senderId) {
+            firestore.collection(Constants.KEY_COLLECTION_USERS)
+                    .document(senderId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            User user = documentSnapshot.toObject(User.class);
+                            if (user != null) {
+                                userCache.put(senderId, user);
+                                bindSenderData(user);
+                                return;
+                            }
                         }
+                        userCache.put(senderId, new User(senderId));
+                        showDefaultSenderData();
+
+                    })
+                    .addOnFailureListener(e -> {
+                        userCache.put(senderId, new User(senderId));
+                        showDefaultSenderData();
+                        Log.e("ChatsAdapter", "Failed to fetch user for senderId=" + senderId, e);
                     });
-
-            listenerRegistrations.add(senderListener);
         }
 
         /**
-         * Binds the recent message and sender details to the view.
+         * Binds the sender's data (display name, profile picture) to this ViewHolder's UI elements.
          *
-         * @param message Message object containing recent message details.
-         * @param sender  User object representing the sender.
+         * @param user The sender's User object retrieved from Firestore.
          */
-        private void bindMessageToView(Message message, User sender) {
-            recentMessage.setText(message.content);
-            timestamp.setText(formatTimestamp(message.sentDate));
-            senderName.setText(getDisplayName(sender));
-        }
-
-        /**
-         * Formats a Date object into a readable timestamp.
-         *
-         * @param date Date object to format.
-         * @return Formatted date string.
-         */
-        private String formatTimestamp(Date date) {
-            if (date == null) return "";
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(date);
-        }
-
-        /**
-         * Returns a display name for the sender.
-         *
-         * @param sender User object of the sender.
-         * @return Display name or fallback text.
-         */
-        private String getDisplayName(User sender) {
-            if (!TextUtils.isEmpty(sender.firstName) && !TextUtils.isEmpty(sender.lastName)) {
-                return sender.firstName + " " + sender.lastName;
-            } else if (!TextUtils.isEmpty(sender.email)) {
-                return sender.email;
+        private void bindSenderData(User user) {
+            String displayName;
+            if (!user.firstName.isEmpty() && !user.lastName.isEmpty()) {
+                displayName = user.firstName + " " + user.lastName;
+            } else if (!user.email.isEmpty()) {
+                displayName = user.email;
+            } else if (!user.phone.isEmpty()) {
+                displayName = user.phone;
             } else {
-                return sender.phone != null ? sender.phone : "Unknown Sender";
+                displayName = "unknown sender";
+            }
+
+            binding.recentSenderNameOrPhoneOrEmail.setText(displayName);
+            binding.recentMessageSenderProfilePicture.setImageResource(R.drawable.ic_profile);
+
+            if (!user.image.isEmpty()) {
+                android.graphics.Bitmap senderBitmap = User.getBitmapFromEncodedString(user.image);
+                if (senderBitmap != null) {
+                    binding.recentMessageSenderProfilePicture.setImageBitmap(senderBitmap);
+                }
             }
         }
-    }
 
-    /**
-     * Removes all Firestore listeners to prevent memory leaks.
-     */
-    public void cleanupListeners() {
-        for (ListenerRegistration listener : listenerRegistrations) {
-            listener.remove();
+        /**
+         * Formats a Date into "yyyy-MM-dd HH:mm", or returns an empty string if null.
+         *
+         * @param date The Date to format.
+         * @return Formatted date string or "" if date is null.
+         */
+        private String formatDate(Date date) {
+            if (date == null) {
+                return "";
+            }
+            java.text.SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+            return dateFormat.format(date);
         }
-        listenerRegistrations.clear();
+
+        /**
+         * When there's no valid recent message, we clear or hide data in the preview.
+         */
+        private void showNoMessageData() {
+            binding.recentMessage.setText("");
+            binding.recentMessageTimestamp.setText("");
+            showDefaultSenderData();
+        }
+
+        /**
+         * Sets a default sender name/picture if the user is unavailable.
+         */
+        private void showDefaultSenderData() {
+            binding.recentSenderNameOrPhoneOrEmail.setText("unknown sender");
+            binding.recentMessageSenderProfilePicture.setImageResource(R.drawable.ic_profile);
+        }
     }
 }

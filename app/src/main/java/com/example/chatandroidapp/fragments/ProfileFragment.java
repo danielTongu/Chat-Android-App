@@ -36,6 +36,7 @@ import java.util.Map;
  */
 public class ProfileFragment extends Fragment {
     public static final String ACTION_UPDATE_PHONE = "updatePhone";
+    public static final String ACTION_DELETE_ACCOUNT = "deleteAccount";
 
     private static final String TAG = "PROFILE_FRAGMENT";
 
@@ -132,10 +133,11 @@ public class ProfileFragment extends Fragment {
      */
     private void setListeners() {
         binding.layoutImage.setOnClickListener(v -> openImagePicker());
-        binding.buttonUpdateProfile.setOnClickListener(v -> updateProfileDetails());
-        binding.buttonLogout.setOnClickListener(v -> logOutUser());
+        binding.buttonSignOut.setOnClickListener(v -> logOutUser());
+        binding.buttonUpdate.setOnClickListener(v -> updateProfileDetails());
+        binding.buttonDelete.setOnClickListener(v -> initiateAccountVerification());
         binding.inputPhoneNumber.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) initiatePhoneVerification();
+            if (!hasFocus) { initiatePhoneVerification(); }
         });
     }
 
@@ -224,7 +226,7 @@ public class ProfileFragment extends Fragment {
      * Logs out the user, clears local data, and navigates to the sign-in screen.
      */
     private void logOutUser() {
-        if (!TextUtils.isEmpty(preferenceManager.getString(Constants.KEY_ID, ""))) {
+        if (!preferenceManager.getString(Constants.KEY_ID, "").isEmpty()) {
             removeFirebaseTokenFromFirestore();
         }
 
@@ -263,6 +265,15 @@ public class ProfileFragment extends Fragment {
             intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_UPDATE_PHONE);
             startActivity(intent);
         }
+    }
+
+    /**
+     * Initiates account verification to delete the current user account.
+     */
+    private void initiateAccountVerification() {
+        Intent intent = new Intent(requireContext(), SignInActivity.class);
+        intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_DELETE_ACCOUNT);
+        startActivity(intent);
     }
 
     /**

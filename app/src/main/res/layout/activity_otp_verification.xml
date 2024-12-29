@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,94 +8,102 @@
     android:padding="24dp"
     tools:context=".activities.OtpVerificationActivity">
 
+    <!-- Toolbar-like Layout for Back Button and Title -->
     <LinearLayout
+        android:id="@+id/toolbarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Toolbar-like Layout for Back Button and Title -->
+        <ImageView
+            android:id="@+id/buttonBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/ic_arrow_left"
+            app:tint="@color/primary" />
+
+        <!-- Title and Subtitle -->
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verify Your Phone"
+            android:textColor="@color/primary"
+            android:textSize="33sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarLayout">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingBottom="16dp">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/buttonBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="16dp"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="@color/primary" />
-
-            <!-- Title and Subtitle -->
             <TextView
+                android:id="@+id/textPhoneNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Verify Your Phone"
-                android:textColor="@color/primary"
-                android:textSize="33sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                android:layout_marginTop="8dp"
+                android:text="Phone Number: +1-234-567-8901" />
 
+            <!-- OTP Input Field -->
+            <EditText
+                android:id="@+id/inputOtp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:digits="0123456789"
+                android:hint="Enter the OTP sent to your phone"
+                android:inputType="number"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+
+            <!-- Verify Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonVerifyOtp"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:text="Verify"
+                android:textStyle="bold"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Progress and Message -->
+    <FrameLayout
+        android:id="@+id/layoutProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:animateLayoutChanges="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbarLayout">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center" />
 
         <TextView
-            android:id="@+id/textPhoneNumber"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Phone Number: +1-234-567-8901"
-            android:textSize="20sp" />
-
-        <!-- OTP Input Field -->
-        <EditText
-            android:id="@+id/inputOtp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="20dp"
-            android:digits="0123456789"
-            android:hint="Enter the OTP sent to your phone"
-            android:inputType="number"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textSize="20sp" />
-
-        <!-- Verify Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonVerifyOtp"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="20dp"
-            android:text="Verify"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:cornerRadius="8dp" />
-
-        <FrameLayout
+            android:id="@+id/textProgressMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:animateLayoutChanges="true">
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-            <!-- To display message -->
-            <TextView
-                android:id="@+id/processMessage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="processing..."
-                android:textSize="20sp"
-                android:visibility="gone" />
-        </FrameLayout>
-    </LinearLayout>
-
-</ScrollView>
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Processing..." />
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

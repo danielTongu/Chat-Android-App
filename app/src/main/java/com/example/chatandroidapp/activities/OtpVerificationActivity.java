@@ -14,17 +14,21 @@ import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * Handles OTP verification for account-related actions such as sign-up, sign-in, or phone number updates.
+ * Handles OTP verification for actions such as updating phone number, signing in, registering,
+ * or deleting a user account.
  */
 public class OtpVerificationActivity extends AppCompatActivity {
     private static final String TAG = "OTP_VERIFICATION";
@@ -42,14 +46,13 @@ public class OtpVerificationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityOtpVerificationBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         initializeComponents();
-        setupUI();
+        setupListeners();
         handleIntentData();
     }
 
     /**
-     * Initializes Firebase components and shared preferences.
+     * Initializes Firebase components, Firestore instance, and shared preference manager.
      */
     private void initializeComponents() {
         firebaseAuth = FirebaseAuth.getInstance();
@@ -58,11 +61,18 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Configures UI elements and sets up listeners.
+     * Sets up the UI, including the back button and OTP verification button.
      */
-    private void setupUI() {
-        binding.buttonBack.setOnClickListener(v -> onBackPressed());
-        binding.buttonVerifyOtp.setOnClickListener(v -> {
+    private void setupListeners() {
+        binding.buttonBack.setOnClickListener(view -> {
+            if (ProfileFragment.ACTION_DELETE_ACCOUNT.equals(actionType)) {
+                finish();// Close the activity and return to the ProfileFragment
+            } else {
+                onBackPressed();// Regular back navigation
+            }
+        });
+
+        binding.buttonVerifyOtp.setOnClickListener(view -> {
             String otp = binding.inputOtp.getText().toString().trim();
             if (validateOtp(otp)) {
                 verifyOtp(otp);
@@ -71,60 +81,48 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles data passed via Intent and initiates OTP sending.
+     * Processes intent data and sets up the action type and phone number.
      */
     private void handleIntentData() {
+        showLoading(true, "Determining action...");
+
+        phoneNumber = preferenceManager.getString(Constants.KEY_PHONE, "");
+        if (phoneNumber.isEmpty()) {
+            showErrorAndFinish("Phone number unavailable.", "handleIntentData: Number empty");
+            return;
+        }
+
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(Constants.KEY_ACTION_TYPE)) {
-            actionType = intent.getStringExtra(Constants.KEY_ACTION_TYPE);
-            phoneNumber = fetchPhoneNumber(intent);
-            if (phoneNumber != null) {
-                binding.textPhoneNumber.setText(String.format("Phone Number: %s", phoneNumber));
-                sendOtp(phoneNumber);
-            } else {
-                showErrorAndFinish("Phone number not available.");
-            }
-        } else {
-            showErrorAndFinish("No action specified.");
+        if (intent == null || !intent.hasExtra(Constants.KEY_ACTION_TYPE)) {
+            showErrorAndFinish("Action unspecified .", "handleIntentData: Action unspecified.");
+            return;
         }
-    }
+        actionType = intent.getStringExtra(Constants.KEY_ACTION_TYPE);
 
-    /**
-     * Fetches the phone number based on the action type.
-     *
-     * @param intent The Intent containing data.
-     * @return The phone number if available; otherwise, null.
-     */
-    private String fetchPhoneNumber(Intent intent) {
-        switch (actionType) {
-            case ProfileFragment.ACTION_UPDATE_PHONE:
-                return intent.getStringExtra(Constants.KEY_PHONE);
-            case SignInActivity.ACTION_SIGN_IN:
-            case SignUpActivity.ACTION_SIGN_UP:
-                return preferenceManager.getString(Constants.KEY_PHONE, "");
-            default:
-                return null;
+        // Determine the phone number based on the action type
+        if (ProfileFragment.ACTION_UPDATE_PHONE.equals(actionType)) {
+            phoneNumber = intent.getStringExtra(Constants.KEY_PHONE);
+            binding.buttonVerifyOtp.setText("Update Phone");
+        } else if (ProfileFragment.ACTION_DELETE_ACCOUNT.equals(actionType)) {
+            binding.buttonVerifyOtp.setText("Delete Account");
+        } else if (SignUpActivity.ACTION_SIGN_UP.equals(actionType)) {
+            binding.buttonVerifyOtp.setText("Sign Up");
+        } else if (SignInActivity.ACTION_SIGN_IN.equals(actionType)) {
+            binding.buttonVerifyOtp.setText("Sign In");
         }
+
+        binding.textPhoneNumber.setText(String.format("Phone Number: %s", phoneNumber));
+        sendOtp(phoneNumber);
     }
 
     /**
-     * Displays an error message and exits the activity.
+     * Sends an OTP to the specified phone number using Firebase's PhoneAuthProvider.
      *
-     * @param message The error message to display.
-     */
-    private void showErrorAndFinish(String message) {
-        Utilities.showToast(this, message, Utilities.ToastType.ERROR);
-        Log.e(TAG, message);
-        finish();
-    }
-
-    /**
-     * Sends an OTP to the specified phone number.
-     *
-     * @param phoneNumber The phone number to send the OTP to.
+     * @param phoneNumber The phone number to which the OTP should be sent.
      */
     private void sendOtp(String phoneNumber) {
         showLoading(true, "Sending OTP...");
+
         PhoneAuthOptions options = PhoneAuthOptions.newBuilder(firebaseAuth)
                 .setPhoneNumber(phoneNumber)
                 .setTimeout(60L, TimeUnit.SECONDS)
@@ -137,15 +135,14 @@ public class OtpVerificationActivity extends AppCompatActivity {
 
                     @Override
                     public void onVerificationFailed(@NonNull FirebaseException e) {
-                        Log.e(TAG, "OTP sending failed", e);
-                        showLoading(false, "Failed to send OTP. Please try again.");
+                        showError("Failed to send OTP. Please try again.");
                     }
 
                     @Override
                     public void onCodeSent(@NonNull String id, @NonNull PhoneAuthProvider.ForceResendingToken token) {
                         verificationId = id;
-                        showLoading(false, "OTP sent successfully. Please check your phone.");
-                        Utilities.showToast(OtpVerificationActivity.this, "OTP sent", Utilities.ToastType.SUCCESS);
+                        showLoading(false, "OTP sent successfully.\nPlease check your phone.");
+                        Utilities.showToast(OtpVerificationActivity.this, "", Utilities.ToastType.SUCCESS);
                     }
                 })
                 .build();
@@ -156,15 +153,14 @@ public class OtpVerificationActivity extends AppCompatActivity {
     /**
      * Validates the OTP entered by the user.
      *
-     * @param otp The entered OTP.
-     * @return True if valid; otherwise, false.
+     * @param otp The OTP entered by the user.
+     * @return True if OTP is valid, false otherwise.
      */
     private boolean validateOtp(String otp) {
         if (otp.isEmpty()) {
             binding.inputOtp.setError("Please enter the OTP.");
             return false;
-        }
-        if (otp.length() < 6) {
+        } else if (otp.length() < 6) {
             binding.inputOtp.setError("OTP must be 6 digits.");
             return false;
         }
@@ -172,24 +168,26 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Verifies the OTP against the verification ID.
+     * Verifies the OTP entered by the user.
      *
      * @param otp The OTP entered by the user.
      */
     private void verifyOtp(String otp) {
+        showLoading(true, "Verifying OTP...");
+
         if (verificationId == null) {
-            Utilities.showToast(this, "Verification ID not available.", Utilities.ToastType.ERROR);
+            showError("Verification ID not available.");
             return;
         }
-        showLoading(true, "Verifying OTP...");
+
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
         handleVerificationSuccess(credential);
     }
 
     /**
-     * Handles successful OTP verification and proceeds with the action type.
+     * Handles successful OTP verification based on the action type.
      *
-     * @param credential The verified PhoneAuthCredential.
+     * @param credential The verified credential.
      */
     private void handleVerificationSuccess(PhoneAuthCredential credential) {
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
@@ -202,34 +200,49 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Proceeds with the action based on the action type.
+     * Proceeds with the next step based on the action type.
      */
     private void proceedWithAction() {
         switch (actionType) {
+            case ProfileFragment.ACTION_DELETE_ACCOUNT:
+                deleteUserAccount();
+                break;
             case SignUpActivity.ACTION_SIGN_UP:
-                setAndNavigateToMainActivity();
+                registerNewUser();
                 break;
             case SignInActivity.ACTION_SIGN_IN:
-                getAndNavigateToMainActivity();
+                authenticateExistingUser();
                 break;
             case ProfileFragment.ACTION_UPDATE_PHONE:
-                updatePhoneNumberInFirestore();
+                updatePhoneNumber();
                 break;
             default:
-                navigateToMainActivity();
+                showErrorAndFinish("Action unknown.", "proceedWithAction: Action unknown: " + actionType);
+                break;
         }
     }
 
     /**
-     * Saves user details for sign-up and navigates to MainActivity.
+     * Deletes the user's account using SignInActivity's static method.
      */
-    private void setAndNavigateToMainActivity() {
-        User user = new User();
-        user.id = firestore.collection(Constants.KEY_COLLECTION_USERS).document().getId();
-        user.phone = phoneNumber;
+    private void deleteUserAccount() {
+        String userId = preferenceManager.getString(Constants.KEY_ID, "");
+        SignInActivity.deleteUserAndTasks(firestore, firebaseAuth, userId, this);
+        logOutAndNavigateToSignIn();
+    }
+
+    /**
+     * Registers a new user in Firestore and navigates to MainActivity.
+     */
+    private void registerNewUser() {
+        showLoading(true, "Registering new user...");
+
+        final User user = new User();
+        user.image = preferenceManager.getString(Constants.KEY_IMAGE, "");
         user.firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME, "");
         user.lastName = preferenceManager.getString(Constants.KEY_LAST_NAME, "");
-        user.image = preferenceManager.getString(Constants.KEY_IMAGE, "");
+        user.phone = phoneNumber;
+        user.id = firestore.collection(Constants.KEY_COLLECTION_USERS).document().getId();
 
         firestore.collection(Constants.KEY_COLLECTION_USERS).document(user.id)
                 .set(user)
@@ -237,23 +250,37 @@ public class OtpVerificationActivity extends AppCompatActivity {
                     saveUserPreferences(user);
                     navigateToMainActivity();
                 })
-                .addOnFailureListener(e -> showError("Failed to save user details."));
+                .addOnFailureListener(e -> {
+                    showErrorAndFinish("Failed to register user", "registerNewUser: " + e);
+                });
     }
 
     /**
-     * Retrieves user data for sign-in and navigates to MainActivity.
+     * Queries Firestore for the user by the phone number:
+     * - If found, saves preferences and navigates to MainActivity.
+     * - If not found, displays an error.
      */
-    private void getAndNavigateToMainActivity() {
+    private void authenticateExistingUser() {
+        showLoading(true, "Authenticating user...");
+
         firestore.collection(Constants.KEY_COLLECTION_USERS)
                 .whereEqualTo(Constants.KEY_PHONE, phoneNumber)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        User user = queryDocumentSnapshots.getDocuments().get(0).toObject(User.class);
-                        saveUserPreferences(user);
-                        navigateToMainActivity();
-                    } else {
-                        showError("User not found. Please sign up.");
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    /**
+                     * Called upon successful retrieval of user data.
+                     * @param queryDocumentSnapshots The query result.
+                     */
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            DocumentSnapshot documentSnapshot = queryDocumentSnapshots.getDocuments().get(0);
+                            User user = documentSnapshot.toObject(User.class);
+                            saveUserPreferences(user);
+                            navigateToMainActivity();
+                        } else {
+                            showError("User not found. Please sign up.");
+                        }
                     }
                 })
                 .addOnFailureListener(e -> showError("Failed to fetch user details."));
@@ -262,7 +289,9 @@ public class OtpVerificationActivity extends AppCompatActivity {
     /**
      * Updates the user's phone number in Firestore.
      */
-    private void updatePhoneNumberInFirestore() {
+    private void updatePhoneNumber() {
+        showLoading(true, "Saving new phone number...");
+
         firestore.collection(Constants.KEY_COLLECTION_USERS)
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(Constants.KEY_PHONE, phoneNumber)
@@ -270,13 +299,16 @@ public class OtpVerificationActivity extends AppCompatActivity {
                     preferenceManager.putString(Constants.KEY_PHONE, phoneNumber);
                     navigateToMainActivity();
                 })
-                .addOnFailureListener(e -> showError("Failed to update phone number."));
+                .addOnFailureListener(e -> {
+                    showError("Failed to update phone number.");
+                    Log.e(TAG, "updatePhoneNumber: " + e);
+                });
     }
 
     /**
-     * Saves user preferences locally.
+     * Saves user preferences locally using the provided User object.
      *
-     * @param user The User object.
+     * @param user The user object whose details are to be saved in preferences.
      */
     private void saveUserPreferences(User user) {
         preferenceManager.putBoolean(SignInActivity.KEY_IS_SIGNED_IN, true);
@@ -288,7 +320,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Navigates to the MainActivity.
+     * Navigates to MainActivity.
      */
     private void navigateToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
@@ -297,21 +329,47 @@ public class OtpVerificationActivity extends AppCompatActivity {
     }
 
     /**
-     * Displays a loading message.
+     * Logs out and navigates to the sign-in screen.
      */
-    private void showLoading(boolean isLoading, String message) {
-        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
-        binding.buttonVerifyOtp.setEnabled(!isLoading);
-        binding.inputOtp.setEnabled(!isLoading);
-        binding.processMessage.setText(message);
-        binding.processMessage.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    private void logOutAndNavigateToSignIn() {
+        preferenceManager.clear();
+        Intent intent = new Intent(this, SignInActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     /**
-     * Displays an error message and resets the UI.
+     * Displays or hides the loading UI.
+     *
+     * @param isLoading Whether to show the loading indicator.
+     * @param message   The message to display.
+     */
+    private void showLoading(boolean isLoading, String message) {
+        binding.layoutProgress.setVisibility(isLoading || message != null ? View.VISIBLE : View.GONE);
+        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        binding.textProgressMessage.setText(message);
+    }
+
+    /**
+     * Displays an error message and hides the loading indicator.
+     *
+     * @param message The error message to display.
      */
     private void showError(String message) {
+        showLoading(false, message);
         Utilities.showToast(this, message, Utilities.ToastType.ERROR);
+    }
+
+    /**
+     * Displays an error message and closes the activity.
+     *
+     * @param toastMessage The error message to display.
+     * @param exceptionMessage The error message to log.
+     */
+    private void showErrorAndFinish(String toastMessage, String exceptionMessage) {
         showLoading(false, null);
+        Utilities.showToast(this, toastMessage, Utilities.ToastType.ERROR);
+        Log.e(TAG, exceptionMessage);
+        finish();
     }
 }

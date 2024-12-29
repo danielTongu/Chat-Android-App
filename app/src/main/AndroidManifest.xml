@@ -15,13 +15,13 @@
         android:theme="@style/Theme.ChatAndroidApp"
         tools:targetApi="31">
         <activity
-            android:name=".activities.TaskWriterActivity"
+            android:name=".activities.TaskEditorActivity"
             android:exported="false" />
         <activity
             android:name=".activities.MessagingActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.ChatCreatorActivity"
+            android:name=".activities.InitiateChatActivity"
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"

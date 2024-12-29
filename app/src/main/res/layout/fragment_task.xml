@@ -7,7 +7,7 @@
     android:background="@drawable/bg_rectangle_round_top"
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
-    tools:context=".fragments.TaskFragment">
+    tools:context=".fragments.TasksFragment">
 
     <!-- Title of this fragment -->
     <TextView

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--item_chat.xml-->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginVertical="5dp"
     android:background="?attr/selectableItemBackground">
 
     <!-- Divider -->
@@ -19,26 +18,24 @@
     <!-- Last sender profile image -->
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/recentMessageSenderProfilePicture"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginEnd="10dp"
+        android:layout_width="51dp"
+        android:layout_height="51dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_profile"
+        app:layout_constraintBottom_toBottomOf="@id/previewMessageLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="@id/previewMessageLayout"
-        app:layout_constraintBottom_toBottomOf="@id/previewMessageLayout"
         app:riv_border_color="@color/black"
         app:riv_border_width="2dp"
-        app:riv_corner_radius="24dp"/>
+        app:riv_corner_radius="24dp" />
 
     <!-- Last sent message and its timestamp -->
     <LinearLayout
         android:id="@+id/previewMessageLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
+        android:layout_marginStart="24dp"
         android:orientation="vertical"
-        android:paddingBottom="10dp"
         app:layout_constraintLeft_toRightOf="@id/recentMessageSenderProfilePicture"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -51,7 +48,15 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="chatId"
-            android:visibility="gone"/>
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/recentMessageTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="yyyy-mm-dd hh:mm:ss"
+            android:textColor="@color/dark_gray"
+            android:textSize="16dp"/>
 
         <!--user name -->
         <TextView
@@ -61,7 +66,6 @@
             android:maxLines="1"
             android:text="sender"
             android:textColor="@color/black"
-            android:textSize="17sp"
             android:textStyle="bold" />
 
         <TextView
@@ -71,17 +75,15 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="message"
-            android:textColor="@color/black"
-            android:textSize="17sp" />
-
-        <TextView
-            android:id="@+id/recentMessageTimestamp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="yyyy-mm-dd hh:mm:ss"
-            android:textColor="@color/dark_gray"
-            android:textSize="15sp" />
+            android:textColor="@color/black" />
     </LinearLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_right"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/previewMessageLayout"
+        app:layout_constraintBottom_toBottomOf="@id/previewMessageLayout"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

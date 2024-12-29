@@ -1,46 +1,47 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:overScrollMode="never"
     android:padding="24dp"
     tools:context=".activities.SignInActivity">
 
+    <!-- Title -->
+    <TextView
+        android:id="@+id/textTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome Back"
+        android:textColor="@color/primary"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never"
-        android:scrollbars="none">
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/layoutFooter"
+        app:layout_constraintTop_toBottomOf="@id/textTitle">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Welcome Back"
-                android:textColor="@color/primary"
-                android:textSize="30sp"
-                android:textStyle="bold" />
+            android:orientation="vertical">
 
             <!-- Subtitle -->
             <TextView
+                android:id="@+id/textSubTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="Login To Continue"
                 android:textColor="@color/secondary"
-                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <!-- Radio Group -->
@@ -56,21 +57,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="Email"
-                    android:textSize="20sp" />
+                    android:text="Email" />
 
                 <RadioButton
                     android:id="@+id/radioSignInWithPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Phone"
-                    android:textSize="20sp" />
+                    android:text="Phone"/>
             </RadioGroup>
 
             <!-- Phone Input -->
             <LinearLayout
-                android:id="@+id/ccpAndPhoneLayout"
+                android:id="@+id/layoutCcpAndPhone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -86,14 +85,14 @@
                     app:ccp_textSize="20sp" />
 
                 <EditText
-                    android:id="@+id/input_phone_number"
-                    android:layout_width="match_parent"
+                    android:id="@+id/inputPhoneNumber"
+                    android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_marginStart="8dp"
+                    android:layout_weight="1"
                     android:hint="Enter Phone"
                     android:inputType="phone"
-                    android:paddingHorizontal="12dp"
-                    android:textSize="20sp" />
+                    android:paddingHorizontal="16dp"/>
             </LinearLayout>
 
             <!-- Email Input -->
@@ -104,8 +103,7 @@
                 android:layout_marginTop="16dp"
                 android:hint="Enter Email"
                 android:inputType="textEmailAddress"
-                android:paddingHorizontal="12dp"
-                android:textSize="20sp" />
+                android:paddingHorizontal="16dp"/>
 
             <!-- Password Input -->
             <EditText
@@ -115,55 +113,60 @@
                 android:layout_marginTop="16dp"
                 android:hint="Enter Password"
                 android:inputType="textPassword"
-                android:paddingHorizontal="12dp"
-                android:textSize="20sp" />
-
-            <!-- Sign-In Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonSignIn"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="16dp"
-                android:text="Sign In"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <!-- Progress and Message Container -->
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:animateLayoutChanges="true">
-
-                <ProgressBar
-                    android:id="@+id/progressBar"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_gravity="center"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/processMessage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:text="Processing..."
-                    android:textSize="16sp"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-            <!-- Create Account -->
-            <TextView
-                android:id="@+id/textCreateNewAccount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:clickable="true"
-                android:text="Create New Account"
-                android:textColor="@color/primary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:paddingHorizontal="16dp"/>
         </LinearLayout>
     </ScrollView>
+
+    <!-- Progress and Message Container -->
+    <FrameLayout
+        android:id="@+id/layoutProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textTitle">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/text_progress_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Processing..."/>
+    </FrameLayout>
+
+    <!-- Fixed Footer -->
+    <LinearLayout
+        android:id="@+id/layoutFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSignIn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign In"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textCreateNewAccount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="Create New Account"
+            android:textStyle="bold" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

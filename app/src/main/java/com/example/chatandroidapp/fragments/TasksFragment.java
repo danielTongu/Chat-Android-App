@@ -11,9 +11,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.chatandroidapp.activities.TaskWriterActivity;
+import com.example.chatandroidapp.activities.TaskEditorActivity;
 import com.example.chatandroidapp.adapters.TaskAdapter;
-import com.example.chatandroidapp.databinding.FragmentTaskBinding;
+import com.example.chatandroidapp.databinding.FragmentTasksBinding;
 import com.example.chatandroidapp.models.Task;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TaskFragment manages task display, filtering, and navigation to TaskWriterActivity for adding or editing tasks.
+ * TasksFragment manages task display, filtering, and navigation to TaskWriterActivity for adding or editing tasks.
  */
-public class TaskFragment extends Fragment {
+public class TasksFragment extends Fragment {
 
-    private FragmentTaskBinding binding; // View Binding for the fragment layout
+    private FragmentTasksBinding binding; // View Binding for the fragment layout
     private TaskAdapter taskAdapter; // Adapter for the RecyclerView
     private List<Task> allTasks; // Full list of tasks from Firestore
     private List<Task> taskList; // Filtered or displayed list of tasks
@@ -46,7 +46,7 @@ public class TaskFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentTaskBinding.inflate(inflater, container, false);
+        binding = FragmentTasksBinding.inflate(inflater, container, false);
         preferenceManager = PreferenceManager.getInstance(requireContext());
         db = FirebaseFirestore.getInstance();
 
@@ -67,12 +67,12 @@ public class TaskFragment extends Fragment {
         taskAdapter = new TaskAdapter(taskList, new TaskAdapter.TaskAdapterListener() {
             @Override
             public void onTaskCompletedChanged(Task task) {
-                task.setCompleted(!task.isCompleted());
+                task.isCompleted = !task.isCompleted;
                 db.collection("Users")
                         .document(preferenceManager.getString(Constants.KEY_ID, ""))
                         .collection("Tasks")
-                        .document(task.getId())
-                        .update("completed", task.isCompleted());
+                        .document(task.id)
+                        .update("completed", task.isCompleted);
                 taskAdapter.notifyDataSetChanged();
             }
 
@@ -87,8 +87,8 @@ public class TaskFragment extends Fragment {
             }
         });
 
-        binding.tasksRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.tasksRecyclerView.setAdapter(taskAdapter);
+        binding.recyclerViewTasks.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewTasks.setAdapter(taskAdapter);
     }
 
     /**
@@ -98,15 +98,15 @@ public class TaskFragment extends Fragment {
         // Handle calendar date selection
         binding.tasksCoordinator.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             String selectedDate = (month + 1) + "/" + dayOfMonth + "/" + year;
-            binding.taskHeader.setText("Tasks for Selected Date");
+            binding.textTitleRecyclerView.setText("Tasks for Selected Date");
             filterTasksByDate(selectedDate);
         });
 
         // Reset button to show all non-completed tasks
-        binding.resetButton.setOnClickListener(v -> showAllNonCompletedTasks());
+        binding.buttonAllPendingTasks.setOnClickListener(v -> showAllNonCompletedTasks());
 
         // Floating Action Button to add a new task
-        binding.fabAddTask.setOnClickListener(v -> navigateToTaskWriter(null)); // Navigate to TaskWriterActivity for adding a task
+        binding.buttonAddTask.setOnClickListener(v -> navigateToTaskWriter(null)); // Navigate to TaskWriterActivity for adding a task
     }
 
     /**
@@ -117,16 +117,16 @@ public class TaskFragment extends Fragment {
     private void filterTasksByDate(String date) {
         taskList.clear();
         for (Task task : allTasks) {
-            if (task.getCompletionDate().equals(date)) {
+            if (task.completionDate.equals(date)) {
                 taskList.add(task);
             }
         }
 
         if (taskList.isEmpty()) {
-            binding.resetButton.setVisibility(View.GONE);
-            binding.taskHeader.setText("No tasks for selected date");
+            binding.buttonAllPendingTasks.setVisibility(View.GONE);
+            binding.textTitleRecyclerView.setText("No tasks for selected date");
         } else {
-            binding.resetButton.setVisibility(View.VISIBLE);
+            binding.buttonAllPendingTasks.setVisibility(View.VISIBLE);
         }
 
         taskAdapter.notifyDataSetChanged();
@@ -138,12 +138,12 @@ public class TaskFragment extends Fragment {
     private void showAllNonCompletedTasks() {
         taskList.clear();
         for (Task task : allTasks) {
-            if (!task.isCompleted()) {
+            if (!task.isCompleted) {
                 taskList.add(task);
             }
         }
-        binding.taskHeader.setText("To do");
-        binding.resetButton.setVisibility(View.GONE);
+        binding.textTitleRecyclerView.setText("To do");
+        binding.buttonAllPendingTasks.setVisibility(View.GONE);
         taskAdapter.notifyDataSetChanged();
     }
 
@@ -161,9 +161,8 @@ public class TaskFragment extends Fragment {
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         Task task = doc.toObject(Task.class);
                         if (task != null) {
-                            task.setId(doc.getId());
                             allTasks.add(task);
-                            if (!task.isCompleted()) {
+                            if (!task.isCompleted) {
                                 taskList.add(task);
                             }
                         }
@@ -188,7 +187,7 @@ public class TaskFragment extends Fragment {
                             db.collection("Users")
                                     .document(preferenceManager.getString(Constants.KEY_ID, ""))
                                     .collection("Tasks")
-                                    .document(task.getId())
+                                    .document(task.id)
                                     .delete();
                         }
                     }
@@ -204,7 +203,7 @@ public class TaskFragment extends Fragment {
         db.collection("Users")
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .collection("Tasks")
-                .document(task.getId())
+                .document(task.id)
                 .delete()
                 .addOnSuccessListener(unused -> {
                     allTasks.remove(task);
@@ -219,7 +218,7 @@ public class TaskFragment extends Fragment {
      * @param task The task to edit, or null if adding a new task.
      */
     private void navigateToTaskWriter(Task task) {
-        Intent intent = new Intent(getContext(), TaskWriterActivity.class);
+        Intent intent = new Intent(getContext(), TaskEditorActivity.class);
         if (task != null) {
             intent.putExtra("TASK", task); // Pass the task if editing
         }

@@ -94,15 +94,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
          */
         public void bind(final Task task) {
             // Bind task data to UI components
-            binding.taskTitle.setText(task.getTitle());
-            binding.taskDate.setText(task.getCompletionDate());
-            binding.taskTime.setText(task.getCompletionTime());
-            binding.taskDescription.setText(task.getDescription());
-            binding.taskCompleted.setChecked(task.isCompleted());
+            binding.taskTitle.setText(task.title);
+            binding.taskDate.setText(task.completionDate);
+            binding.taskTime.setText(task.completionTime);
+            binding.taskDescription.setText(task.description);
+            binding.taskCompleted.setChecked(task.isCompleted);
 
             // Handle checkbox toggle for task completion
             binding.taskCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                task.setCompleted(isChecked);
+                task.isCompleted = isChecked;
                 listener.onTaskCompletedChanged(task);
             });
 

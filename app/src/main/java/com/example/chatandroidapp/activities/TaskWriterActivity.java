@@ -159,10 +159,10 @@ public class TaskWriterActivity extends AppCompatActivity {
      * Populates fields when editing a task.
      */
     private void populateFields(Task task) {
-        binding.inputTaskTitle.setText(task.getTitle());
-        binding.inputTaskDescription.setText(task.getDescription());
-        binding.selectedDate.setText(task.getCompletionDate());
-        binding.selectedTime.setText(task.getCompletionTime());
+        binding.inputTaskTitle.setText(task.title);
+        binding.inputTaskDescription.setText(task.description);
+        binding.selectedDate.setText(task.completionDate);
+        binding.selectedTime.setText(task.completionTime);
     }
 
     /**
@@ -177,10 +177,10 @@ public class TaskWriterActivity extends AppCompatActivity {
         if (!validateInputs(title, description, date, time)) return;
 
         if (isEditing) {
-            task.setTitle(title);
-            task.setDescription(description);
-            task.setCompletionDate(date);
-            task.setCompletionTime(time);
+            task.title = title;
+            task.description = description;
+            task.completionDate = date;
+            task.completionTime = time;
         } else {
             task = new Task(null, title, description, null, date, time);
         }

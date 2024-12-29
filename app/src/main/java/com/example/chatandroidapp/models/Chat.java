@@ -27,7 +27,7 @@ public class Chat implements Serializable, Comparable<Chat> {
     @PropertyName("id")
     public final String id;
 
-    /** ID of the user who created the chat. */
+    /** ID of the user who initiated the chat. */
     @PropertyName("creatorId")
     public final String creatorId;
 

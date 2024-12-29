@@ -1,10 +1,11 @@
 package com.example.chatandroidapp.activities;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
@@ -14,8 +15,8 @@ import com.example.chatandroidapp.R;
 import com.example.chatandroidapp.databinding.ActivityMainBinding;
 import com.example.chatandroidapp.fragments.ChatsFragment;
 import com.example.chatandroidapp.fragments.ProfileFragment;
-import com.example.chatandroidapp.fragments.TaskFragment;
-import com.example.chatandroidapp.interfaces.SearchableFragment;
+import com.example.chatandroidapp.fragments.TasksFragment;
+import com.example.chatandroidapp.interfaces.SearchableView;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
@@ -32,6 +33,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MAIN_ACTIVITY";
+
     private ActivityMainBinding binding;
     private final FragmentManager fragmentManager = getSupportFragmentManager();
     private Fragment activeFragment;
@@ -52,29 +54,25 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initializeComponents() {
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
-
         String userId = preferenceManager.getString(Constants.KEY_ID, "");
+
         if (userId == null || userId.isEmpty()) {
             showErrorAndFinish("User not authenticated. Please sign in.");
-            return;
+        } else {
+            assignFirebaseTokenToUser(userId);
         }
-
-        assignFirebaseTokenToUser(userId);
     }
 
     /**
-     * Configures UI elements such as the search view and bottom navigation.
+     * Sets up the UI components, such as bottom navigation and search view.
      */
     private void initializeUI() {
         setUpBottomNavigation();
         setUpSearchView();
-
-        String firstName = preferenceManager.getString(Constants.KEY_FIRST_NAME, "");
-        //Utilities.showToast(this, "Welcome, " + firstName + "!", Utilities.ToastType.INFO);
     }
 
     /**
-     * Assigns the Firebase token to the user in Firestore.
+     * Assigns the Firebase token to the user and updates Firestore if needed.
      *
      * @param userId The user's Firestore document ID.
      */
@@ -86,11 +84,11 @@ public class MainActivity extends AppCompatActivity {
                         updateTokenInFirestore(userId, token);
                     }
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to retrieve Firebase token", e));
+                .addOnFailureListener(e -> showErrorAndFinish("Failed to retrieve Firebase token"));
     }
 
     /**
-     * Updates the Firebase token in Firestore and preferences.
+     * Updates the Firebase token in Firestore and saves it locally.
      *
      * @param userId The user's Firestore document ID.
      * @param token  The new Firebase token.
@@ -103,43 +101,56 @@ public class MainActivity extends AppCompatActivity {
                 .collection(Constants.KEY_COLLECTION_USERS)
                 .document(userId)
                 .update(updates)
-                .addOnSuccessListener(unused -> {
-                    preferenceManager.putString(Constants.KEY_FCM_TOKEN, token);
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to update Firebase token in Firestore", e));
+                .addOnSuccessListener(aVoid -> preferenceManager.putString(Constants.KEY_FCM_TOKEN, token))
+                .addOnFailureListener(e -> showErrorAndFinish("Failed to update Firebase token in Firestore"));
     }
 
     /**
-     * Sets up the bottom navigation bar for fragment navigation.
+     * Sets up bottom navigation for fragment transitions.
      */
     private void setUpBottomNavigation() {
-        binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            boolean selectedFragment = true;
-
-            if (item.getItemId() == R.id.navigation_profile) {
-                loadFragment(new ProfileFragment());
-            } else if (item.getItemId() == R.id.navigation_chats) {
-                loadFragment(new ChatsFragment());
-            } else if (item.getItemId() == R.id.navigation_tasks) {
-                loadFragment(new TaskFragment());
-            } else {
-                selectedFragment = false;
-            }
-
-            return selectedFragment;
-        });
-
-        // Set default fragment to ChatsFragment
-        binding.bottomNavigation.setSelectedItemId(R.id.navigation_profile);
+        binding.bottomNavigation.setOnItemSelectedListener(this::onNavigationItemSelected);
+        binding.bottomNavigation.setSelectedItemId(R.id.navigation_profile); // Default fragment
     }
 
     /**
-     * Loads the selected fragment into the container.
+     * Handles bottom navigation item selection.
+     *
+     * @param item The selected navigation item.
+     * @return True if handled, false otherwise.
+     */
+    private boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        Fragment selectedFragment = null;
+        final int itemId = item.getItemId();
+
+        if(itemId == R.id.navigation_profile){
+            selectedFragment = new ProfileFragment();
+        }
+        else if(itemId == R.id.navigation_chats){
+            selectedFragment = new ChatsFragment();
+        }
+        else if(itemId == R.id.navigation_tasks){
+            selectedFragment = new TasksFragment();
+        }
+
+
+        if (selectedFragment != null) {
+            int visibility =  selectedFragment instanceof SearchableView ? View.VISIBLE : View.GONE;
+            binding.searchView.setVisibility(visibility);
+            loadFragment(selectedFragment);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Loads a fragment into the container if it is not already active.
      *
      * @param fragment The fragment to load.
      */
     private void loadFragment(Fragment fragment) {
-        if (activeFragment != fragment) {
+        if (activeFragment == null || !activeFragment.getClass().equals(fragment.getClass())) {
             binding.progressBar.setVisibility(View.VISIBLE);
 
             fragmentManager.beginTransaction()
@@ -148,41 +159,41 @@ public class MainActivity extends AppCompatActivity {
 
             activeFragment = fragment;
 
-            // Hide progress bar after a delay to simulate smooth transition
             binding.navHostFragment.postDelayed(() -> binding.progressBar.setVisibility(View.GONE), 300);
         }
     }
 
     /**
-     * Configures the search view for filtering data in active fragments.
+     * Configures views that support the search functionality.
      */
     private void setUpSearchView() {
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (activeFragment instanceof SearchableFragment) {
-                    ((SearchableFragment) activeFragment).filterData(query);
+                if (activeFragment instanceof SearchableView) {
+                    ((SearchableView) activeFragment).filterData(query);
                 }
-                return false;
+                return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (activeFragment instanceof SearchableFragment) {
-                    ((SearchableFragment) activeFragment).filterData(newText);
+                if (activeFragment instanceof SearchableView) {
+                    ((SearchableView) activeFragment).filterData(newText);
                 }
-                return false;
+                return true;
             }
         });
     }
 
     /**
-     * Displays an error message and exits the activity.
+     * Displays an error message and closes the activity.
      *
      * @param message The error message to display.
      */
     private void showErrorAndFinish(String message) {
         Utilities.showToast(this, message, Utilities.ToastType.ERROR);
+        preferenceManager.clear();
         Log.e(TAG, message);
         finish();
     }
