@@ -1,19 +1,19 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container_custom_toast"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_rectangle_round"
-    android:backgroundTint="@color/dark_gray"
+    android:backgroundTint="@color/black"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="17dp">
+    android:padding="11dp">
 
     <ImageView
         android:id="@+id/imageToast"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginEnd="8dp"
+        android:layout_width="51dp"
+        android:layout_height="51dp"
         android:src="@drawable/ic_info"
         app:tint="@color/info" />
 
@@ -21,8 +21,8 @@
         android:id="@+id/textToast"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/info"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="51dp"
         android:text="Message"
-        android:textStyle="bold"
-        android:textSize="23sp" />
-</LinearLayout>
+        android:textColor="@color/info" />
+</FrameLayout>

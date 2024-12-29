@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Colors for buttons backgrounds and links texts -->
-    <color name="primary">#f40a06</color>
-    <color name="secondary">#641E16</color>
+    <color name="primary">#D50000</color>
+    <color name="secondary">#760000</color>
 
     <!--Colors for texts -->
-    <color name="black">#FF000000</color>
+    <color name="black">#000000</color>
     <color name="white">#FFFFFFFF</color>
 
     <!-- Neutral Grayscale Palette for back grounds -->
@@ -16,8 +16,8 @@
     <color name="lighter_gray">#FFAAAAAA</color>
 
     <!-- Toast and Highlight Colors -->
-    <color name="error">#f40a06</color>
-    <color name="warning">#ffd700</color>
-    <color name="success">#4caf50</color>
-    <color name="info">#006dfb</color>
+    <color name="error">#D50000</color>
+    <color name="warning">#FFD600</color>
+    <color name="success">#64DD17</color>
+    <color name="info">#0091EA</color>
 </resources>
