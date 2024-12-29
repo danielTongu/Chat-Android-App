@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme for light mode -->
+    <style name="Base.Theme.ChatAndroidApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary Colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/lighter_gray</item>
+        <item name="colorOnPrimaryContainer">@color/black</item>
+
+        <!-- Secondary Colors -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/gray</item>
+        <item name="colorOnSecondaryContainer">@color/black</item>
+
+        <!-- Tertiary Colors -->
+        <item name="colorTertiary">@color/success</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/lighter_gray</item>
+        <item name="colorOnTertiaryContainer">@color/black</item>
+
+        <!-- Background Colors -->
+        <!--item name="colorBackground">@color/white</item-->
+        <item name="colorOnBackground">@color/black</item>
+        <item name="colorSurface">@color/lighter_gray</item>
+        <item name="colorOnSurface">@color/black</item>
+
+        <!-- Error Colors -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/warning</item>
+        <item name="colorOnErrorContainer">@color/black</item>
+    </style>
+
+    <style name="Theme.ChatAndroidApp" parent="Base.Theme.ChatAndroidApp" />
+</resources>

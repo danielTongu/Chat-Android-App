@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><!--activity_chat_creator_recycler_item.xml-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/topDividerLine"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/primary"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- User Profile Picture or just ic_person -->
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/userProfilePicture"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_profile"
+        app:layout_constraintBottom_toBottomOf="@id/layoutUserInfo"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/layoutUserInfo"
+        app:riv_border_color="@color/lighter_gray"
+        app:riv_border_width="2dp"
+        app:riv_corner_radius="24dp" />
+
+    <!-- Container for User Name and Phone/Email -->
+    <LinearLayout
+        android:id="@+id/layoutUserInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:orientation="vertical"
+        android:paddingVertical="10dp"
+        app:layout_constraintEnd_toStartOf="@+id/userCheckBox"
+        app:layout_constraintLeft_toRightOf="@id/userProfilePicture"
+        app:layout_constraintStart_toEndOf="@+id/userProfilePicture"
+        app:layout_constraintTop_toBottomOf="@id/topDividerLine">
+
+        <!-- User First and Last Name -->
+        <TextView
+            android:id="@+id/userFirstAndLastName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Username"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <!-- User Phone or email, if they exist -->
+        <TextView
+            android:id="@+id/userPhoneNumberOrEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="+0(000)-000-0000"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <!-- Checkbox for selecting each recycler item -->
+    <CheckBox
+        android:id="@+id/userCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:focusable="false"
+        app:layout_constraintBottom_toBottomOf="@id/layoutUserInfo"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/layoutUserInfo" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
