@@ -295,6 +295,7 @@ public class MessagingActivity extends AppCompatActivity {
                             deleteChatMessagesFromFirestore(chat);
                         } else {
                             Utilities.showToast(MessagingActivity.this, "You do not have permission to delete this chat.", Utilities.ToastType.ERROR);
+                            showLoading(false, null);
                         }
                     }
                 })
