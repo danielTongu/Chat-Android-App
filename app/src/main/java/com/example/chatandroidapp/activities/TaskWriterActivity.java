@@ -1,104 +1,138 @@
 package com.example.chatandroidapp.activities;
 
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.DatePicker;
+import android.widget.TimePicker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.chatandroidapp.databinding.ActivityTaskWriterBinding;
+import com.example.chatandroidapp.databinding.ActivityTaskEditorBinding;
 import com.example.chatandroidapp.models.Task;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
+import com.example.chatandroidapp.utilities.Utilities;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Calendar;
 import java.util.Locale;
 
 /**
- * TaskWriterActivity manages the creation and editing of tasks.
- * Users can set task details, including title, description, completion date, and time.
+ * Handles the creation, editing, and deletion of tasks in the chat application.
+ * Updates Firestore with new tasks, modified tasks, and task removals.
  */
 public class TaskWriterActivity extends AppCompatActivity {
 
-    private ActivityTaskWriterBinding binding;
+    /** View binding to access UI elements */
+    private ActivityTaskEditorBinding binding;
+
+    /** Firestore database instance */
     private FirebaseFirestore db;
+
+    /** Preference manager for accessing user-specific data */
     private PreferenceManager preferenceManager;
 
-    private boolean isEditing = false;
-    private String taskId;
-    private Task task;
+    /** A Calendar instance for managing selected date and time */
+    private final Calendar selectedDateTime = Calendar.getInstance();
 
-    private final Calendar selectedDateTime = Calendar.getInstance(); // Calendar for date and time
+    /** Indicates if the activity is editing an existing task */
+    private boolean isEditing = false;
+
+    /** Task being edited, null if creating a new task */
+    private Task task;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityTaskWriterBinding.inflate(getLayoutInflater());
+
+        binding = ActivityTaskEditorBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         init();
         setupListeners();
-        checkIfEditing();
+        loadTaskDataIfEditing();
+        showLoading(false, null);
     }
 
     /**
-     * Initializes Firebase, SharedPreferences, and other defaults.
+     * Initializes the Firestore database instance and preference manager.
      */
     private void init() {
         db = FirebaseFirestore.getInstance();
         preferenceManager = PreferenceManager.getInstance(this);
-        taskId = getIntent().getStringExtra("taskId");
     }
 
     /**
-     * Sets up listeners for DatePicker, TimePicker, and action buttons.
+     * Sets up event listeners for UI components, including visibility toggles,
+     * date/time pickers, and button actions.
      */
     private void setupListeners() {
-        // Toggle DatePicker visibility
-        binding.toggleDatePickerVisibility.setOnClickListener(v -> {
-            toggleVisibility(binding.taskCompletionDatePicker);
-            if (binding.taskCompletionDatePicker.getVisibility() == View.VISIBLE) {
-                binding.taskCompletionTimePicker.setVisibility(View.GONE); // Hide TimePicker if visible
-            }
-        });
+        setupToggleVisibilityListener(binding.layoutDate, binding.datePicker, binding.timePicker);
+        setupToggleVisibilityListener(binding.layoutTime, binding.timePicker, binding.datePicker);
 
-        // Toggle TimePicker visibility
-        binding.toggleTimePickerVisibility.setOnClickListener(v -> {
-            toggleVisibility(binding.taskCompletionTimePicker);
-            if (binding.taskCompletionTimePicker.getVisibility() == View.VISIBLE) {
-                binding.taskCompletionDatePicker.setVisibility(View.GONE); // Hide DatePicker if visible
-            }
-        });
-
-        // DatePicker Listener: Update date on change
-        binding.taskCompletionDatePicker.init(
+        binding.datePicker.init(
                 selectedDateTime.get(Calendar.YEAR),
                 selectedDateTime.get(Calendar.MONTH),
                 selectedDateTime.get(Calendar.DAY_OF_MONTH),
-                (view, year, month, dayOfMonth) -> {
-                    selectedDateTime.set(Calendar.YEAR, year);
-                    selectedDateTime.set(Calendar.MONTH, month);
-                    selectedDateTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                    updateSelectedDate();
+                new DatePicker.OnDateChangedListener() {
+                    /**
+                     * Called when the user changes the date in the DatePicker.
+                     *
+                     * @param view The DatePicker view.
+                     * @param year The selected year.
+                     * @param monthOfYear The selected month (0-based).
+                     * @param dayOfMonth The selected day of the month.
+                     */
+                    @Override
+                    public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        selectedDateTime.set(Calendar.YEAR, year);
+                        selectedDateTime.set(Calendar.MONTH, monthOfYear);
+                        selectedDateTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                        updateSelectedDate();
+                    }
                 }
         );
 
-        // TimePicker Listener: Update time on change
-        binding.taskCompletionTimePicker.setOnTimeChangedListener((view, hourOfDay, minute) -> {
-            selectedDateTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            selectedDateTime.set(Calendar.MINUTE, minute);
-            updateSelectedTime();
+        binding.timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+            /**
+             * Called when the user changes the time in the TimePicker.
+             *
+             * @param view      The TimePicker view.
+             * @param hourOfDay The selected hour (24-hour format).
+             * @param minute    The selected minute.
+             */
+            @Override
+            public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                selectedDateTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                selectedDateTime.set(Calendar.MINUTE, minute);
+                updateSelectedTime();
+            }
         });
 
-        // Save and Cancel Buttons
-        binding.buttonSaveTask.setOnClickListener(v -> saveTask());
-        binding.buttonCancelTask.setOnClickListener(v -> finish());
+        binding.buttonSaveTask.setOnClickListener(view -> saveTask());
+        binding.buttonCancelTask.setOnClickListener(view -> finish());
+    }
+
+    /**
+     * Sets up toggle visibility logic for date/time pickers.
+     *
+     * @param toggleButton The button that toggles the visibility.
+     * @param viewToShow   The view to show when toggled.
+     * @param viewToHide   The view to hide when toggled.
+     */
+    private void setupToggleVisibilityListener(View toggleButton, final View viewToShow, final View viewToHide) {
+        toggleButton.setOnClickListener(view -> {
+            toggleVisibility(viewToShow);
+            if (viewToShow.getVisibility() == View.VISIBLE) {
+                viewToHide.setVisibility(View.GONE);
+            }
+        });
     }
 
     /**
      * Toggles the visibility of the provided view.
-     * @param view The view to toggle visibility.
+     *
+     * @param view The view whose visibility is toggled.
      */
     private void toggleVisibility(View view) {
         if (view.getVisibility() == View.VISIBLE) {
@@ -109,110 +143,211 @@ public class TaskWriterActivity extends AppCompatActivity {
     }
 
     /**
-     * Updates the selected date TextView based on the calendar.
+     * Updates the selected date TextView based on the currently selected date in the calendar.
      */
     private void updateSelectedDate() {
-        String formattedDate = String.format(Locale.getDefault(),
+        binding.inputDate.setText(String.format(Locale.getDefault(),
                 "%04d-%02d-%02d",
                 selectedDateTime.get(Calendar.YEAR),
                 selectedDateTime.get(Calendar.MONTH) + 1,
-                selectedDateTime.get(Calendar.DAY_OF_MONTH));
-        binding.selectedDate.setText(formattedDate);
+                selectedDateTime.get(Calendar.DAY_OF_MONTH)));
     }
 
     /**
-     * Updates the selected time TextView based on the calendar.
+     * Updates the selected time TextView based on the currently selected time in the calendar.
      */
     private void updateSelectedTime() {
-        String formattedTime = String.format(Locale.getDefault(),
+        binding.inputTime.setText(String.format(Locale.getDefault(),
                 "%02d:%02d",
                 selectedDateTime.get(Calendar.HOUR_OF_DAY),
-                selectedDateTime.get(Calendar.MINUTE));
-        binding.selectedTime.setText(formattedTime);
+                selectedDateTime.get(Calendar.MINUTE)));
     }
 
     /**
-     * Checks if editing an existing task and populates data.
+     * Loads task data for editing if a task is passed to the activity.
      */
-    private void checkIfEditing() {
-        if (taskId != null) {
+    private void loadTaskDataIfEditing() {
+        Object receivedTask = getIntent().getSerializableExtra("Task");
+        if (receivedTask instanceof Task) {
             isEditing = true;
-            binding.titleTaskEditor.setText("Edit Task");
-
-            String userId = preferenceManager.getString(Constants.KEY_ID, "");
-            db.collection("Users")
-                    .document(userId)
-                    .collection("Tasks")
-                    .document(taskId)
-                    .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        task = documentSnapshot.toObject(Task.class);
-                        if (task != null) {
-                            populateFields(task);
-                        }
-                    })
-                    .addOnFailureListener(e -> showToast("Failed to load task details."));
+            task = (Task) receivedTask;
+            binding.textTitle.setText("Edit Task");
+            populateFields(task);
+        } else {
+            binding.textTitle.setText("Create New Task");
         }
     }
 
     /**
-     * Populates fields when editing a task.
+     * Populates the UI fields with the given task's data.
+     *
+     * @param task The task whose data will populate the fields.
      */
     private void populateFields(Task task) {
-        binding.inputTaskTitle.setText(task.title);
-        binding.inputTaskDescription.setText(task.description);
-        binding.selectedDate.setText(task.completionDate);
-        binding.selectedTime.setText(task.completionTime);
+        binding.inputTitle.setText(task.title);
+        binding.inputDescription.setText(task.description);
+        binding.inputDate.setText(task.completionDate);
+        binding.inputTime.setText(task.completionTime);
     }
 
     /**
-     * Saves the task to Firestore.
+     * Gathers input data and either updates an existing task or creates a new one.
      */
     private void saveTask() {
-        String title = binding.inputTaskTitle.getText().toString().trim();
-        String description = binding.inputTaskDescription.getText().toString().trim();
-        String date = binding.selectedDate.getText().toString();
-        String time = binding.selectedTime.getText().toString();
+        String title = binding.inputTitle.getText().toString().trim();
+        String description = binding.inputDescription.getText().toString().trim();
+        String date = binding.inputDate.getText().toString();
+        String time = binding.inputTime.getText().toString();
 
-        if (!validateInputs(title, description, date, time)) return;
+        if (!validateInputs(title, date, time)) { return; }
 
         if (isEditing) {
-            task.title = title;
-            task.description = description;
-            task.completionDate = date;
-            task.completionTime = time;
+            updateTask(title, description, date, time);
         } else {
-            task = new Task(null, title, description, null, date, time);
+            createTask(title, description, date, time);
         }
+    }
+
+    /**
+     * Validates the task input fields for correctness.
+     *
+     * @param title The entered task title.
+     * @param date  The entered task completion date.
+     * @param time  The entered task completion time.
+     * @return True if all inputs are valid, false otherwise.
+     */
+    private boolean validateInputs(String title, String date, String time) {
+        boolean isValid = false;
+        if (title.isEmpty()) {
+            Utilities.showToast(this, "Please enter a title.", Utilities.ToastType.WARNING);
+        } else if (!date.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) {
+            Utilities.showToast(this, "Please enter a valid date (yyyy-MM-dd).", Utilities.ToastType.WARNING);
+        } else if (!time.matches("^[0-9]{2}:[0-9]{2}$")) {
+            Utilities.showToast(this, "Please enter a valid time (HH:mm).", Utilities.ToastType.WARNING);
+        } else {
+            isValid = true;
+        }
+        return isValid;
+    }
+
+    /**
+     * Updates an existing task in Firestore under the current user's Tasks subcollection.
+     *
+     * @param title       The updated title of the task.
+     * @param description The updated description of the task.
+     * @param date        The updated completion date of the task.
+     * @param time        The updated completion time of the task.
+     */
+    private void updateTask(String title, String description, String date, String time) {
+        showLoading(true, "Updating task...");
 
         String userId = preferenceManager.getString(Constants.KEY_ID, "");
+        if (userId.isEmpty()) {
+            Utilities.showToast(this, "User not logged in.", Utilities.ToastType.ERROR);
+            showLoading(false, null);
+            return;
+        }
 
-        db.collection("Users")
+        if (task == null || task.id.isEmpty()) {
+            Utilities.showToast(this, "Invalid task data.", Utilities.ToastType.ERROR);
+            showLoading(false, null);
+            return;
+        }
+
+        // Reference to the specific task document
+        db.collection(Constants.KEY_COLLECTION_USERS)
                 .document(userId)
                 .collection("Tasks")
-                .add(task)
-                .addOnSuccessListener(documentReference -> {
-                    showToast("Task saved successfully!");
-                    finish();
+                .document(task.id)
+                .update(
+                        "title", title,
+                        "description", description,
+                        "completionDate", date,
+                        "completionTime", time
+                )
+                .addOnSuccessListener(aVoid -> {
+                    Utilities.showToast(TaskWriterActivity.this, "", Utilities.ToastType.SUCCESS);
+                    showLoading(false, null);
+                    setResult(RESULT_OK); // Notify success
+                    finish(); // Close the activity after successful update
                 })
-                .addOnFailureListener(e -> showToast("Failed to save task."));
+                .addOnFailureListener(e -> logCriticalError("Failed to update task.", e));
     }
 
     /**
-     * Validates user inputs.
+     * Creates a new task and adds it to Firestore under the current user's Tasks subcollection.
+     *
+     * @param title       The title of the task.
+     * @param description The description of the task.
+     * @param date        The completion date of the task.
+     * @param time        The completion time of the task.
      */
-    private boolean validateInputs(String title, String description, String date, String time) {
-        if (title.isEmpty() || description.isEmpty() || date.equals("yyyy-mm-dd") || time.equals("HH:MM")) {
-            showToast("Please fill in all fields.");
-            return false;
+    private void createTask(String title, String description, String date, String time) {
+        showLoading(true, "Creating task...");
+
+        String userId = preferenceManager.getString(Constants.KEY_ID, "");
+        if (userId.isEmpty()) {
+            Utilities.showToast(this, "User not logged in.", Utilities.ToastType.ERROR);
+            showLoading(false, null);
+            return;
         }
-        return true;
+
+        // Create the Task object with the pre-generated ID
+        String taskId = db.collection(Constants.KEY_COLLECTION_USERS).document(userId).collection("Tasks").document().getId();
+        Task newTask = new Task(taskId, userId, title, description, date, time);
+
+        // Set the Task data in Firestore using the helper function
+        setTaskData(userId, newTask);
     }
 
     /**
-     * Displays a toast message.
+     * Sets the Task data in Firestore under the specified Tasks subcollection.
+     *
+     * @param userId      The ID of the user creating the task.
+     * @param task        The Task object to be saved.
      */
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    private void setTaskData(String userId, Task task) {
+        db.collection(Constants.KEY_COLLECTION_USERS)
+                .document(userId)
+                .collection("Tasks")
+                .document(task.id)
+                .set(task)
+                .addOnSuccessListener(aVoid -> {
+                    Utilities.showToast(TaskWriterActivity.this, "", Utilities.ToastType.SUCCESS);
+                    showLoading(false, null);
+                    setResult(RESULT_OK); // Notify success
+                    finish(); // Close the activity after successful creation
+                })
+                .addOnFailureListener(e -> {
+                    logCriticalError("Failed to set task data.", e);
+                });
+    }
+
+    /**
+     * Logs critical errors, shows a toast message, and hides the loading indicator.
+     *
+     * @param message The error message to display.
+     * @param e       The exception that caused the error.
+     */
+    private void logCriticalError(String message, Exception e) {
+        showLoading(false, null);
+        Utilities.showToast(this, message, Utilities.ToastType.ERROR);
+        android.util.Log.e("TaskEditorActivity", message, e);
+    }
+
+    /**
+     * Shows or hides the loading indicator and manages UI component states.
+     *
+     * @param isLoading Whether to show the loading indicator.
+     * @param message   The message to display alongside the loading indicator.
+     */
+    private void showLoading(boolean isLoading, String message) {
+        binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        binding.buttonSaveTask.setEnabled(!isLoading);
+        binding.buttonCancelTask.setEnabled(!isLoading);
+        binding.inputTitle.setEnabled(!isLoading);
+        binding.inputDescription.setEnabled(!isLoading);
+        binding.inputDate.setEnabled(!isLoading);
+        binding.inputTime.setEnabled(!isLoading);
     }
 }

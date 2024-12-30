@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    tools:context=".activities.ChatCreatorActivity">
+    tools:context=".activities.InitiateChatActivity">
 
     <ImageView
         android:id="@+id/buttonBack"
         android:layout_width="43dp"
         android:layout_height="43dp"
         android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_arrow_back"
+        android:src="@drawable/ic_arrow_left"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/primary" />
@@ -21,7 +22,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chat Creator"
+        android:text="Initiate Conversation"
         android:textColor="@color/primary"
         android:textSize="30sp"
         android:textStyle="bold"
@@ -35,8 +36,7 @@
         android:id="@+id/usersRecyclerview"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="10dp"
-        android:padding="11dp"
+        android:layout_marginVertical="24dp"
         app:layout_constraintBottom_toTopOf="@id/buttonStartChat"
         app:layout_constraintTop_toBottomOf="@id/buttonBack"
         tools:listitem="@layout/item_user" />
@@ -55,12 +55,11 @@
 
     <!--Message to display when no contacts or network absence -->
     <TextView
-        android:id="@+id/processMessage"
+        android:id="@+id/text_progress_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="No contacts found"
-        android:textSize="20sp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/buttonStartChat"
         app:layout_constraintTop_toBottomOf="@id/buttonBack" />
@@ -74,8 +73,7 @@
         android:background="@drawable/bg_rectangle_round"
         android:hint="Type a message"
         android:inputType="text"
-        android:padding="10dp"
-        android:textSize="24sp"
+        android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/buttonStartChat" />

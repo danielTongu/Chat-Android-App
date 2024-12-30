@@ -12,16 +12,15 @@ import com.example.chatandroidapp.models.Task;
 import java.util.List;
 
 /**
- * TaskAdapter handles displaying tasks and managing user interactions like
+ * TasksAdapter handles displaying tasks and managing user interactions like
  * marking tasks as completed, editing, and deleting.
  */
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
-
     private final List<Task> tasks; // List of tasks to display
     private final TaskAdapterListener listener; // Callback listener for interactions
 
     /**
-     * Constructor for TaskAdapter.
+     * Constructor for TasksAdapter.
      *
      * @param tasks    The list of tasks to display.
      * @param listener The listener for task interactions.
@@ -50,6 +49,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return tasks.size();
     }
 
+
     /**
      * Interface for task interaction callbacks.
      */
@@ -76,10 +76,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         void onDeleteTask(Task task);
     }
 
+
     /**
      * ViewHolder class for individual task items.
      */
-    class TaskViewHolder extends RecyclerView.ViewHolder {
+    public class TaskViewHolder extends RecyclerView.ViewHolder {
         private final ItemTaskBinding binding;
 
         public TaskViewHolder(@NonNull ItemTaskBinding binding) {
@@ -98,11 +99,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             binding.taskDate.setText(task.completionDate);
             binding.taskTime.setText(task.completionTime);
             binding.taskDescription.setText(task.description);
-            binding.taskCompleted.setChecked(task.isCompleted);
 
-            // Handle checkbox toggle for task completion
+            // Temporarily disable the listener while updating the state, then enable it
+            binding.taskCompleted.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
+            binding.taskCompleted.setChecked(task.isCompleted);// Set the checkbox state
             binding.taskCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                task.isCompleted = isChecked;
                 listener.onTaskCompletedChanged(task);
             });
 

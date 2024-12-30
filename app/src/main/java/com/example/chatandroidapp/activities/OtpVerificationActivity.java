@@ -244,7 +244,8 @@ public class OtpVerificationActivity extends AppCompatActivity {
         user.phone = phoneNumber;
         user.id = firestore.collection(Constants.KEY_COLLECTION_USERS).document().getId();
 
-        firestore.collection(Constants.KEY_COLLECTION_USERS).document(user.id)
+        firestore.collection(Constants.KEY_COLLECTION_USERS)
+                .document(user.id)
                 .set(user)
                 .addOnSuccessListener(unused -> {
                     saveUserPreferences(user);
@@ -316,6 +317,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
         preferenceManager.putString(Constants.KEY_FIRST_NAME, user.firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, user.lastName);
         preferenceManager.putString(Constants.KEY_PHONE, user.phone);
+        preferenceManager.putString(Constants.KEY_EMAIL, user.email);
         preferenceManager.putString(Constants.KEY_IMAGE, user.image);
     }
 

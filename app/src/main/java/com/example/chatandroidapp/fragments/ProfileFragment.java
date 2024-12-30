@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * ProfileFragment allows users to view and update their profile details,
  * including phone number, email, password, and profile picture.
@@ -37,12 +37,12 @@ import java.util.Map;
 public class ProfileFragment extends Fragment {
     public static final String ACTION_UPDATE_PHONE = "updatePhone";
     public static final String ACTION_DELETE_ACCOUNT = "deleteAccount";
-
     private static final String TAG = "PROFILE_FRAGMENT";
+
 
     private FragmentProfileBinding binding;
     private PreferenceManager preferenceManager;
-    private FirebaseFirestore database;
+    private FirebaseFirestore firebaseFirestore;
     private FirebaseAuth firebaseAuth;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
@@ -64,14 +64,16 @@ public class ProfileFragment extends Fragment {
         return binding.getRoot();
     }
 
+
     /**
      * Initializes Firebase, SharedPreferences, and image handler for profile image selection.
      */
     private void initializeComponents() {
         preferenceManager = PreferenceManager.getInstance(requireContext());
-        database = FirebaseFirestore.getInstance();
+        firebaseFirestore = FirebaseFirestore.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
     }
+
 
     /**
      * Registers the image picker launcher to handle image selection results.
@@ -91,6 +93,7 @@ public class ProfileFragment extends Fragment {
                 }
         );
     }
+
 
     /**
      * Handles the selected image, updating the profile picture in the UI and Firestore.
@@ -113,6 +116,7 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+
     /**
      * Loads user details from SharedPreferences into the UI.
      */
@@ -123,10 +127,11 @@ public class ProfileFragment extends Fragment {
         binding.inputPhoneNumber.setText(preferenceManager.getString(Constants.KEY_PHONE, ""));
 
         String encodedImage = preferenceManager.getString(Constants.KEY_IMAGE, null);
-        if (!TextUtils.isEmpty(encodedImage)) {
+        if (!encodedImage.isEmpty()) {
             binding.imageProfile.setImageBitmap(User.getBitmapFromEncodedString(encodedImage));
         }
     }
+
 
     /**
      * Sets listeners for profile actions like image updates, profile updates, and logout.
@@ -137,9 +142,12 @@ public class ProfileFragment extends Fragment {
         binding.buttonUpdate.setOnClickListener(v -> updateProfileDetails());
         binding.buttonDelete.setOnClickListener(v -> initiateAccountVerification());
         binding.inputPhoneNumber.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) { initiatePhoneVerification(); }
+            if (!hasFocus) {
+                initiatePhoneVerification();
+            }
         });
     }
+
 
     /**
      * Opens the image picker to select a profile picture.
@@ -148,6 +156,7 @@ public class ProfileFragment extends Fragment {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         imagePickerLauncher.launch(intent);
     }
+
 
     /**
      * Updates the user's profile details in Firestore and SharedPreferences.
@@ -160,31 +169,43 @@ public class ProfileFragment extends Fragment {
             String newPassword = binding.inputNewPassword.getText().toString().trim();
             String confirmPassword = binding.inputConfirmNewPassword.getText().toString().trim();
 
-            if (!TextUtils.isEmpty(newPassword)) {
+            if (!newPassword.isEmpty()) {
                 newPassword = User.validatePassword(newPassword);
                 if (!newPassword.equals(confirmPassword)) {
                     throw new IllegalArgumentException("Passwords do not match.");
                 }
-                updatePassword(newPassword);
+                //updatePassword(firebaseAuth, newPassword);
+                updatePassword(User.hashPassword(newPassword));
             }
-
             updateFirestoreDetails(firstName, lastName, email);
-
         } catch (IllegalArgumentException e) {
             Utilities.showToast(requireContext(), e.getMessage(), Utilities.ToastType.WARNING);
         }
     }
 
+
+    /**
+     * Updates the user's password in FirebaseFirestore.
+     *
+     * @param hashedPassword The new hashed password to set.
+     */
+    private void updatePassword(@NonNull String hashedPassword) {
+        updateFirestoreField("hashedPassword", hashedPassword);
+    }
+
+
     /**
      * Updates the user's password in FirebaseAuth.
      *
-     * @param newPassword The new password to set.
+     * @param password The new password to set.
      */
-    private void updatePassword(String newPassword) {
-        firebaseAuth.getCurrentUser().updatePassword(newPassword)
+    private void updatePassword(@NonNull FirebaseAuth firebaseAuth, @NonNull String password) {
+        firebaseAuth.getCurrentUser()
+                .updatePassword(password)
                 .addOnSuccessListener(unused -> Utilities.showToast(requireContext(), "Password updated successfully", Utilities.ToastType.SUCCESS))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update password", Utilities.ToastType.ERROR));
     }
+
 
     /**
      * Updates a specific field in Firestore and logs the update.
@@ -196,31 +217,34 @@ public class ProfileFragment extends Fragment {
         Map<String, Object> updates = new HashMap<>();
         updates.put(key, value);
 
-        database.collection(Constants.KEY_COLLECTION_USERS)
+        firebaseFirestore.collection(Constants.KEY_COLLECTION_USERS)
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Log.d(TAG, "updateFirestoreField: Updated " + key + " successfully"))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to update " + key, Utilities.ToastType.ERROR));
     }
 
+
     /**
      * Updates the user's Firestore details and SharedPreferences.
+     *
      * @param firstName The new first name.
      * @param lastName  The new last name.
      * @param email     The new email.
      */
     private void updateFirestoreDetails(String firstName, String lastName, String email) {
         Map<String, Object> updates = new HashMap<>();
+
         updates.put(Constants.KEY_FIRST_NAME, firstName);
         updates.put(Constants.KEY_LAST_NAME, lastName);
         updates.put(Constants.KEY_EMAIL, email);
-
         updateFirestore(updates, "Profile updated successfully");
 
         preferenceManager.putString(Constants.KEY_FIRST_NAME, firstName);
         preferenceManager.putString(Constants.KEY_LAST_NAME, lastName);
         preferenceManager.putString(Constants.KEY_EMAIL, email);
     }
+
 
     /**
      * Logs out the user, clears local data, and navigates to the sign-in screen.
@@ -238,6 +262,7 @@ public class ProfileFragment extends Fragment {
         startActivity(intent);
     }
 
+
     /**
      * Removes the Firebase token from Firestore.
      */
@@ -245,12 +270,13 @@ public class ProfileFragment extends Fragment {
         Map<String, Object> updates = new HashMap<>();
         updates.put(Constants.KEY_FCM_TOKEN, null);
 
-        database.collection(Constants.KEY_COLLECTION_USERS)
+        firebaseFirestore.collection(Constants.KEY_COLLECTION_USERS)
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Log.d(TAG, "Firebase token removed successfully"))
                 .addOnFailureListener(e -> Utilities.showToast(requireContext(), "Failed to remove Firebase token", Utilities.ToastType.ERROR));
     }
+
 
     /**
      * Initiates phone verification if the phone number has changed.
@@ -259,13 +285,14 @@ public class ProfileFragment extends Fragment {
         String newPhoneNumber = binding.inputPhoneNumber.getText().toString().trim();
         String currentPhoneNumber = preferenceManager.getString(Constants.KEY_PHONE, "");
 
-        if (!TextUtils.isEmpty(newPhoneNumber) && !newPhoneNumber.equals(currentPhoneNumber)) {
+        if (!newPhoneNumber.isEmpty() && !newPhoneNumber.equals(currentPhoneNumber)) {
             Intent intent = new Intent(requireContext(), OtpVerificationActivity.class);
             intent.putExtra(Constants.KEY_PHONE, newPhoneNumber);
             intent.putExtra(Constants.KEY_ACTION_TYPE, ACTION_UPDATE_PHONE);
             startActivity(intent);
         }
     }
+
 
     /**
      * Initiates account verification to delete the current user account.
@@ -276,6 +303,7 @@ public class ProfileFragment extends Fragment {
         startActivity(intent);
     }
 
+
     /**
      * Updates multiple fields in Firestore and shows a success message.
      *
@@ -283,7 +311,7 @@ public class ProfileFragment extends Fragment {
      * @param successMessage The message to display upon successful update.
      */
     private void updateFirestore(Map<String, Object> updates, String successMessage) {
-        database.collection(Constants.KEY_COLLECTION_USERS)
+        firebaseFirestore.collection(Constants.KEY_COLLECTION_USERS)
                 .document(preferenceManager.getString(Constants.KEY_ID, ""))
                 .update(updates)
                 .addOnSuccessListener(unused -> Utilities.showToast(requireContext(), successMessage, Utilities.ToastType.SUCCESS))

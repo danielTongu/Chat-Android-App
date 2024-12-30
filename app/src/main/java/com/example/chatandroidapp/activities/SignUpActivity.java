@@ -134,22 +134,24 @@ public class SignUpActivity extends AppCompatActivity {
      * @return True if valid, otherwise false.
      */
     private boolean validateEmailSignUpDetails() {
+        boolean isValid = false;
+
         try {
             validateCommonFields();
             String password = binding.inputPassword.getText().toString().trim();
             String confirmPassword = binding.inputConfirmPassword.getText().toString().trim();
 
             User.validatePassword(password);
-            if (!password.equals(confirmPassword)) {
-                binding.inputConfirmPassword.setError("Passwords do not match.");
-                return false;
-            }
+            isValid = password.equals(confirmPassword);
 
-            return true;
+            if (!isValid) {
+                binding.inputConfirmPassword.setError("Passwords do not match.");
+            }
         } catch (IllegalArgumentException e) {
             Utilities.showToast(this, e.getMessage(), Utilities.ToastType.WARNING);
-            return false;
         }
+
+        return isValid;
     }
 
     /**
