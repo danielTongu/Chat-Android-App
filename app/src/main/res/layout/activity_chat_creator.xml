@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    tools:context=".activities.InitiateChatActivity">
+    tools:context=".activities.ChatCreatorActivity">
 
     <ImageView
         android:id="@+id/buttonBack"
@@ -22,7 +22,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Initiate Conversation"
+        android:text="Start the Conversation"
         android:textColor="@color/primary"
         android:textSize="30sp"
         android:textStyle="bold"

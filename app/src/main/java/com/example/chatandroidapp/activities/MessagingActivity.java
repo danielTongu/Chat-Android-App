@@ -37,6 +37,7 @@ import java.util.Set;
 public class MessagingActivity extends AppCompatActivity {
     private final List<Message> messageList = new ArrayList<>(); // List of messages in the chat
     private final List<User> userList = new ArrayList<>(); // List of users in the chat
+
     private ActivityMessagingBinding binding;
     private FirebaseFirestore database;
     private PreferenceManager preferenceManager;
@@ -200,7 +201,7 @@ public class MessagingActivity extends AppCompatActivity {
     /**
      * Updates the chat's userIdList in Firestore after removing non-existent users.
      *
-     * @param updatedUserIds   The updated list of user IDs.
+     * @param updatedUserIds The updated list of user IDs.
      * @param removedUserIds The list of user IDs that were removed.
      */
     private void updateChatUserIdsInFirestore(List<String> updatedUserIds, List<String> removedUserIds) {
@@ -217,6 +218,7 @@ public class MessagingActivity extends AppCompatActivity {
 
     /**
      * Handles the initialization and setup for a new chat.
+     *
      * @param intent The intent containing selected users and initial message.
      */
     private void handleNewChat(Intent intent) {
@@ -338,6 +340,7 @@ public class MessagingActivity extends AppCompatActivity {
 
     /**
      * Deletes the chat from Firestore and updates user records accordingly.
+     *
      * @param chat The chat object to delete.
      */
     private void deleteChatFromFirestore(Chat chat) {
@@ -482,7 +485,6 @@ public class MessagingActivity extends AppCompatActivity {
         }
         return ids;
     }
-
 
 
     /**

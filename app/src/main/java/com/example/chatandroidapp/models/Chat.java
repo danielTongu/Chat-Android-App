@@ -18,24 +18,34 @@ import java.util.Locale;
  */
 public class Chat implements Serializable, Comparable<Chat> {
 
-    /** Server-side timestamp for when the chat was created. Auto-assigned by Firestore. */
+    /**
+     * Server-side timestamp for when the chat was created. Auto-assigned by Firestore.
+     */
     @ServerTimestamp
     @PropertyName("createdDate")
     public final Date createdDate;
 
-    /** Unique identifier for the chat. */
+    /**
+     * Unique identifier for the chat.
+     */
     @PropertyName("id")
     public final String id;
 
-    /** ID of the user who initiated the chat. */
+    /**
+     * ID of the user who initiated the chat.
+     */
     @PropertyName("creatorId")
     public final String creatorId;
 
-    /** List of user IDs participating in the chat. */
+    /**
+     * List of user IDs participating in the chat.
+     */
     @PropertyName("userIdList")
     public final List<String> userIdList;
 
-    /** ID of the most recent message in the chat. Mutable field. */
+    /**
+     * ID of the most recent message in the chat. Mutable field.
+     */
     @PropertyName("recentMessageId")
     public String recentMessageId;
 
@@ -157,7 +167,7 @@ public class Chat implements Serializable, Comparable<Chat> {
      *
      * @param other The other Chat object to compare to.
      * @return A negative integer, zero, or a positive integer as this Chat's createdDate
-     *         is earlier than, equal to, or later than the specified Chat's createdDate.
+     * is earlier than, equal to, or later than the specified Chat's createdDate.
      */
     @Override
     public int compareTo(Chat other) {

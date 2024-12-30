@@ -16,7 +16,7 @@ import com.example.chatandroidapp.databinding.ActivityMainBinding;
 import com.example.chatandroidapp.fragments.ChatsFragment;
 import com.example.chatandroidapp.fragments.ProfileFragment;
 import com.example.chatandroidapp.fragments.TasksFragment;
-import com.example.chatandroidapp.interfaces.SearchableFragment;
+import com.example.chatandroidapp.interfaces.SearchableView;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
 import com.example.chatandroidapp.utilities.Utilities;
@@ -31,7 +31,6 @@ import java.util.Map;
  * It manages fragment navigation, Firebase token assignment, and UI initialization.
  */
 public class MainActivity extends AppCompatActivity {
-
     private static final String TAG = "MAIN_ACTIVITY";
 
     private ActivityMainBinding binding;
@@ -135,13 +134,12 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (selectedFragment != null) {
-            int visibility =  selectedFragment instanceof SearchableFragment ? View.VISIBLE : View.GONE;
+            int visibility =  selectedFragment instanceof SearchableView ? View.VISIBLE : View.GONE;
             binding.searchView.setVisibility(visibility);
             loadFragment(selectedFragment);
-            return true;
         }
 
-        return false;
+        return selectedFragment != null;
     }
 
     /**
@@ -170,16 +168,16 @@ public class MainActivity extends AppCompatActivity {
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (activeFragment instanceof SearchableFragment) {
-                    ((SearchableFragment) activeFragment).filterData(query);
+                if (activeFragment instanceof SearchableView) {
+                    ((SearchableView) activeFragment).filterData(query);
                 }
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (activeFragment instanceof SearchableFragment) {
-                    ((SearchableFragment) activeFragment).filterData(newText);
+                if (activeFragment instanceof SearchableView) {
+                    ((SearchableView) activeFragment).filterData(newText);
                 }
                 return true;
             }

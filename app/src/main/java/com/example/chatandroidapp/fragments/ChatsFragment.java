@@ -36,28 +36,44 @@ import java.util.Set;
  * click on a FloatingActionButton (FAB) to proceed to a ChatCreatorActivity to start a new chat.
  */
 public class ChatsFragment extends Fragment {
-    /** Tag for logging purposes. */
+    /**
+     * Tag for logging purposes.
+     */
     private static final String TAG = "ChatsFragment";
 
-    /** List of Chat objects shown in the RecyclerView. */
+    /**
+     * List of Chat objects shown in the RecyclerView.
+     */
     private final List<Chat> chatList = new ArrayList<>();
 
-    /** Map to keep track of chat listeners, key is chatId. */
+    /**
+     * Map to keep track of chat listeners, key is chatId.
+     */
     private final Map<String, ListenerRegistration> chatListeners = new HashMap<>();
 
-    /** Binding for fragment_chats.xml layout. */
+    /**
+     * Binding for fragment_chats.xml layout.
+     */
     private FragmentChatsBinding binding;
 
-    /** Firestore reference for real-time chat updates. */
+    /**
+     * Firestore reference for real-time chat updates.
+     */
     private FirebaseFirestore firestore;
 
-    /** Adapter for displaying chat previews. */
+    /**
+     * Adapter for displaying chat previews.
+     */
     private ChatsAdapter chatsAdapter;
 
-    /** Real-time listener registration for removing snapshot listener on cleanup. */
+    /**
+     * Real-time listener registration for removing snapshot listener on cleanup.
+     */
     private ListenerRegistration userListenerRegistration;
 
-    /** PreferenceManager instance for accessing user preferences. */
+    /**
+     * PreferenceManager instance for accessing user preferences.
+     */
     private PreferenceManager preferenceManager;
 
     @Override

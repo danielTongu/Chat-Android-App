@@ -29,8 +29,6 @@ import java.util.List;
  * Handles user sign-in workflows and provides static methods for account and task deletions.
  */
 public class SignInActivity extends AppCompatActivity {
-
-    /** Static constants for action types and preferences */
     public static final String KEY_IS_SIGNED_IN = "isSignedIn";
     public static final String ACTION_SIGN_IN = "signIn";
 
@@ -39,6 +37,141 @@ public class SignInActivity extends AppCompatActivity {
     private FirebaseFirestore firestore;
     private FirebaseAuth firebaseAuth;
     private String actionType;
+
+    /**
+     * Deletes the user and all their associated tasks from Firestore and FirebaseAuth.
+     *
+     * @param firestore    The FirebaseFirestore instance for database operations.
+     * @param firebaseAuth The FirebaseAuth instance for authentication operations.
+     * @param userId       The ID of the user to delete.
+     * @param context      The context from which the method is called, used for displaying Toast messages.
+     */
+    public static void deleteUserAndTasks(@NonNull FirebaseFirestore firestore, @NonNull FirebaseAuth firebaseAuth, @NonNull String userId, @NonNull Context context) {
+        // Reference to the user's Tasks subcollection
+        firestore.collection(Constants.KEY_COLLECTION_USERS)
+                .document(userId)
+                .collection("Tasks")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<DocumentSnapshot> tasks = queryDocumentSnapshots.getDocuments();
+
+                    if (tasks.isEmpty()) {
+                        // No tasks to delete, proceed to delete user document
+                        deleteUserDocument(firestore, firebaseAuth, userId, context);
+                    } else {
+                        // Delete tasks in batches
+                        deleteTasksInBatches(firestore, userId, tasks, 0, context);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    String error = "Failed to fetch tasks: " + e.getMessage();
+                    Log.e("SignInActivity", error, e);
+                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
+                });
+    }
+
+    /**
+     * Deletes tasks in batches of 500 to comply with Firestore's batch operation limits.
+     *
+     * @param firestore The FirebaseFirestore instance.
+     * @param userId    The ID of the user.
+     * @param tasks     The list of task documents.
+     * @param index     The current index in the list.
+     * @param context   The context for displaying Toast messages.
+     */
+    private static void deleteTasksInBatches(FirebaseFirestore firestore, String userId, List<DocumentSnapshot> tasks, int index, Context context) {
+        int batchSize = 500; // Firestore's maximum batch size
+        int end = Math.min(index + batchSize, tasks.size());
+
+        WriteBatch batch = firestore.batch();
+
+        for (int i = index; i < end; i++) {
+            DocumentSnapshot task = tasks.get(i);
+            batch.delete(task.getReference());
+        }
+
+        batch.commit()
+                .addOnSuccessListener(aVoid -> {
+                    if (end < tasks.size()) {
+                        // More tasks to delete
+                        deleteTasksInBatches(firestore, userId, tasks, end, context);
+                    } else {
+                        // All tasks deleted, proceed to delete user document
+                        deleteUserDocument(firestore, FirebaseAuth.getInstance(), userId, context);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    String error = "Failed to delete tasks: " + e.getMessage();
+                    Log.e("SignInActivity", error, e);
+                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
+                });
+    }
+
+    /**
+     * Deletes the user document from Firestore and proceeds to delete the user from FirebaseAuth.
+     *
+     * @param firestore    The FirebaseFirestore instance.
+     * @param firebaseAuth The FirebaseAuth instance.
+     * @param userId       The ID of the user.
+     * @param context      The context for displaying Toast messages.
+     */
+    private static void deleteUserDocument(FirebaseFirestore firestore, FirebaseAuth firebaseAuth, String userId, Context context) {
+        firestore.collection(Constants.KEY_COLLECTION_USERS)
+                .document(userId).delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Proceed to delete the user from FirebaseAuth
+                    deleteUserFromAuth(firebaseAuth, context);
+                })
+                .addOnFailureListener(e -> {
+                    String error = "Failed to delete user data: " + e.getMessage();
+                    Log.e("SignInActivity", error, e);
+                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
+                });
+    }
+
+    /**
+     * Deletes the user from FirebaseAuth.
+     *
+     * @param firebaseAuth The FirebaseAuth instance.
+     * @param context      The context for displaying Toast messages.
+     */
+    private static void deleteUserFromAuth(FirebaseAuth firebaseAuth, Context context) {
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            String error = "User not authenticated.";
+            Log.e("SignInActivity", error);
+            Utilities.showToast(context, error, Utilities.ToastType.ERROR);
+            return;
+        }
+
+        currentUser.delete()
+                .addOnSuccessListener(aVoid -> {
+                    String successMessage = "Account deleted successfully.";
+                    Log.d("SignInActivity", successMessage);
+                    Utilities.showToast(context, successMessage, Utilities.ToastType.SUCCESS);
+                    // Clear preferences
+                    PreferenceManager.getInstance(context).clear();
+                    // Redirect to SignInActivity
+                    navigateToSignInActivity(context);
+                })
+                .addOnFailureListener(e -> {
+                    String error = "Failed to delete account: " + e.getMessage();
+                    Log.e("SignInActivity", error, e);
+                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
+                });
+    }
+
+    /**
+     * Navigates the user to the SignInActivity after account deletion.
+     *
+     * @param context The context from which the method is called.
+     */
+    private static void navigateToSignInActivity(Context context) {
+        Intent intent = new Intent(context, SignInActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -189,141 +322,6 @@ public class SignInActivity extends AppCompatActivity {
         } else {
             showAuthenticationError();
         }
-    }
-
-    /**
-     * Deletes the user and all their associated tasks from Firestore and FirebaseAuth.
-     *
-     * @param firestore  The FirebaseFirestore instance for database operations.
-     * @param firebaseAuth The FirebaseAuth instance for authentication operations.
-     * @param userId     The ID of the user to delete.
-     * @param context    The context from which the method is called, used for displaying Toast messages.
-     */
-    public static void deleteUserAndTasks(@NonNull FirebaseFirestore firestore, @NonNull FirebaseAuth firebaseAuth, @NonNull String userId, @NonNull Context context) {
-        // Reference to the user's Tasks subcollection
-        firestore.collection(Constants.KEY_COLLECTION_USERS)
-                .document(userId)
-                .collection("Tasks")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<DocumentSnapshot> tasks = queryDocumentSnapshots.getDocuments();
-
-                    if (tasks.isEmpty()) {
-                        // No tasks to delete, proceed to delete user document
-                        deleteUserDocument(firestore, firebaseAuth, userId, context);
-                    } else {
-                        // Delete tasks in batches
-                        deleteTasksInBatches(firestore, userId, tasks, 0, context);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    String error = "Failed to fetch tasks: " + e.getMessage();
-                    Log.e("SignInActivity", error, e);
-                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
-                });
-    }
-
-    /**
-     * Deletes tasks in batches of 500 to comply with Firestore's batch operation limits.
-     *
-     * @param firestore The FirebaseFirestore instance.
-     * @param userId    The ID of the user.
-     * @param tasks     The list of task documents.
-     * @param index     The current index in the list.
-     * @param context   The context for displaying Toast messages.
-     */
-    private static void deleteTasksInBatches(FirebaseFirestore firestore, String userId, List<DocumentSnapshot> tasks, int index, Context context) {
-        int batchSize = 500; // Firestore's maximum batch size
-        int end = Math.min(index + batchSize, tasks.size());
-
-        WriteBatch batch = firestore.batch();
-
-        for (int i = index; i < end; i++) {
-            DocumentSnapshot task = tasks.get(i);
-            batch.delete(task.getReference());
-        }
-
-        batch.commit()
-                .addOnSuccessListener(aVoid -> {
-                    if (end < tasks.size()) {
-                        // More tasks to delete
-                        deleteTasksInBatches(firestore, userId, tasks, end, context);
-                    } else {
-                        // All tasks deleted, proceed to delete user document
-                        deleteUserDocument(firestore, FirebaseAuth.getInstance(), userId, context);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    String error = "Failed to delete tasks: " + e.getMessage();
-                    Log.e("SignInActivity", error, e);
-                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
-                });
-    }
-
-    /**
-     * Deletes the user document from Firestore and proceeds to delete the user from FirebaseAuth.
-     *
-     * @param firestore    The FirebaseFirestore instance.
-     * @param firebaseAuth The FirebaseAuth instance.
-     * @param userId       The ID of the user.
-     * @param context      The context for displaying Toast messages.
-     */
-    private static void deleteUserDocument(FirebaseFirestore firestore, FirebaseAuth firebaseAuth, String userId, Context context) {
-        firestore.collection(Constants.KEY_COLLECTION_USERS)
-                .document(userId).delete()
-                .addOnSuccessListener(aVoid -> {
-                    // Proceed to delete the user from FirebaseAuth
-                    deleteUserFromAuth(firebaseAuth, context);
-                })
-                .addOnFailureListener(e -> {
-                    String error = "Failed to delete user data: " + e.getMessage();
-                    Log.e("SignInActivity", error, e);
-                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
-                });
-    }
-
-    /**
-     * Deletes the user from FirebaseAuth.
-     *
-     * @param firebaseAuth The FirebaseAuth instance.
-     * @param context      The context for displaying Toast messages.
-     */
-    private static void deleteUserFromAuth(FirebaseAuth firebaseAuth, Context context) {
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-
-        if (currentUser == null) {
-            String error = "User not authenticated.";
-            Log.e("SignInActivity", error);
-            Utilities.showToast(context, error, Utilities.ToastType.ERROR);
-            return;
-        }
-
-        currentUser.delete()
-                .addOnSuccessListener(aVoid -> {
-                    String successMessage = "Account deleted successfully.";
-                    Log.d("SignInActivity", successMessage);
-                    Utilities.showToast(context, successMessage, Utilities.ToastType.SUCCESS);
-                    // Clear preferences
-                    PreferenceManager.getInstance(context).clear();
-                    // Redirect to SignInActivity
-                    navigateToSignInActivity(context);
-                })
-                .addOnFailureListener(e -> {
-                    String error = "Failed to delete account: " + e.getMessage();
-                    Log.e("SignInActivity", error, e);
-                    Utilities.showToast(context, error, Utilities.ToastType.ERROR);
-                });
-    }
-
-    /**
-     * Navigates the user to the SignInActivity after account deletion.
-     *
-     * @param context The context from which the method is called.
-     */
-    private static void navigateToSignInActivity(Context context) {
-        Intent intent = new Intent(context, SignInActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        context.startActivity(intent);
     }
 
     /**

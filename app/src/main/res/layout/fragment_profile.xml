@@ -81,12 +81,12 @@
 
                 <ImageView
                     android:id="@+id/textUploadImage"
-                    android:layout_width="60sp"
-                    android:layout_height="60sp"
+                    android:layout_width="40sp"
+                    android:layout_height="40sp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_upload"
                     android:background="@drawable/bg_rectangle_round"
-                    android:padding="10dp"
+                    android:padding="2dp"
                     app:tint="@color/primary" />
             </FrameLayout>
 

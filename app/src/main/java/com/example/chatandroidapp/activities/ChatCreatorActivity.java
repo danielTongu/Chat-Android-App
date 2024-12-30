@@ -30,12 +30,10 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
     public static final String KEY_SELECTED_USERS_LIST = "selectedUsers";
     public static final String KEY_INITIAL_MESSAGE = "initialMessage";
     private static final String TAG = "CHAT_CREATOR_ACTIVITY";
-
-
-    private ActivityChatCreatorBinding binding;
-    private UsersAdapter userAdapter;
     private final List<User> userList = new ArrayList<>();
     private final List<User> selectedUsers = new ArrayList<>();
+    private ActivityChatCreatorBinding binding;
+    private UsersAdapter userAdapter;
     private PreferenceManager preferenceManager;
     private String currentUserId;
 
@@ -156,7 +154,7 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
             startActivity(intent);
             finish();
 
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             Utilities.showToast(this, e.getMessage(), Utilities.ToastType.WARNING);
         } catch (Exception f) {
             Log.e(TAG, "navigateToChatActivity: ", f);

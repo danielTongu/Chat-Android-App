@@ -365,7 +365,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
     /**
      * Displays an error message and closes the activity.
      *
-     * @param toastMessage The error message to display.
+     * @param toastMessage     The error message to display.
      * @param exceptionMessage The error message to log.
      */
     private void showErrorAndFinish(String toastMessage, String exceptionMessage) {

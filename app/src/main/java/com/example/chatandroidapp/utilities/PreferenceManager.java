@@ -12,7 +12,9 @@ import android.content.SharedPreferences;
  * @author Daniel Tongu
  */
 public class PreferenceManager {
-    /** Key for the name of the SharedPreferences file. */
+    /**
+     * Key for the name of the SharedPreferences file.
+     */
     private static final String KEY_PREFERENCE_NAME = "chatAppPreference";
 
     private static volatile PreferenceManager instance; // Volatile for thread-safe singleton
@@ -45,6 +47,7 @@ public class PreferenceManager {
     }
 
     // --- BOOLEAN METHODS ---
+
     /**
      * Saves a boolean value in SharedPreferences.
      *
@@ -67,6 +70,7 @@ public class PreferenceManager {
     }
 
     // --- STRING METHODS ---
+
     /**
      * Saves a string value in SharedPreferences.
      *
@@ -89,6 +93,7 @@ public class PreferenceManager {
     }
 
     // --- INT METHODS ---
+
     /**
      * Saves an integer value in SharedPreferences.
      *
@@ -111,6 +116,7 @@ public class PreferenceManager {
     }
 
     // --- LONG METHODS ---
+
     /**
      * Saves a long value in SharedPreferences.
      *
@@ -133,6 +139,7 @@ public class PreferenceManager {
     }
 
     // --- FLOAT METHODS ---
+
     /**
      * Saves a float value in SharedPreferences.
      *
@@ -155,6 +162,7 @@ public class PreferenceManager {
     }
 
     // --- CLEAR AND REMOVE METHODS ---
+
     /**
      * Removes a specific key-value pair from SharedPreferences.
      *

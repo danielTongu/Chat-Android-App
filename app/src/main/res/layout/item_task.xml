@@ -8,7 +8,7 @@
 
     <!-- Divider -->
     <View
-        android:id="@+id/item_divider"
+        android:id="@+id/viewDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/primary" />
@@ -22,7 +22,7 @@
 
         <!-- Task Title -->
         <TextView
-            android:id="@+id/task_title"
+            android:id="@+id/taskTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -32,7 +32,7 @@
 
         <!-- Task Date -->
         <TextView
-            android:id="@+id/task_date"
+            android:id="@+id/taskDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
@@ -50,7 +50,7 @@
 
         <!-- Task Description -->
         <TextView
-            android:id="@+id/task_description"
+            android:id="@+id/taskDescription"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -59,7 +59,7 @@
 
         <!-- Task Time -->
         <TextView
-            android:id="@+id/task_time"
+            android:id="@+id/taskTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
@@ -78,7 +78,7 @@
 
         <!-- Complete Checkbox -->
         <CheckBox
-            android:id="@+id/task_completed"
+            android:id="@+id/taskIsCompleted"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -88,7 +88,7 @@
 
         <!-- Edit Button -->
         <ImageButton
-            android:id="@+id/edit_button"
+            android:id="@+id/taskEditButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -98,7 +98,7 @@
 
         <!-- Delete Button -->
         <ImageButton
-            android:id="@+id/delete_button"
+            android:id="@+id/taskDeleteButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"

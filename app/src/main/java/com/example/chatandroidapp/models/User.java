@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.chatandroidapp.activities.SignUpActivity;
+import com.google.firebase.firestore.PropertyName;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.io.InputStream;
@@ -27,45 +28,81 @@ import java.util.regex.Pattern;
  * It includes utilities for encoding, decoding, and validating user information, including profile images.
  */
 public class User implements Serializable {
-    /** Unique identifier for the user (Primary Key). */
+    /**
+     * Unique identifier for the user (Primary Key).
+     */
+    @PropertyName("id")
     public String id = "";
 
-    /** User's first name.*/
+    /**
+     * User's first name.
+     */
+    @PropertyName("firstName")
     public String firstName = "unknown";
 
-    /** User's last name.*/
+    /**
+     * User's last name.
+     */
+    @PropertyName("lastName")
     public String lastName = "";
 
-    /** Base64 encoded string of the user's profile image. */
+    /**
+     * Base64 encoded string of the user's profile image.
+     */
+    @PropertyName("image")
     public String image = "";
 
-    /** User's phone number. */
+    /**
+     * User's phone number.
+     */
+    @PropertyName("phone")
     public String phone = "";
 
-    /** User's email address. */
+    /**
+     * User's email address.
+     */
+    @PropertyName("email")
     public String email = "";
 
-    /** SHA-256 hashed password of the user. */
+    /**
+     * SHA-256 hashed password of the user.
+     */
+    @PropertyName("hashedPassword")
     public String hashedPassword = "";
 
-    /** Firebase Cloud Messaging token for push notifications. */
+    /**
+     * Firebase Cloud Messaging token for push notifications.
+     */
+    @PropertyName("fcmToken")
     public String fcmToken = "";
 
-    /** List of chat IDs that the user participates in. */
+    /**
+     * List of chat IDs that the user participates in.
+     */
+    @PropertyName("chatIds")
     public List<String> chatIds = new ArrayList<>();
 
-    /** Server-side timestamp indicating when the user was created.*/
+    /**
+     * Server-side timestamp indicating when the user was created.
+     */
     @ServerTimestamp
+    @PropertyName("createdDate")
     public Date createdDate = null;
 
-    /** Default constructor required for Firestore serialization/deserialization. */
-    public User() {}
+    /**
+     * Default constructor required for Firestore serialization/deserialization.
+     */
+    public User() {
+    }
 
     /**
      * Constructs a User with the specified ID.
+     *
      * @param id The unique identifier for the user.
      */
-    public User(String id) { this.id = id; }
+    public User(String id) {
+        this.id = id;
+    }
 
     // --- IMAGE HANDLING FUNCTIONS ---
 
@@ -119,6 +156,7 @@ public class User implements Serializable {
     }
 
     // --- VALIDATION FUNCTIONS ---
+
     /**
      * Validates the user's first name.
      *
@@ -239,6 +277,7 @@ public class User implements Serializable {
 
     /**
      * Returns a string representation of the user, combining first and last names.
+     *
      * @return The user's full name.
      */
     @NonNull

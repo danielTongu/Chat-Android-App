@@ -32,19 +32,29 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHolder> {
 
-    /** List of Chat objects to be displayed in the RecyclerView. */
+    /**
+     * List of Chat objects to be displayed in the RecyclerView.
+     */
     private final List<Chat> chatList;
 
-    /** Android Context for inflating layouts and starting activities. */
+    /**
+     * Android Context for inflating layouts and starting activities.
+     */
     private final Context context;
 
-    /** Reference to Firebase Firestore for fetching message/user data on demand. */
+    /**
+     * Reference to Firebase Firestore for fetching message/user data on demand.
+     */
     private final FirebaseFirestore firestore;
 
-    /** In-memory cache for storing User objects to avoid repeated Firestore lookups. */
+    /**
+     * In-memory cache for storing User objects to avoid repeated Firestore lookups.
+     */
     private final ConcurrentHashMap<String, User> userCache;
 
-    /** For retrieving the current user ID and other preferences if needed. */
+    /**
+     * For retrieving the current user ID and other preferences if needed.
+     */
     private final PreferenceManager preferenceManager;
 
     /**
@@ -135,10 +145,10 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
             binding.messageChatId.setText(chat.id);
 
             if (chat.recentMessageId.isEmpty()) {
-                binding.recentSenderNameOrPhoneOrEmail.setText("No message");
-                binding.recentMessage.setText("");
-                binding.recentMessageTimestamp.setText("");
-                binding.recentMessageSenderProfilePicture.setImageResource(R.drawable.ic_profile);
+                binding.chatMessageUserName.setText("");
+                binding.chatMessageContent.setText("No message");
+                binding.chatMessageTimestamp.setText("");
+                binding.chatMessageUserImage.setImageResource(R.drawable.ic_profile);
             } else {
                 fetchRecentMessageAndBind(chat);
             }
@@ -160,8 +170,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
                         if (documentSnapshot.exists()) {
                             Message recentMessage = documentSnapshot.toObject(Message.class);
                             if (recentMessage != null) {
-                                binding.recentMessage.setText(recentMessage.content);
-                                binding.recentMessageTimestamp.setText(formatDate(recentMessage.sentDate));
+                                binding.chatMessageContent.setText(recentMessage.content);
+                                binding.chatMessageTimestamp.setText(formatDate(recentMessage.sentDate));
                                 fetchSenderAndBindData(recentMessage.senderId);
                                 return;
                             }
@@ -238,13 +248,13 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
                 displayName = "unknown sender";
             }
 
-            binding.recentSenderNameOrPhoneOrEmail.setText(displayName);
-            binding.recentMessageSenderProfilePicture.setImageResource(R.drawable.ic_profile);
+            binding.chatMessageUserName.setText(displayName);
+            binding.chatMessageUserImage.setImageResource(R.drawable.ic_profile);
 
             if (!user.image.isEmpty()) {
                 android.graphics.Bitmap senderBitmap = User.getBitmapFromEncodedString(user.image);
                 if (senderBitmap != null) {
-                    binding.recentMessageSenderProfilePicture.setImageBitmap(senderBitmap);
+                    binding.chatMessageUserImage.setImageBitmap(senderBitmap);
                 }
             }
         }
@@ -267,8 +277,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
          * When there's no valid recent message, we clear or hide data in the preview.
          */
         private void showNoMessageData() {
-            binding.recentMessage.setText("");
-            binding.recentMessageTimestamp.setText("");
+            binding.chatMessageContent.setText("");
+            binding.chatMessageTimestamp.setText("");
             showDefaultSenderData();
         }
 
@@ -276,8 +286,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
          * Sets a default sender name/picture if the user is unavailable.
          */
         private void showDefaultSenderData() {
-            binding.recentSenderNameOrPhoneOrEmail.setText("unknown sender");
-            binding.recentMessageSenderProfilePicture.setImageResource(R.drawable.ic_profile);
+            binding.chatMessageUserName.setText("unknown sender");
+            binding.chatMessageUserImage.setImageResource(R.drawable.ic_profile);
         }
     }
 }

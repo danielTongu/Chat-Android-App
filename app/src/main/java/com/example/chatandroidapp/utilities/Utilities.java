@@ -26,18 +26,8 @@ import java.util.Locale;
 public class Utilities {
 
     /**
-     * Enum representing different types of Toast messages.
-     */
-    public enum ToastType {
-        INFO,
-        WARNING,
-        ERROR,
-        SUCCESS,
-        DEFAULT
-    }
-
-    /**
      * Displays a Toast message with the default type.
+     *
      * @param context The context to use for displaying the Toast.
      * @param message The message to display in the Toast.
      */
@@ -47,6 +37,7 @@ public class Utilities {
 
     /**
      * Displays a Toast message with the specified type.
+     *
      * @param context The context to use for displaying the Toast.
      * @param message The message to display in the Toast.
      * @param type    The type of the message: INFO, WARNING, ERROR, SUCCESS, or DEFAULT.
@@ -61,6 +52,7 @@ public class Utilities {
 
     /**
      * Displays a custom Toast with styling based on the provided ToastType.
+     *
      * @param context The context to use for displaying the Toast.
      * @param message The message to display in the Toast.
      * @param type    The type of the message: INFO, WARNING, ERROR, or SUCCESS.
@@ -122,6 +114,17 @@ public class Utilities {
     public static String formatDateTime(Date date) {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
         return formatter.format(date);
+    }
+
+    /**
+     * Enum representing different types of Toast messages.
+     */
+    public enum ToastType {
+        INFO,
+        WARNING,
+        ERROR,
+        SUCCESS,
+        DEFAULT
     }
 
 }

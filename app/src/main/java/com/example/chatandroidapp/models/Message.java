@@ -14,24 +14,34 @@ import java.util.Date;
  */
 public class Message implements Serializable, Comparable<Message> {
 
-    /** Server-side timestamp for when the message was sent. Auto-assigned by Firestore. */
+    /**
+     * Server-side timestamp for when the message was sent. Auto-assigned by Firestore.
+     */
     @ServerTimestamp
     @PropertyName("sentDate")
     public final Date sentDate;
 
-    /** Unique identifier for the message (Primary Key). */
+    /**
+     * Unique identifier for the message (Primary Key).
+     */
     @PropertyName("id")
     public final String id;
 
-    /** ID of the chat this message belongs to. */
+    /**
+     * ID of the chat this message belongs to.
+     */
     @PropertyName("chatId")
     public final String chatId;
 
-    /** ID of the user who sent the message. */
+    /**
+     * ID of the user who sent the message.
+     */
     @PropertyName("senderId")
     public final String senderId;
 
-    /** The actual message content. */
+    /**
+     * The actual message content.
+     */
     @PropertyName("content")
     public final String content;
 
@@ -50,10 +60,10 @@ public class Message implements Serializable, Comparable<Message> {
     /**
      * Parameterized constructor to create a new Message instance.
      *
-     * @param id        The unique identifier for the message.
-     * @param chatId    The ID of the chat this message belongs to.
-     * @param senderId  The ID of the user who sent the message.
-     * @param content   The content of the message.
+     * @param id       The unique identifier for the message.
+     * @param chatId   The ID of the chat this message belongs to.
+     * @param senderId The ID of the user who sent the message.
+     * @param content  The content of the message.
      * @throws IllegalArgumentException If any of the provided parameters are invalid.
      */
     public Message(String id, String chatId, String senderId, String content) throws IllegalArgumentException {
@@ -135,7 +145,7 @@ public class Message implements Serializable, Comparable<Message> {
      *
      * @param other The other message to compare against.
      * @return A negative integer, zero, or a positive integer as this message's sentDate
-     *         is earlier than, equal to, or later than the specified message's sentDate.
+     * is earlier than, equal to, or later than the specified message's sentDate.
      */
     @Override
     public int compareTo(Message other) {

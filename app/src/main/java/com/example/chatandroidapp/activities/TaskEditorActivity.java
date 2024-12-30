@@ -8,7 +8,7 @@ import android.widget.TimePicker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.chatandroidapp.databinding.ActivityTaskWriterBinding;
+import com.example.chatandroidapp.databinding.ActivityTaskEditorBinding;
 import com.example.chatandroidapp.models.Task;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -21,31 +21,42 @@ import java.util.Locale;
  * Handles the creation, editing, and deletion of tasks in the chat application.
  * Updates Firestore with new tasks, modified tasks, and task removals.
  */
-public class TaskWriterActivity extends AppCompatActivity {
+public class TaskEditorActivity extends AppCompatActivity {
 
-    /** View binding to access UI elements */
-    private ActivityTaskWriterBinding binding;
+    /**
+     * A Calendar instance for managing selected date and time
+     */
+    private final Calendar selectedDateTime = Calendar.getInstance();
+    /**
+     * View binding to access UI elements
+     */
+    private ActivityTaskEditorBinding binding;
 
-    /** Firestore database instance */
+    /**
+     * Firestore database instance
+     */
     private FirebaseFirestore db;
 
-    /** Preference manager for accessing user-specific data */
+    /**
+     * Preference manager for accessing user-specific data
+     */
     private PreferenceManager preferenceManager;
 
-    /** A Calendar instance for managing selected date and time */
-    private final Calendar selectedDateTime = Calendar.getInstance();
-
-    /** Indicates if the activity is editing an existing task */
+    /**
+     * Indicates if the activity is editing an existing task
+     */
     private boolean isEditing = false;
 
-    /** Task being edited, null if creating a new task */
+    /**
+     * Task being edited, null if creating a new task
+     */
     private Task task;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityTaskWriterBinding.inflate(getLayoutInflater());
+        binding = ActivityTaskEditorBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         init();
@@ -199,7 +210,9 @@ public class TaskWriterActivity extends AppCompatActivity {
         String date = binding.inputDate.getText().toString();
         String time = binding.inputTime.getText().toString();
 
-        if (!validateInputs(title, date, time)) { return; }
+        if (!validateInputs(title, date, time)) {
+            return;
+        }
 
         if (isEditing) {
             updateTask(title, description, date, time);
@@ -266,7 +279,7 @@ public class TaskWriterActivity extends AppCompatActivity {
                         "completionTime", time
                 )
                 .addOnSuccessListener(aVoid -> {
-                    Utilities.showToast(TaskWriterActivity.this, "", Utilities.ToastType.SUCCESS);
+                    Utilities.showToast(TaskEditorActivity.this, "", Utilities.ToastType.SUCCESS);
                     showLoading(false, null);
                     setResult(RESULT_OK); // Notify success
                     finish(); // Close the activity after successful update
@@ -303,8 +316,8 @@ public class TaskWriterActivity extends AppCompatActivity {
     /**
      * Sets the Task data in Firestore under the specified Tasks subcollection.
      *
-     * @param userId      The ID of the user creating the task.
-     * @param task        The Task object to be saved.
+     * @param userId The ID of the user creating the task.
+     * @param task   The Task object to be saved.
      */
     private void setTaskData(String userId, Task task) {
         db.collection(Constants.KEY_COLLECTION_USERS)
@@ -313,7 +326,7 @@ public class TaskWriterActivity extends AppCompatActivity {
                 .document(task.id)
                 .set(task)
                 .addOnSuccessListener(aVoid -> {
-                    Utilities.showToast(TaskWriterActivity.this, "", Utilities.ToastType.SUCCESS);
+                    Utilities.showToast(TaskEditorActivity.this, "", Utilities.ToastType.SUCCESS);
                     showLoading(false, null);
                     setResult(RESULT_OK); // Notify success
                     finish(); // Close the activity after successful creation

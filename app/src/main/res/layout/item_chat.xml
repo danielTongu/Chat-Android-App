@@ -5,11 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginVertical="5dp"
+    android:elevation="20dp"
     android:background="?attr/selectableItemBackground">
 
     <!-- Divider -->
     <View
-        android:id="@+id/item_divider"
+        android:id="@+id/viewDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/primary"
@@ -17,27 +18,24 @@
 
     <!-- Last sender profile image -->
     <com.makeramen.roundedimageview.RoundedImageView
-        android:id="@+id/recentMessageSenderProfilePicture"
+        android:id="@+id/chatMessageUserImage"
         android:layout_width="51dp"
         android:layout_height="51dp"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_profile"
-        app:layout_constraintBottom_toBottomOf="@id/previewMessageLayout"
+        app:layout_constraintBottom_toBottomOf="@id/chatMessageLayout"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="@id/previewMessageLayout"
-        app:riv_border_color="@color/black"
-        app:riv_border_width="2dp"
-        app:riv_corner_radius="24dp" />
+        app:layout_constraintTop_toTopOf="@id/chatMessageLayout"/>
 
     <!-- Last sent message and its timestamp -->
     <LinearLayout
-        android:id="@+id/previewMessageLayout"
+        android:id="@+id/chatMessageLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginHorizontal="8dp"
         android:orientation="vertical"
-        app:layout_constraintLeft_toRightOf="@id/recentMessageSenderProfilePicture"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/chatMessageUserImage"
+        app:layout_constraintRight_toLeftOf="@id/rightArrow"
         app:layout_constraintTop_toTopOf="parent">
 
         <!--holds the chatId -->
@@ -51,39 +49,41 @@
             android:visibility="gone" />
 
         <TextView
-            android:id="@+id/recentMessageTimestamp"
+            android:id="@+id/chatMessageTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="yyyy-mm-dd hh:mm:ss"
-            android:textColor="@color/dark_gray"
-            android:textSize="16dp"/>
-
-        <!--user name -->
-        <TextView
-            android:id="@+id/recentSenderNameOrPhoneOrEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:text="sender"
-            android:textColor="@color/black"
-            android:textStyle="bold" />
+            android:textColor="@color/light_gray"
+            android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/recentMessage"
+            android:id="@+id/chatMessageContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
             android:text="message"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/chatMessageUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="username"
+            android:textColor="@color/light_gray"
+            android:textSize="14sp" />
     </LinearLayout>
 
     <ImageView
+        android:id="@+id/rightArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_arrow_right"
+        app:layout_constraintBottom_toBottomOf="@id/chatMessageLayout"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/previewMessageLayout"
-        app:layout_constraintBottom_toBottomOf="@id/previewMessageLayout"/>
+        app:layout_constraintTop_toTopOf="@id/chatMessageLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

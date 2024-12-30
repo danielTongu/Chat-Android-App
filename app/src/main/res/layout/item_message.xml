@@ -9,24 +9,24 @@
 
     <!-- Received message layout -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/receivedMessageLayout"
+        android:id="@+id/messageReceivedLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.makeramen.roundedimageview.RoundedImageView
-            android:id="@+id/receivedProfilePicture"
+            android:id="@+id/messageReceivedUserImage"
             android:layout_width="40sp"
             android:layout_height="40sp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_profile"
-            app:layout_constraintBottom_toBottomOf="@id/receivedMessage"
+            app:layout_constraintBottom_toBottomOf="@id/messageReceivedContent"
             app:layout_constraintStart_toStartOf="parent"
             app:riv_border_color="@color/lighter_gray"
             app:riv_border_width="2dp"
             app:riv_corner_radius="24dp" />
 
         <TextView
-            android:id="@+id/receivedMessage"
+            android:id="@+id/messageReceivedContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -35,39 +35,39 @@
             android:paddingVertical="11dp"
             android:text="received message"
             android:textColor="@color/white"
-            app:layout_constraintStart_toEndOf="@id/receivedProfilePicture"
+            app:layout_constraintStart_toEndOf="@id/messageReceivedUserImage"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintWidth_percent="0.75" />
 
         <TextView
-            android:id="@+id/receivedNameOrPhoneOrEmail"
+            android:id="@+id/messageReceivedUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="sender"
+            android:text="user"
             android:textColor="@color/black"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@id/receivedMessage"
-            app:layout_constraintTop_toBottomOf="@id/receivedMessage" />
+            app:layout_constraintStart_toStartOf="@id/messageReceivedContent"
+            app:layout_constraintTop_toBottomOf="@id/messageReceivedContent" />
 
         <TextView
-            android:id="@+id/receivedTimestamp"
+            android:id="@+id/messageReceivedTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
             android:text="yyyy-mm-dd hh:mm:ss"
             android:textColor="@color/dark_gray"
-            app:layout_constraintStart_toEndOf="@id/receivedNameOrPhoneOrEmail"
-            app:layout_constraintTop_toBottomOf="@id/receivedMessage" />
+            app:layout_constraintStart_toEndOf="@id/messageReceivedUserName"
+            app:layout_constraintTop_toBottomOf="@id/messageReceivedContent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Sent message layout -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/sentMessageLayout"
+        android:id="@+id/messageSentLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/sentMessage"
+            android:id="@+id/messageSentContent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_message_sent"
@@ -80,21 +80,21 @@
             app:layout_constraintWidth_percent="0.8" />
 
         <TextView
-            android:id="@+id/sentNameOrPhoneOrEmail"
+            android:id="@+id/messageSentUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Me"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/sentMessage" />
+            app:layout_constraintTop_toBottomOf="@id/messageSentContent" />
 
         <TextView
-            android:id="@+id/sentTimestamp"
+            android:id="@+id/messageSentTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="10dp"
             android:text="yyyy-mm-dd hh:mm:ss"
-            app:layout_constraintEnd_toStartOf="@id/sentNameOrPhoneOrEmail"
-            app:layout_constraintTop_toBottomOf="@id/sentMessage" />
+            app:layout_constraintEnd_toStartOf="@id/messageSentUserName"
+            app:layout_constraintTop_toBottomOf="@id/messageSentContent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

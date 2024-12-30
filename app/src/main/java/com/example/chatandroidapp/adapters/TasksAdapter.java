@@ -15,7 +15,7 @@ import java.util.List;
  * TasksAdapter handles displaying tasks and managing user interactions like
  * marking tasks as completed, editing, and deleting.
  */
-public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
+public class TasksAdapter extends RecyclerView.Adapter<TasksAdapter.TaskViewHolder> {
     private final List<Task> tasks; // List of tasks to display
     private final TaskAdapterListener listener; // Callback listener for interactions
 
@@ -25,7 +25,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
      * @param tasks    The list of tasks to display.
      * @param listener The listener for task interactions.
      */
-    public TaskAdapter(List<Task> tasks, TaskAdapterListener listener) {
+    public TasksAdapter(List<Task> tasks, TaskAdapterListener listener) {
         this.tasks = tasks;
         this.listener = listener;
     }
@@ -101,17 +101,17 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             binding.taskDescription.setText(task.description);
 
             // Temporarily disable the listener while updating the state, then enable it
-            binding.taskCompleted.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
-            binding.taskCompleted.setChecked(task.isCompleted);// Set the checkbox state
-            binding.taskCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            binding.taskIsCompleted.setOnCheckedChangeListener(null); // Prevent unwanted callbacks during recycling
+            binding.taskIsCompleted.setChecked(task.isCompleted);// Set the checkbox state
+            binding.taskIsCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 listener.onTaskCompletedChanged(task);
             });
 
             // Handle edit button click
-            binding.editButton.setOnClickListener(v -> listener.onEditTask(task));
+            binding.taskEditButton.setOnClickListener(v -> listener.onEditTask(task));
 
             // Handle delete button click
-            binding.deleteButton.setOnClickListener(v -> listener.onDeleteTask(task));
+            binding.taskDeleteButton.setOnClickListener(v -> listener.onDeleteTask(task));
         }
     }
 }

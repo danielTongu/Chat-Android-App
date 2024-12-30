@@ -16,9 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.chatandroidapp.activities.TaskWriterActivity;
-import com.example.chatandroidapp.adapters.TaskAdapter;
-import com.example.chatandroidapp.databinding.FragmentTaskBinding;
+import com.example.chatandroidapp.activities.TaskEditorActivity;
+import com.example.chatandroidapp.adapters.TasksAdapter;
+import com.example.chatandroidapp.databinding.FragmentTasksBinding;
 import com.example.chatandroidapp.models.Task;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -39,25 +39,39 @@ import java.util.Locale;
  * and provides UI interactions for marking tasks complete, editing, and deleting.
  */
 public class TasksFragment extends Fragment {
-    /** ViewBinding instance for fragment_tasks.xml */
-    private FragmentTaskBinding binding;
+    /**
+     * ViewBinding instance for fragment_tasks.xml
+     */
+    private FragmentTasksBinding binding;
 
-    /** Adapter for displaying tasks in a RecyclerView */
-    private TaskAdapter tasksAdapter;
+    /**
+     * Adapter for displaying tasks in a RecyclerView
+     */
+    private TasksAdapter tasksAdapter;
 
-    /** Full list of tasks obtained from Firestore */
+    /**
+     * Full list of tasks obtained from Firestore
+     */
     private List<Task> tasksList;
 
-    /** Current filtered list of tasks displayed to the user */
+    /**
+     * Current filtered list of tasks displayed to the user
+     */
     private List<Task> tasksListFiltered;
 
-    /** PreferenceManager for storing user-related data */
+    /**
+     * PreferenceManager for storing user-related data
+     */
     private PreferenceManager preferenceManager;
 
-    /** Firestore database instance */
+    /**
+     * Firestore database instance
+     */
     private FirebaseFirestore db;
 
-    /** ActivityResultLauncher for handling results from TaskEditorActivity */
+    /**
+     * ActivityResultLauncher for handling results from TaskEditorActivity
+     */
     private final ActivityResultLauncher<Intent> taskEditorLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -77,7 +91,7 @@ public class TasksFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentTaskBinding.inflate(inflater, container, false);
+        binding = FragmentTasksBinding.inflate(inflater, container, false);
         preferenceManager = PreferenceManager.getInstance(requireContext());
         db = FirebaseFirestore.getInstance();
 
@@ -98,7 +112,7 @@ public class TasksFragment extends Fragment {
         tasksListFiltered = new ArrayList<>();
         tasksList = new ArrayList<>();
 
-        tasksAdapter = new TaskAdapter(tasksListFiltered, new TaskAdapter.TaskAdapterListener() {
+        tasksAdapter = new TasksAdapter(tasksListFiltered, new TasksAdapter.TaskAdapterListener() {
             @Override
             public void onTaskCompletedChanged(Task task) {
                 toggleTaskCompletion(task);
@@ -177,7 +191,7 @@ public class TasksFragment extends Fragment {
      * @param task The task to edit, or null if creating a new task.
      */
     private void navigateToTaskEditorActivity(Task task) {
-        Intent intent = new Intent(getContext(), TaskWriterActivity.class);
+        Intent intent = new Intent(getContext(), TaskEditorActivity.class);
         if (task != null) {
             intent.putExtra("Task", task);
         }

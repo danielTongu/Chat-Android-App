@@ -28,15 +28,11 @@ import java.io.InputStream;
  */
 public class SignUpActivity extends AppCompatActivity {
 
-    private static final String TAG = "SIGN_UP_ACTIVITY";
     public static final int KEY_PASSWORD_MIN_LENGTH = 5;
     public static final String ACTION_SIGN_UP = "signUp";
-
+    private static final String TAG = "SIGN_UP_ACTIVITY";
     private ActivitySignUpBinding binding;
     private String encodedImage;
-    private PreferenceManager preferenceManager;
-    private boolean isEmailSignUp = true;
-
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -45,6 +41,8 @@ public class SignUpActivity extends AppCompatActivity {
                 }
             }
     );
+    private PreferenceManager preferenceManager;
+    private boolean isEmailSignUp = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

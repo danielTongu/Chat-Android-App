@@ -1,6 +1,3 @@
-/**
- * MessagesAdapter handles the display of chat messages in the RecyclerView.
- */
 package com.example.chatandroidapp.adapters;
 
 import android.content.Context;
@@ -35,19 +32,29 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MessageViewHolder> {
 
-    /** The list of Message objects to be displayed. */
+    /**
+     * The list of Message objects to be displayed.
+     */
     private final List<Message> messagesList;
 
-    /**ID of the current user, used to differentiate between sent and received messages. */
+    /**
+     * ID of the current user, used to differentiate between sent and received messages.
+     */
     private final String currentUserId;
 
-    /** A reference to the Firestore database for fetching sender user data of received messages.*/
+    /**
+     * A reference to the Firestore database for fetching sender user data of received messages.
+     */
     private final FirebaseFirestore firestore;
 
-    /**A cache for storing sender User objects, preventing repeated Firestore lookups.*/
+    /**
+     * A cache for storing sender User objects, preventing repeated Firestore lookups.
+     */
     private final ConcurrentHashMap<String, User> userCache;
 
-    /** The context of the Activity or Fragment using this adapter.*/
+    /**
+     * The context of the Activity or Fragment using this adapter.
+     */
     private final Context context;
 
 
@@ -104,6 +111,21 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     }
 
     /**
+     * Formats a Date object into a readable string (yyyy-MM-dd HH:mm).
+     * Returns an empty string if the date is null.
+     *
+     * @param date The Date object to format.
+     * @return The formatted date string or "" if null.
+     */
+    private String formatDate(Date date) {
+        if (date == null) {
+            return "";
+        }
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+        return dateFormat.format(date);
+    }
+
+    /**
      * ViewHolder class for the MessagesAdapter. Uses ItemMessageBinding to access views without R.id references.
      * Handles both "sent" and "received" message layouts within the same item view.
      */
@@ -144,12 +166,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
          * @param message The sent Message object.
          */
         private void showSentMessage(Message message) {
-            binding.receivedMessageLayout.setVisibility(View.GONE);
+            binding.messageReceivedLayout.setVisibility(View.GONE);
 
-            binding.sentMessageLayout.setVisibility(View.VISIBLE);
-            binding.sentMessage.setText(message.content);
-            binding.sentTimestamp.setText(formatDate(message.sentDate));
-            binding.sentNameOrPhoneOrEmail.setText("Me");
+            binding.messageSentLayout.setVisibility(View.VISIBLE);
+            binding.messageSentContent.setText(message.content);
+            binding.messageSentTimestamp.setText(formatDate(message.sentDate));
+            binding.messageSentUserName.setText("Me");
         }
 
         /**
@@ -158,11 +180,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
          * @param message The received Message object.
          */
         private void showReceivedMessage(final Message message) {
-            binding.sentMessageLayout.setVisibility(View.GONE);
+            binding.messageSentLayout.setVisibility(View.GONE);
 
-            binding.receivedMessageLayout.setVisibility(View.VISIBLE);
-            binding.receivedMessage.setText(message.content);
-            binding.receivedTimestamp.setText(formatDate(message.sentDate));
+            binding.messageReceivedLayout.setVisibility(View.VISIBLE);
+            binding.messageReceivedContent.setText(message.content);
+            binding.messageReceivedTimestamp.setText(formatDate(message.sentDate));
 
             // Try to retrieve the sender's details from the cache or Firestore
             if (userCache.containsKey(message.senderId)) {
@@ -195,14 +217,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 displayName = "Unknown";
             }
 
-            binding.receivedNameOrPhoneOrEmail.setText(displayName);
-            binding.receivedProfilePicture.setImageResource(R.drawable.ic_profile);
+            binding.messageReceivedUserName.setText(displayName);
+            binding.messageReceivedUserImage.setImageResource(R.drawable.ic_profile);
 
             // If there's a custom profile image, decode and display it
             if (!TextUtils.isEmpty(sender.image)) {
                 Bitmap senderBitmap = User.getBitmapFromEncodedString(sender.image);
                 if (senderBitmap != null) {
-                    binding.receivedProfilePicture.setImageBitmap(senderBitmap);
+                    binding.messageReceivedUserImage.setImageBitmap(senderBitmap);
                 }
             }
         }
@@ -222,7 +244,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                         if (documentSnapshot.exists()) {
                             sender = documentSnapshot.toObject(User.class);
                         }
-                        if(sender != null) {
+                        if (sender != null) {
                             userCache.put(senderId, sender);
                             bindUserData(sender);
                         }
@@ -235,20 +257,5 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                         Log.e("MESSAGES_ADAPTER", "Failed to fetch user data for senderId: " + senderId, e);
                     });
         }
-    }
-
-    /**
-     * Formats a Date object into a readable string (yyyy-MM-dd HH:mm).
-     * Returns an empty string if the date is null.
-     *
-     * @param date The Date object to format.
-     * @return The formatted date string or "" if null.
-     */
-    private String formatDate(Date date) {
-        if (date == null) {
-            return "";
-        }
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-        return dateFormat.format(date);
     }
 }

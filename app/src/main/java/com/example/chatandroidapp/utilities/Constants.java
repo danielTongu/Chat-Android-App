@@ -3,8 +3,6 @@ package com.example.chatandroidapp.utilities;
 /**
  * Constants is a utility class that holds all the constant values used across the application.
  * This includes keys for SharedPreferences, database collections, user attributes, and Toast types.
- *
- *@author  Daniel Tongu
  */
 public class Constants {
     public static final String KEY_ACTION_TYPE = "actionType";

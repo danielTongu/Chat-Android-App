@@ -16,36 +16,52 @@ import java.util.Locale;
  */
 public class Task implements Serializable {
 
-    /** The unique identifier for the task (Firestore Document ID). */
+    /**
+     * The unique identifier for the task (Firestore Document ID).
+     */
     @PropertyName("id")
     public final String id;
 
-    /** The ID of the user who owns this task. */
+    /**
+     * The ID of the user who owns this task.
+     */
     @PropertyName("userId")
     public final String userId;
 
-    /** The timestamp when the task was created (auto-assigned by Firestore). */
+    /**
+     * The timestamp when the task was created (auto-assigned by Firestore).
+     */
     @ServerTimestamp
     @PropertyName("createdDate")
     public Date createdDate;
 
-    /** The title of the task. */
+    /**
+     * The title of the task.
+     */
     @PropertyName("title")
     public String title;
 
-    /** The description of the task. */
+    /**
+     * The description of the task.
+     */
     @PropertyName("description")
     public String description;
 
-    /** Whether the task is completed. */
+    /**
+     * Whether the task is completed.
+     */
     @PropertyName("isCompleted")
     public boolean isCompleted;
 
-    /** The date by which the task should be completed. */
+    /**
+     * The date by which the task should be completed.
+     */
     @PropertyName("completionDate")
     public String completionDate;
 
-    /** The time by which the task should be completed. */
+    /**
+     * The time by which the task should be completed.
+     */
     @PropertyName("completionTime")
     public String completionTime;
 
