@@ -251,7 +251,7 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatViewHold
             binding.chatMessageUserName.setText(displayName);
             binding.chatMessageUserImage.setImageResource(R.drawable.ic_profile);
 
-            if (!user.image.isEmpty()) {
+            if (user.image != null && !user.image.isEmpty()) {
                 android.graphics.Bitmap senderBitmap = User.getBitmapFromEncodedString(user.image);
                 if (senderBitmap != null) {
                     binding.chatMessageUserImage.setImageBitmap(senderBitmap);
