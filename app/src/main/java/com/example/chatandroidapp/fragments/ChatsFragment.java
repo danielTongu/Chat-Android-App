@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.chatandroidapp.activities.InitiateChatActivity;
+import com.example.chatandroidapp.activities.ChatCreatorActivity;
 import com.example.chatandroidapp.adapters.ChatsAdapter;
 import com.example.chatandroidapp.databinding.FragmentChatsBinding;
 import com.example.chatandroidapp.models.Chat;
@@ -336,7 +336,7 @@ public class ChatsFragment extends Fragment {
      */
     private void setListeners() {
         binding.fabNewChat.setOnClickListener(view -> {
-            Intent intent = new Intent(requireContext(), InitiateChatActivity.class);
+            Intent intent = new Intent(requireContext(), ChatCreatorActivity.class);
             startActivity(intent);
         });
     }

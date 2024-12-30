@@ -127,7 +127,8 @@ public class ProfileFragment extends Fragment {
         binding.inputPhoneNumber.setText(preferenceManager.getString(Constants.KEY_PHONE, ""));
 
         String encodedImage = preferenceManager.getString(Constants.KEY_IMAGE, null);
-        if (!encodedImage.isEmpty()) {
+
+        if (!(encodedImage == null || encodedImage.isEmpty())) {
             binding.imageProfile.setImageBitmap(User.getBitmapFromEncodedString(encodedImage));
         }
     }

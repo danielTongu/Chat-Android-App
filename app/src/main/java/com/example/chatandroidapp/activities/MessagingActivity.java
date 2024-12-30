@@ -97,7 +97,7 @@ public class MessagingActivity extends AppCompatActivity {
         if (intent.hasExtra(Constants.KEY_ID)) {
             chatId = intent.getStringExtra(Constants.KEY_ID);
             fetchChatDetails();
-        } else if (intent.hasExtra(InitiateChatActivity.KEY_SELECTED_USERS_LIST)) {
+        } else if (intent.hasExtra(ChatCreatorActivity.KEY_SELECTED_USERS_LIST)) {
             handleNewChat(intent);
         } else {
             Utilities.showToast(this, "Invalid chat data. Please try again.", Utilities.ToastType.ERROR);
@@ -222,10 +222,10 @@ public class MessagingActivity extends AppCompatActivity {
     private void handleNewChat(Intent intent) {
         showLoading(true, "initializing new chat...");
 
-        List<User> selectedUsers = (List<User>) intent.getSerializableExtra(InitiateChatActivity.KEY_SELECTED_USERS_LIST);
+        List<User> selectedUsers = (List<User>) intent.getSerializableExtra(ChatCreatorActivity.KEY_SELECTED_USERS_LIST);
         if (selectedUsers != null && !selectedUsers.isEmpty()) {
             userList.addAll(selectedUsers);
-            String initialMessage = intent.getStringExtra(InitiateChatActivity.KEY_INITIAL_MESSAGE);
+            String initialMessage = intent.getStringExtra(ChatCreatorActivity.KEY_INITIAL_MESSAGE);
 
             if (initialMessage != null && !initialMessage.isEmpty()) {
                 binding.inputMessage.setText(initialMessage);

@@ -8,7 +8,7 @@ import android.widget.TimePicker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.chatandroidapp.databinding.ActivityTaskEditorBinding;
+import com.example.chatandroidapp.databinding.ActivityTaskWriterBinding;
 import com.example.chatandroidapp.models.Task;
 import com.example.chatandroidapp.utilities.Constants;
 import com.example.chatandroidapp.utilities.PreferenceManager;
@@ -24,7 +24,7 @@ import java.util.Locale;
 public class TaskWriterActivity extends AppCompatActivity {
 
     /** View binding to access UI elements */
-    private ActivityTaskEditorBinding binding;
+    private ActivityTaskWriterBinding binding;
 
     /** Firestore database instance */
     private FirebaseFirestore db;
@@ -45,7 +45,7 @@ public class TaskWriterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        binding = ActivityTaskEditorBinding.inflate(getLayoutInflater());
+        binding = ActivityTaskWriterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         init();

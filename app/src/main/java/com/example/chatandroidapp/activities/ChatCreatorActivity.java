@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.chatandroidapp.adapters.UsersAdapter;
-import com.example.chatandroidapp.databinding.ActivityInitiateChatBinding;
+import com.example.chatandroidapp.databinding.ActivityChatCreatorBinding;
 import com.example.chatandroidapp.models.Message;
 import com.example.chatandroidapp.models.User;
 import com.example.chatandroidapp.utilities.Constants;
@@ -32,7 +32,7 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
     private static final String TAG = "CHAT_CREATOR_ACTIVITY";
 
 
-    private ActivityInitiateChatBinding binding;
+    private ActivityChatCreatorBinding binding;
     private UsersAdapter userAdapter;
     private final List<User> userList = new ArrayList<>();
     private final List<User> selectedUsers = new ArrayList<>();
@@ -42,7 +42,7 @@ public class ChatCreatorActivity extends AppCompatActivity implements UsersAdapt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityInitiateChatBinding.inflate(getLayoutInflater());
+        binding = ActivityChatCreatorBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         preferenceManager = PreferenceManager.getInstance(getApplicationContext());
