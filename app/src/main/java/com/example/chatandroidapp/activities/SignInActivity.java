@@ -256,7 +256,6 @@ public class SignInActivity extends AppCompatActivity {
      * Handles the current action (sign-in or account deletion verification).
      */
     private void handleAction() {
-        showLoading(true, "Processing...");
         String phoneNumber = binding.countryCodePicker.getFullNumberWithPlus();
         String email = binding.inputEmail.getText().toString().trim();
         String password = binding.inputPassword.getText().toString().trim();
@@ -265,8 +264,6 @@ public class SignInActivity extends AppCompatActivity {
             navigateToOtpVerification(phoneNumber);
         } else if (isValidEmailAndPassword(email, password)) {
             authenticateUser(email, password);
-        } else {
-            showLoading(false, null);
         }
     }
 

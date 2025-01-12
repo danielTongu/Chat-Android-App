@@ -157,14 +157,16 @@ public class OtpVerificationActivity extends AppCompatActivity {
      * @return True if OTP is valid, false otherwise.
      */
     private boolean validateOtp(String otp) {
+        boolean isValid = false;
         if (otp.isEmpty()) {
             binding.inputOtp.setError("Please enter the OTP.");
-            return false;
         } else if (otp.length() < 6) {
             binding.inputOtp.setError("OTP must be 6 digits.");
-            return false;
+        } else {
+            isValid = true;
         }
-        return true;
+
+        return isValid;
     }
 
     /**
